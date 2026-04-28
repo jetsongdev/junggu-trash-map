@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "rootDir": "docs/snapshots",
+  "viewport": { "width": 390, "height": 844 },
+  "url": "http://localhost:3000",
+  "fallbackUrls": ["http://localhost:3001"],
+  "waitForText": "전체",
+  "extraWaitMs": 3000,
+  "imageFormat": "png",
+  "fullPage": false,
+  "devCommand": "bun run dev"
+}
