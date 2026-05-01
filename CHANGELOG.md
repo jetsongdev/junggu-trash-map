@@ -9,6 +9,12 @@
 
 ## [Unreleased]
 
+### Added — Phase 2.1: Geolocation
+- "📍 내 위치" 버튼 — 권한 요청 → 지도가 사용자 위치로 panTo(zoom≥16, 0.6s flyTo) + 펄스 점 표시
+- 가장 가까운 휴지통 자동 강조 (노란 ring) + 거리 라벨 ("가까운 통 121m (이름)") in 통계 바
+- `lib/geo.ts` — Haversine 거리, `findNearest`, `formatDistance` (m/km 전환)
+- 권한 거부 / 브라우저 미지원 시 칩에 에러 메시지
+
 ### Added — Phase 0: PoC 부트스트랩
 - Next.js 16 + Bun + Tailwind v4 + Leaflet 기반 중구 휴지통 지도 PWA 프로토타입
 - 모바일 우선 헤더(다크) + 라이트 OSM 지도 레이아웃

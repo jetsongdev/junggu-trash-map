@@ -36,13 +36,17 @@
 - [x] **혼합 마커 디자인**: 단일=색별 / 혼합=보라(`#a855f7`)+`🗑️♻️` 이중 이모지
 - [x] 빌드/브라우저 검증 — 59 마커, 필터 토글(일반=59 / 재활용=56 / 전체=59), 팝업 type 칩 다중 표시
 
+### Phase 2 — UX 다듬기
+- [x] **P2.1** Geolocation API + 가장 가까운 휴지통 강조 — `lib/geo.ts` (Haversine + findNearest), LocateButton/UserMarker 컴포넌트, Map에 `useMap().flyTo` + 노란 강조 Circle, 거리/이름 라벨
+
 ---
 
 ## 🔜 Open — Phase 2: UX 다듬기
 
 다음 세션 진입 시 가장 먼저 손댈 것.
 
-- [ ] **P2.1** "내 위치" 버튼 + 가장 가까운 휴지통 강조 (Geolocation API)
+> P2.1은 완료 — Done 섹션 참고. 다음은 P2.2 / P2.4 / P2.5 중 선택.
+
 - [ ] **P2.2** PWA manifest + 홈화면 추가 프롬프트
 - [ ] **P2.3** 클러스터링 (마커 100+ 되면 lag) — `leaflet.markercluster` 검토
 - [ ] **P2.4** 다크모드 타일 (CartoDB Dark Matter 같은 OSM 변종)

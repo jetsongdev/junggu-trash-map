@@ -7,7 +7,8 @@
 | # | 날짜 | 제목 | 폴더 |
 |---|------|------|------|
 | 01 | 2026-04-28 | 실데이터 통합 직후 (Phase 0+1) | [01-real-data-integration](./01-real-data-integration/) |
-| 02 | 2026-04-28 | 리팩터 후 안정 상태 (시각 회귀 없음) | [02-post-simplify](./02-post-simplify/) |
+| 02 | 2026-05-01 | 리팩터 후 + 재활용 필터 적용 상태 (56/59) | [02-post-simplify](./02-post-simplify/) |
+| 03 | 2026-05-01 | 내 위치 + 가까운 휴지통 강조 (P2.1) | [03-geolocation](./03-geolocation/) |
 
 ## 새 스냅샷 찍는 법
 
