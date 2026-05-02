@@ -31,7 +31,11 @@ export default function Page() {
   const [locatePending, setLocatePending] = useState(false);
   const [locateError, setLocateError] = useState<string | null>(null);
   const [tapMode, setTapMode] = useState(false);
-  const [distanceMode] = useState<DistanceMode>('euclidean');
+  const [distanceMode, setDistanceMode] = useState<DistanceMode>(() => {
+    if (typeof window === 'undefined') return 'euclidean';
+    const saved = window.localStorage.getItem('distanceMode');
+    return saved === 'manhattan' ? 'manhattan' : 'euclidean';
+  });
   const watchIdRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -56,6 +60,10 @@ export default function Page() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem('distanceMode', distanceMode);
+  }, [distanceMode]);
 
   const visible = useMemo(() => filterByTypes(bins, selected), [bins, selected]);
   const nearest = useMemo(
@@ -150,6 +158,22 @@ export default function Page() {
             onLocate={locate}
             onClear={clearLocation}
           />
+          <button
+            type="button"
+            onClick={() =>
+              setDistanceMode((prev) =>
+                prev === 'euclidean' ? 'manhattan' : 'euclidean',
+              )
+            }
+            aria-pressed={distanceMode === 'manhattan'}
+            className={`min-h-[44px] rounded-full px-4 text-sm font-medium transition flex items-center gap-1.5 ${
+              distanceMode === 'manhattan'
+                ? 'bg-amber-500 text-white shadow'
+                : 'bg-white text-neutral-700 ring-1 ring-neutral-300 hover:bg-neutral-100'
+            }`}
+          >
+            <span>{distanceMode === 'euclidean' ? '📏 직선' : '📐 격자'}</span>
+          </button>
           <button
             type="button"
             onClick={toggleTapMode}

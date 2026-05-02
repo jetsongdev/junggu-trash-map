@@ -16,6 +16,12 @@
 - **Vercel Analytics + Speed Insights 설치** — RUM(Real User Monitoring), Core Web Vitals 자동 수집
 - iPad/모바일에서 HTTPS로 접속해 실제 GPS 권한·watchPosition 동작 검증 가능
 
+### Added — Phase 2.6: Manhattan 거리 토글
+- 새 칩 **📏 직선 / 📐 격자** (amber 활성) — 거리 선이 2점 직선 ↔ 3점 L자로 즉시 전환
+- `findNearest`도 mode 따라 재계산 (격자 거리에서는 nearest가 다른 마커가 될 수 있음)
+- `localStorage['distanceMode']` 영속화 — 다음 방문 시 마지막 선택 복원
+- 같은 좌표·같은 마커: 직선 121m → 격자 154m (보행자 거리 근사)
+
 ### Added — Phase 2.1+: 탭으로 위치 지정 (iOS Safari fallback)
 - 새 칩 **🎯 지도 탭** — 모드 토글 후 지도 한 번 클릭으로 사용자 위치 설정 (cursor `crosshair`, 클릭 후 모드 자동 종료)
 - GPS 권한 거부 / 신호 없음 / 타임아웃 별 에러 메시지 분기, 각 분기에서 탭 모드 우회 안내 포함

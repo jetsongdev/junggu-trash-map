@@ -12,6 +12,7 @@
 | 04 | 2026-05-02 | 필터 + 위치 결합 (재활용+중림로10, 88m 점프) | [04-locate-with-filter](./04-locate-with-filter/) |
 | 05 | 2026-05-02 | 실시간 추적 + 거리 선 (시청/명동/DDP 3프레임) | [05-realtime-tracking](./05-realtime-tracking/) |
 | 06 | 2026-05-02 | 🎯 지도 탭으로 위치 지정 (iPad/GPS 거부 우회) | [06-tap-to-locate](./06-tap-to-locate/) |
+| 07 | 2026-05-02 | 📐 Manhattan 거리 토글 (L자 격자, 154m vs 직선 121m) | [07-manhattan-toggle](./07-manhattan-toggle/) |
 
 ## 새 스냅샷 찍는 법
 
