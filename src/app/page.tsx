@@ -13,6 +13,13 @@ import {
   type DistanceMode,
   type LatLng,
 } from '@/lib/geo';
+import {
+  etaSeconds,
+  formatEta,
+  nextSpeed,
+  WALKING_SPEEDS,
+  type WalkingSpeed,
+} from '@/lib/eta';
 import type { BinType, TrashBin } from '@/lib/types';
 
 type TapTarget = 'origin' | 'destination' | null;
@@ -46,6 +53,11 @@ export default function Page() {
     const saved = window.localStorage.getItem('tileTheme');
     return saved === 'light' ? 'light' : 'dark';
   });
+  const [walkingSpeed, setWalkingSpeed] = useState<WalkingSpeed>(() => {
+    if (typeof window === 'undefined') return 'normal';
+    const saved = window.localStorage.getItem('walkingSpeed');
+    return saved === 'slow' || saved === 'fast' ? saved : 'normal';
+  });
   const watchIdRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -78,6 +90,10 @@ export default function Page() {
   useEffect(() => {
     window.localStorage.setItem('tileTheme', tileTheme);
   }, [tileTheme]);
+
+  useEffect(() => {
+    window.localStorage.setItem('walkingSpeed', walkingSpeed);
+  }, [walkingSpeed]);
 
   const visible = useMemo(() => filterByTypes(bins, selected), [bins, selected]);
 
@@ -247,6 +263,15 @@ export default function Page() {
           </button>
           <button
             type="button"
+            onClick={() => setWalkingSpeed((prev) => nextSpeed(prev))}
+            aria-label={`보행 속도: ${WALKING_SPEEDS[walkingSpeed].label}, 클릭해 다음 단계로`}
+            className={`${chipBase} ${inactiveChip}`}
+          >
+            <span aria-hidden>{WALKING_SPEEDS[walkingSpeed].emoji}</span>
+            <span>{WALKING_SPEEDS[walkingSpeed].label} {WALKING_SPEEDS[walkingSpeed].kmh}km/h</span>
+          </button>
+          <button
+            type="button"
             onClick={() =>
               setTileTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
             }
@@ -261,12 +286,12 @@ export default function Page() {
           📍 {visible.length} / 전체 {bins.length}개
           {route && (
             <span className="ml-2 text-cyan-300">
-              · 출발→{route.bin.name.split(',')[0]}→목적지 {formatDistance(route.cost.total)} (경유 +{formatDistance(route.cost.extra)})
+              · 출발→{route.bin.name.split(',')[0]}→목적지 {formatDistance(route.cost.total)} · {formatEta(etaSeconds(route.cost.total, walkingSpeed))} (경유 +{formatDistance(route.cost.extra)})
             </span>
           )}
           {!route && nearest && (
             <span className="ml-2 text-sky-300">
-              · 가까운 통 {formatDistance(nearest.meters)} ({nearest.bin.name.split(',')[0]})
+              · 가까운 통 {formatDistance(nearest.meters)} · {formatEta(etaSeconds(nearest.meters, walkingSpeed))} ({nearest.bin.name.split(',')[0]})
             </span>
           )}
           {locateError && <span className="ml-2 text-red-400">({locateError})</span>}

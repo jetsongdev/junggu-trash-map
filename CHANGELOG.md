@@ -16,6 +16,12 @@
 - **Vercel Analytics + Speed Insights 설치** — RUM(Real User Monitoring), Core Web Vitals 자동 수집
 - iPad/모바일에서 HTTPS로 접속해 실제 GPS 권한·watchPosition 동작 검증 가능
 
+### Added — Phase 2.8: ETA + 보행 속도 3단계
+- `lib/eta.ts` — `WalkingSpeed = 'slow'|'normal'|'fast'`, `WALKING_SPEEDS` (3/4/5 km/h), `etaSeconds`, `formatEta` (초/분 자동)
+- 새 cycle 칩 — 🐢 느림 3km/h ↔ 🚶 보통 4km/h ↔ 🏃 빠름 5km/h. localStorage 영속화
+- 통계 바: `가까운 통 121m · 약 1분 49초` 형태로 거리·시간 결합 표시
+- 경로(목적지) 모드도 동일 — `출발→통→목적지 354m · 약 5분 19초 (경유 +47m)`
+
 ### Added — Phase 2.7: 경로 최적화 (출발 → 휴지통 → 목적지)
 - 새 칩 **🏁 목적지** — 클릭 시 destination tap mode, 다음 지도 클릭으로 목적지 설정 (set 후 "해제" 라벨)
 - 기존 "🎯 지도 탭" → **"🎯 출발 탭"** rename
