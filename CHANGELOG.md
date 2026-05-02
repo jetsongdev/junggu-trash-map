@@ -16,6 +16,13 @@
 - **Vercel Analytics + Speed Insights 설치** — RUM(Real User Monitoring), Core Web Vitals 자동 수집
 - iPad/모바일에서 HTTPS로 접속해 실제 GPS 권한·watchPosition 동작 검증 가능
 
+### Added — Phase 2.2: PWA 설치 가능
+- `app/manifest.ts` — Next.js MetadataRoute.Manifest, `display: standalone`, theme/background `#0a0a0a`
+- `app/icon.tsx` (192×192) + `app/apple-icon.tsx` (180×180) — `next/og` `ImageResponse`로 빌드 시점 PNG 동적 생성
+- `layout.tsx` metadata: `appleWebApp` (status bar style black-translucent, title), `applicationName`, `formatDetection: { telephone: false }`
+- iPad Safari → 공유 → "홈 화면에 추가" → 풀스크린 PWA 동작
+- Android Chrome 자동 install banner
+
 ### Added — Phase 2.4++: 라이트/다크 타일 토글
 - 새 칩 **🌑 다크 ↔ ☀️ 라이트** — CartoDB Dark Matter ↔ OpenStreetMap Standard
 - 다크 모드: 어트리뷰션·줌 컨트롤도 다크. 라이트 모드: leaflet 기본 (흰)

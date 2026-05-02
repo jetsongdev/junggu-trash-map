@@ -16,6 +16,7 @@
 | 08 | 2026-05-02 | 🌑 CartoDB Dark Matter 타일 (다크 헤더와 통일) | [08-dark-tiles](./08-dark-tiles/) |
 | 09 | 2026-05-02 | 🎨 다크 테마 가독성 — 비활성 칩·줌·어트리뷰션 다크 통일 | [09-dark-theme-polish](./09-dark-theme-polish/) |
 | 10 | 2026-05-02 | 🌑/☀️ 라이트/다크 타일 토글 (2프레임 비교) | [10-tile-theme-toggle](./10-tile-theme-toggle/) |
+| 11 | 2026-05-02 | 📲 PWA manifest + 아이콘 (홈 화면 추가 가능) | [11-pwa-manifest](./11-pwa-manifest/) |
 
 ## 새 스냅샷 찍는 법
 

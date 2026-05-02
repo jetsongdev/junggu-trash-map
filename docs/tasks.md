@@ -48,6 +48,7 @@
 - [x] **P2.4** 다크 타일 — `<TileLayer>` URL을 CartoDB Dark Matter로 교체, 다크 헤더와 통일. subdomains 4-shard, maxZoom 20, retina 지원.
 - [x] **P2.4+** 다크 테마 가독성 — 비활성 칩 다크 그레이, 활성 "전체" 흰색 invert, Leaflet 줌·어트리뷰션 다크 override (`!important`).
 - [x] **P2.4++** 라이트/다크 타일 토글 — `TILE_PRESETS` 객체, `tileTheme` state + localStorage, `.tile-theme-dark` wrapper로 leaflet UI 다크화 가드. 칩 한 개로 전환.
+- [x] **P2.2** PWA manifest + iOS 풀스크린 메타 — `app/manifest.ts` + `icon.tsx`/`apple-icon.tsx` 동적 PNG (next/og), `appleWebApp` metadata. Safari "홈 화면에 추가"로 풀스크린 PWA.
 
 ---
 
@@ -55,7 +56,6 @@
 
 P2.1 + iPad fallback 완료. 다음 후보 (가벼운 → 무거운 순):
 
-- [ ] **P2.2** PWA manifest + 홈화면 추가 프롬프트 — `app/manifest.ts` + 아이콘
 - [ ] **P2.5** URL 쿼리스트링 필터 상태 공유 (`?type=재활용`) — `useSearchParams`
 - [ ] **P2.3** 클러스터링 (마커 100+ 되면 lag) — `leaflet.markercluster`. 25개 구 확장 시 필요
 
