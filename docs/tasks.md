@@ -3,15 +3,17 @@
 > 이 파일은 Claude가 매 세션 시작 시 읽고 작업 우선순위를 판단하는 1차 소스.
 > 사람과 에이전트 모두 직접 편집 가능. 컨벤션은 파일 끝 「운영 규칙」 참고.
 
-## 현재 상태 (2026-04-28)
+## 현재 상태 (2026-05-02)
 
-- **Phase**: 1 — 실데이터 연동 완료. 다음은 Phase 2 (UX 다듬기)
-- **Stack**: Next.js 16 (Turbopack) · Bun · TypeScript strict · Tailwind v4 · Leaflet + OSM
+- **Phase**: 2 진행 중 — P2.1(Geolocation) 완료 + iPad fallback(탭 모드) 마무리. 다음은 P2.2/P2.4/P2.5 또는 Manhattan 토글
+- **Stack**: Next.js 16 (Turbopack) · Bun · TypeScript strict · Tailwind v4 · Leaflet + OSM · Vercel Analytics + Speed Insights
 - **Dev**: `bun run dev` → http://localhost:3000 (점유 시 자동 3001)
 - **Build**: `bun run build` 통과
-- **Production**: https://junggu-trash-map.vercel.app (Vercel, GitHub `jetsongdev/junggu-trash-map` private)
+- **Deploy**: `git push` → 자동 Vercel build → https://junggu-trash-map.vercel.app (16~22초). 수동 `vercel deploy`는 hotfix 시에만
 - **Data**: `public/data/junggu.json` — 표준데이터 변환 결과 **59 그룹** (혼합 56 / 단일 3 모두 일반)
-- **Variant 모델**: `TrashBin.types: ('일반'|'재활용')[]` — 같은 좌표 다중 행은 묶음. 둘 다 보유 시 보라 마커.
+- **Variant 모델**: `TrashBin.types: ('일반'|'재활용')[]` — 같은 좌표 다중 행은 묶음. 둘 다 보유 시 보라 마커
+- **Geolocation**: `watchPosition` 실시간 + Haversine `findNearest` + sky 점선 거리 선. Manhattan은 lib만 (`pathPositions(mode)`), UI 토글 추후
+- **iOS fallback**: 🎯 지도 탭 모드 — GPS 거부/미지원 시 한 클릭으로 위치 지정
 
 ---
 
@@ -39,19 +41,21 @@
 
 ### Phase 2 — UX 다듬기
 - [x] **P2.1** Geolocation API + 가장 가까운 휴지통 강조 — `lib/geo.ts` (Haversine + Manhattan + DistanceMode), LocateButton/UserMarker, Map에 panTo + 픽셀 ring + 거리 선 (Polyline), `watchPosition`으로 실시간 갱신, 거리/이름 라벨. Manhattan UI 토글은 추후.
+- [x] **P2.1+ iPad fallback** — 🎯 지도 탭 모드 (한 번 클릭으로 위치 지정), 권한 거부/타임아웃/미지원 별 에러 메시지 분기, react-leaflet `MapContainer.className` 함정 회피 (wrapper div).
+- [x] **인프라 — Tier 2** — GitHub repo `jetsongdev/junggu-trash-map` (private), Vercel auto-deploy (push trigger), Vercel Analytics + Speed Insights 마운트.
+- [x] **개발 환경 정체성** — `~/.gitconfig` global = jetsong.dev, `~/Documents/workspace/saluscare/` overlay = work. `includeIf`로 디렉토리별 자동 분기.
 
 ---
 
-## 🔜 Open — Phase 2: UX 다듬기
+## 🔜 Open — Phase 2: UX 다듬기 (잔여)
 
-다음 세션 진입 시 가장 먼저 손댈 것.
+P2.1 + iPad fallback 완료. 다음 후보 (가벼운 → 무거운 순):
 
-> P2.1은 완료 — Done 섹션 참고. 다음은 P2.2 / P2.4 / P2.5 중 선택.
-
-- [ ] **P2.2** PWA manifest + 홈화면 추가 프롬프트
-- [ ] **P2.3** 클러스터링 (마커 100+ 되면 lag) — `leaflet.markercluster` 검토
-- [ ] **P2.4** 다크모드 타일 (CartoDB Dark Matter 같은 OSM 변종)
-- [ ] **P2.5** URL 쿼리스트링으로 필터 상태 공유 가능하게 (`?type=재활용`)
+- [ ] **P2.4** 다크모드 타일 (CartoDB Dark Matter 같은 OSM 변종) — TileLayer URL 한 줄
+- [ ] **P2.6** Manhattan 거리 토글 UI — `setDistanceMode` 한 줄로 연결, lib는 이미 준비됨
+- [ ] **P2.2** PWA manifest + 홈화면 추가 프롬프트 — `app/manifest.ts` + 아이콘
+- [ ] **P2.5** URL 쿼리스트링 필터 상태 공유 (`?type=재활용`) — `useSearchParams`
+- [ ] **P2.3** 클러스터링 (마커 100+ 되면 lag) — `leaflet.markercluster`. 25개 구 확장 시 필요
 
 ---
 
