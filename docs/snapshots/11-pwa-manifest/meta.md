@@ -3,7 +3,7 @@ index: 11
 slug: pwa-manifest
 date: 2026-05-02
 phase: "Phase 2.2 — PWA manifest + iOS 풀스크린 메타"
-git_sha: 735a010 (dirty)
+git_sha: fa2d12d
 viewport: 390x844
 state: "다크 모드, 줌 14, 59 마커 전체. PWA manifest + 동적 아이콘 + iOS 메타 적용"
 ---

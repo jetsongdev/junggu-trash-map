@@ -3,7 +3,7 @@ index: 09
 slug: dark-theme-polish
 date: 2026-05-02
 phase: "Phase 2.4+ — 다크 테마 가독성 개선"
-git_sha: e984d20 (dirty)
+git_sha: 2478994
 viewport: 390x844
 state: "내 위치 활성, 명동성당 121m. 모든 비활성 칩 + Leaflet 줌 컨트롤 + 어트리뷰션 다크"
 ---

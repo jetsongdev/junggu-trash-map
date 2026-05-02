@@ -3,7 +3,7 @@ index: 03
 slug: geolocation
 date: 2026-05-01
 phase: "Phase 2 — P2.1 Geolocation + 가까운 휴지통 강조"
-git_sha: 10ac013 (dirty, P2.1 미커밋)
+git_sha: 3dbf94e
 viewport: 390x844
 state: "내 위치 ON, 명동성당 좌표(37.5634, 126.9870) 주입, 가장 가까운 통 121m"
 ---

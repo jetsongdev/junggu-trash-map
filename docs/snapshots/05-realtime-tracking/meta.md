@@ -3,7 +3,7 @@ index: 05
 slug: realtime-tracking
 date: 2026-05-02
 phase: "Phase 2.1 — 실시간 추적 + 거리 선"
-git_sha: 8d6a4a3 (dirty)
+git_sha: 3dbf94e
 viewport: 390x844
 state: "watchPosition 활성, 좌표 시퀀스 시청→명동성당→DDP, 강조 ring + sky 점선 거리 선"
 ---

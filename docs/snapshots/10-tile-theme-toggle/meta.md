@@ -3,7 +3,7 @@ index: 10
 slug: tile-theme-toggle
 date: 2026-05-02
 phase: "Phase 2.4++ — 라이트/다크 타일 토글"
-git_sha: 2478994 (dirty)
+git_sha: 735a010
 viewport: 390x844
 state: "두 프레임 — 다크(default) + 라이트, 명동성당 121m 동일 컨텍스트"
 ---

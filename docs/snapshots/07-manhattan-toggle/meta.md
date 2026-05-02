@@ -3,7 +3,7 @@ index: 07
 slug: manhattan-toggle
 date: 2026-05-02
 phase: "Phase 2.6 — Manhattan 거리 토글 UI"
-git_sha: 97b42dc (dirty)
+git_sha: a877b7b
 viewport: 390x844
 state: "내 위치 활성, 격자 모드(Manhattan), 명동성당 좌표(37.5634, 126.9870), 154m"
 ---

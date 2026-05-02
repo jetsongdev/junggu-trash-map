@@ -3,7 +3,7 @@ index: 08
 slug: dark-tiles
 date: 2026-05-02
 phase: "Phase 2.4 — CartoDB Dark Matter 타일 전환"
-git_sha: a877b7b (dirty)
+git_sha: e984d20
 viewport: 390x844
 state: "다크 타일 + 격자 모드(localStorage 잔존) + 내 위치 명동성당, 154m"
 ---

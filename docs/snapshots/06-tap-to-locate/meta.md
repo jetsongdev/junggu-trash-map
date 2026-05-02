@@ -3,7 +3,7 @@ index: 06
 slug: tap-to-locate
 date: 2026-05-02
 phase: "Phase 2.1+ — iPad/Safari fallback: 지도 탭으로 위치 지정"
-git_sha: 8d6a4a3 (dirty)
+git_sha: 3dbf94e
 viewport: 390x844
 state: "탭 모드로 명동성당 부근 클릭, 112m 강조, 위치 끄기 활성"
 ---

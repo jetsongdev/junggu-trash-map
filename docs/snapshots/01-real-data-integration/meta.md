@@ -3,7 +3,7 @@ index: 01
 slug: real-data-integration
 date: 2026-04-28
 phase: "Phase 0+1 — 부트스트랩 + 실데이터 통합"
-git_sha: 6c3c69e (working tree dirty)
+git_sha: 10ac013
 viewport: 390x844
 ---
 

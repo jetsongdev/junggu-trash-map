@@ -3,7 +3,7 @@ index: 04
 slug: locate-with-filter
 date: 2026-05-02
 phase: "Phase 2.1 — 검증: 필터 + 위치 결합"
-git_sha: 8d6a4a3
+git_sha: 3dbf94e
 viewport: 390x844
 state: "재활용 필터 활성 + 위치=중림로10(JG-0009 좌표)"
 ---
