@@ -100,7 +100,8 @@
 - **transform 스크립트는 `process.argv` 사용** — `Bun.argv` 쓰면 `tsc`(next build의 type check)가 `@types/bun` 요구해서 빌드 실패. Bun 전용 API 안 써도 충분.
 - **react-leaflet 5.0 + React 19 dev StrictMode**: dev에서 `Map container is being reused by another instance` / `appendChild of undefined` 에러가 콘솔에 한 번씩 뜸. 더블 마운트 때문이고 prod 빌드/사용성엔 영향 없음. 무시.
 - **iOS Safari + Geolocation**: HTTP에서는 GPS 권한 prompt가 뜨지 않거나 거부된다. iPad 검증은 항상 Vercel HTTPS URL(`https://junggu-trash-map.vercel.app`)로. LAN IP(`http://192.168.x.x:3001`)은 UI 시각 확인엔 OK, GPS는 ❌.
-- **`vercel link` GitHub 자동 연결 실패**: 첫 시도에서 "Failed to connect ... private repo access" 메시지 후 두 번째 시도엔 메시지 없이 link만 됨. 자동 deploy on push가 동작 안 할 수 있으니 Vercel 대시보드 → Settings → Git에서 수동 연결 권장. 그렇지 않으면 매번 `vercel deploy --prod` 수동.
+- **`vercel link` GitHub 자동 연결 실패**: 첫 시도에서 "Failed to connect ... private repo access" 메시지 후 두 번째 시도엔 메시지 없이 link만 됨. 추후 `vercel git connect`로 명시 연결 시도하면 "already connected" 응답 (한 번 설정되면 자동). push가 production/preview 자동 deploy를 트리거.
+- **Vercel commit-email-GitHub 매칭**: 커밋 author 이메일이 GitHub 계정에 등록 안 돼있으면 deploy block. CLI는 generic "Unexpected error"만 떨굼, dashboard에 사유. → git identity를 GitHub 계정 이메일로 맞추기 (이 repo는 jetsong.dev@gmail.com).
 - **Leaflet `divIcon` 캐시**: 같은 (단일타입/혼합) 키 마커들은 `L.divIcon` 인스턴스를 공유해도 안전 (Leaflet은 html을 템플릿으로만 쓰고 DOM은 마커별 생성). 59개 마커 × 매 렌더 → 3 인스턴스로 절감.
 
 ---

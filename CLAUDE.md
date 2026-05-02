@@ -20,8 +20,9 @@ Project-specific overrides live in `.snapshot.config.json` at the repo root — 
 
 - **GitHub remote**: `origin → https://github.com/jetsongdev/junggu-trash-map` (private)
 - **Vercel project**: `ssssccccchhhhhs-projects/junggu-trash-map`, alias `https://junggu-trash-map.vercel.app`
-- 코드 변경 후 사용자가 iPad/모바일에서 검증할 수 있도록 push 후 `vercel deploy --prod` (또는 `vercel`로 preview)로 배포 URL을 새로 굽는다.
-- Vercel 대시보드에서 GitHub 자동 연결을 켜면 push만으로 자동 deploy. 첫 link 시도에서 자동 연결 실패한 적 있으니 안 되면 대시보드 → Settings → Git에서 수동 연결.
+- **GitHub auto-deploy 연결됨** — `git push origin main` 만으로 자동 production deploy (16~22초 빌드). 수동 `vercel deploy`는 hotfix·우회 시에만.
+- preview 배포는 다른 브랜치 push 또는 PR로 자동.
+- **Analytics + Speed Insights 설치됨** (`@vercel/analytics`, `@vercel/speed-insights`) — `app/layout.tsx`에 컴포넌트 마운트. dashboard의 Analytics/Speed Insights 탭에서 RUM 데이터 확인.
 - `.vercel/`은 `.gitignore`에 포함되어 있음 — 커밋 금지.
 
 ## CHANGELOG

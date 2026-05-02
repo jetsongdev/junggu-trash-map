@@ -12,6 +12,8 @@
 ### Infrastructure — Tier 2 검증 환경
 - GitHub private repo `jetsongdev/junggu-trash-map` 생성 + 첫 push
 - Vercel 프로젝트 link + Production deploy → https://junggu-trash-map.vercel.app
+- **GitHub auto-deploy 연결** — `git push`만으로 production/preview 자동 배포 (16~22초 빌드)
+- **Vercel Analytics + Speed Insights 설치** — RUM(Real User Monitoring), Core Web Vitals 자동 수집
 - iPad/모바일에서 HTTPS로 접속해 실제 GPS 권한·watchPosition 동작 검증 가능
 
 ### Added — Phase 2.1+: 탭으로 위치 지정 (iOS Safari fallback)
