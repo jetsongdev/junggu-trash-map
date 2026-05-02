@@ -16,6 +16,11 @@
 - **Vercel Analytics + Speed Insights 설치** — RUM(Real User Monitoring), Core Web Vitals 자동 수집
 - iPad/모바일에서 HTTPS로 접속해 실제 GPS 권한·watchPosition 동작 검증 가능
 
+### Changed — Phase 2.4: 다크 타일 (CartoDB Dark Matter)
+- 지도 배경 OSM Light → CartoDB Dark Matter (`{s}.basemaps.cartocdn.com/dark_all/...`) — 다크 헤더와 통일
+- 어트리뷰션에 © CARTO 추가, subdomains `abcd` (4-shard 분산), maxZoom 19→20, `{r}` retina 지원
+- 보라/파랑 마커와 주황 강조 ring이 다크 배경에서 더 도드라짐
+
 ### Added — Phase 2.6: Manhattan 거리 토글
 - 새 칩 **📏 직선 / 📐 격자** (amber 활성) — 거리 선이 2점 직선 ↔ 3점 L자로 즉시 전환
 - `findNearest`도 mode 따라 재계산 (격자 거리에서는 nearest가 다른 마커가 될 수 있음)

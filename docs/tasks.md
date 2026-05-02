@@ -45,6 +45,7 @@
 - [x] **인프라 — Tier 2** — GitHub repo `jetsongdev/junggu-trash-map` (private), Vercel auto-deploy (push trigger), Vercel Analytics + Speed Insights 마운트.
 - [x] **개발 환경 정체성** — `~/.gitconfig` global = jetsong.dev, `~/Documents/workspace/saluscare/` overlay = work. `includeIf`로 디렉토리별 자동 분기.
 - [x] **P2.6** Manhattan 거리 토글 UI — Codex 위임 작업, `page.tsx` 한 파일에서 setter 활성화 + amber 칩 + localStorage 영속화. 직선 121m → 격자 154m (명동성당 좌표).
+- [x] **P2.4** 다크 타일 — `<TileLayer>` URL을 CartoDB Dark Matter로 교체, 다크 헤더와 통일. subdomains 4-shard, maxZoom 20, retina 지원.
 
 ---
 
@@ -52,7 +53,6 @@
 
 P2.1 + iPad fallback 완료. 다음 후보 (가벼운 → 무거운 순):
 
-- [ ] **P2.4** 다크모드 타일 (CartoDB Dark Matter 같은 OSM 변종) — TileLayer URL 한 줄
 - [ ] **P2.2** PWA manifest + 홈화면 추가 프롬프트 — `app/manifest.ts` + 아이콘
 - [ ] **P2.5** URL 쿼리스트링 필터 상태 공유 (`?type=재활용`) — `useSearchParams`
 - [ ] **P2.3** 클러스터링 (마커 100+ 되면 lag) — `leaflet.markercluster`. 25개 구 확장 시 필요
