@@ -3,7 +3,7 @@ index: 13
 slug: eta-walking-speed
 date: 2026-05-02
 phase: "Phase 2.8 — 도착 예상 시간(ETA) + 보행 속도 3단계"
-git_sha: TBD (pending commit)
+git_sha: 49f9809
 viewport: 390x844
 state: "내 위치 명동성당, 보통 4km/h, 가까운 통 121m → 약 1분 49초"
 ---
