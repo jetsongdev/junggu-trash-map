@@ -3,17 +3,19 @@
 > 이 파일은 Claude가 매 세션 시작 시 읽고 작업 우선순위를 판단하는 1차 소스.
 > 사람과 에이전트 모두 직접 편집 가능. 컨벤션은 파일 끝 「운영 규칙」 참고.
 
-## 현재 상태 (2026-05-02)
+## 현재 상태 (2026-05-03)
 
-- **Phase**: 2 진행 중 — P2.1(Geolocation) 완료 + iPad fallback(탭 모드) 마무리. 다음은 P2.2/P2.4/P2.5 또는 Manhattan 토글
-- **Stack**: Next.js 16 (Turbopack) · Bun · TypeScript strict · Tailwind v4 · Leaflet + OSM · Vercel Analytics + Speed Insights
+- **Phase**: 2 거의 마무리 — Geolocation·필터·테마·PWA·경로·ETA 다 들어감. 잔여는 다중 경유·URL 공유·클러스터링 등 nice-to-have
+- **Stack**: Next.js 16 (Turbopack) · Bun · TypeScript strict · Tailwind v4 · Leaflet + OSM/CartoDB · Vercel Analytics + Speed Insights
 - **Dev**: `bun run dev` → http://localhost:3000 (점유 시 자동 3001)
 - **Build**: `bun run build` 통과
 - **Deploy**: `git push` → 자동 Vercel build → https://junggu-trash-map.vercel.app (16~22초). 수동 `vercel deploy`는 hotfix 시에만
-- **Data**: `public/data/junggu.json` — 표준데이터 변환 결과 **59 그룹** (혼합 56 / 단일 3 모두 일반)
-- **Variant 모델**: `TrashBin.types: ('일반'|'재활용')[]` — 같은 좌표 다중 행은 묶음. 둘 다 보유 시 보라 마커
-- **Geolocation**: `watchPosition` 실시간 + Haversine `findNearest` + sky 점선 거리 선. Manhattan은 lib만 (`pathPositions(mode)`), UI 토글 추후
-- **iOS fallback**: 🎯 지도 탭 모드 — GPS 거부/미지원 시 한 클릭으로 위치 지정
+- **PWA**: `app/manifest.ts` + 동적 `icon.tsx`/`apple-icon.tsx` (next/og), iOS 풀스크린 메타 — Safari "홈 화면에 추가"로 풀스크린
+- **Data**: `public/data/junggu.json` — 표준데이터 변환 **59 그룹** (혼합 56 / 단일 3 모두 일반). 같은 좌표 다중 행 그룹화: `TrashBin.types: ('일반'|'재활용')[]`
+- **Geolocation**: `watchPosition` 실시간 + Haversine/Manhattan `findNearest`/`findOptimalDetour` + sky/cyan 점선. 출발 + 목적지 모두 set 시 경유 휴지통 detour 알고리즘
+- **iOS fallback**: 🎯 출발 탭, 🏁 목적지 탭 — 두 탭 모드 mutually exclusive, 한 클릭으로 좌표 지정
+- **사용자 환경 영속화** (`localStorage`): `distanceMode` (직선/격자), `tileTheme` (다크/라이트), `walkingSpeed` (3/4/5 km/h)
+- **칩 스타일**: 비활성 = `bg-neutral-800` 다크 그레이. 활성 = 기능별 색 (전체=흰, 일반/재활용=색별, 위치=sky, 격자=amber, 출발 탭=violet, 목적지=rose)
 
 ---
 
@@ -54,12 +56,15 @@
 
 ---
 
-## 🔜 Open — Phase 2: UX 다듬기 (잔여)
+## 🔜 Open — Phase 2 잔여 (nice-to-have)
 
-P2.1 + iPad fallback 완료. 다음 후보 (가벼운 → 무거운 순):
+핵심 기능 다 들어가있고, 아래는 사용성·확장성 강화. 가벼운 → 무거운 순:
 
-- [ ] **P2.5** URL 쿼리스트링 필터 상태 공유 (`?type=재활용`) — `useSearchParams`
-- [ ] **P2.3** 클러스터링 (마커 100+ 되면 lag) — `leaflet.markercluster`. 25개 구 확장 시 필요
+- [ ] **P2.9** 보행 속도 사용자 정의 km/h — 현 3단계 cycle 칩 → 슬라이더/입력 박스로 임의 km/h. 노약자/유아동반 같은 케이스 대응
+- [ ] **P2.5** URL 쿼리스트링 필터·환경 공유 — `?type=재활용&speed=fast&origin=lat,lng&dest=lat,lng&theme=dark` 식으로 `useSearchParams` + 상태 직렬화/역직렬화. 링크 공유 시나리오
+- [ ] **P2.10** 다중 휴지통 경유 — 그리디 또는 N≤4 TSP. 출발→통1→통2→...→목적지 전체 detour 최소화. 산책길 시나리오
+- [ ] **P2.3** 클러스터링 — `leaflet.markercluster`. 마커 100+ 시 lag 방지. **25구 확장(Phase 3) 전엔 ø**
+- [ ] **P2.11** 마커 색상 채도 다크 배경에 맞게 미세 조정 (선택) — 현재 `#3b82f6`/`#10b981`이 충분히 보이지만 톤 통일 가능
 
 ---
 
