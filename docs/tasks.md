@@ -9,6 +9,7 @@
 - **Stack**: Next.js 16 (Turbopack) · Bun · TypeScript strict · Tailwind v4 · Leaflet + OSM
 - **Dev**: `bun run dev` → http://localhost:3000 (점유 시 자동 3001)
 - **Build**: `bun run build` 통과
+- **Production**: https://junggu-trash-map.vercel.app (Vercel, GitHub `jetsongdev/junggu-trash-map` private)
 - **Data**: `public/data/junggu.json` — 표준데이터 변환 결과 **59 그룹** (혼합 56 / 단일 3 모두 일반)
 - **Variant 모델**: `TrashBin.types: ('일반'|'재활용')[]` — 같은 좌표 다중 행은 묶음. 둘 다 보유 시 보라 마커.
 
@@ -37,7 +38,7 @@
 - [x] 빌드/브라우저 검증 — 59 마커, 필터 토글(일반=59 / 재활용=56 / 전체=59), 팝업 type 칩 다중 표시
 
 ### Phase 2 — UX 다듬기
-- [x] **P2.1** Geolocation API + 가장 가까운 휴지통 강조 — `lib/geo.ts` (Haversine + findNearest), LocateButton/UserMarker 컴포넌트, Map에 `useMap().flyTo` + 노란 강조 Circle, 거리/이름 라벨
+- [x] **P2.1** Geolocation API + 가장 가까운 휴지통 강조 — `lib/geo.ts` (Haversine + Manhattan + DistanceMode), LocateButton/UserMarker, Map에 panTo + 픽셀 ring + 거리 선 (Polyline), `watchPosition`으로 실시간 갱신, 거리/이름 라벨. Manhattan UI 토글은 추후.
 
 ---
 
@@ -98,6 +99,8 @@
 - **TrashBin types 그룹 모델**: 같은 좌표는 묶어서 `types: BinType[]`. UI/필터는 `bin.types.some(t => selected.has(t))`로 합집합 처리. 새 자치구 추가 시 transform 스크립트가 자동 그룹핑.
 - **transform 스크립트는 `process.argv` 사용** — `Bun.argv` 쓰면 `tsc`(next build의 type check)가 `@types/bun` 요구해서 빌드 실패. Bun 전용 API 안 써도 충분.
 - **react-leaflet 5.0 + React 19 dev StrictMode**: dev에서 `Map container is being reused by another instance` / `appendChild of undefined` 에러가 콘솔에 한 번씩 뜸. 더블 마운트 때문이고 prod 빌드/사용성엔 영향 없음. 무시.
+- **iOS Safari + Geolocation**: HTTP에서는 GPS 권한 prompt가 뜨지 않거나 거부된다. iPad 검증은 항상 Vercel HTTPS URL(`https://junggu-trash-map.vercel.app`)로. LAN IP(`http://192.168.x.x:3001`)은 UI 시각 확인엔 OK, GPS는 ❌.
+- **`vercel link` GitHub 자동 연결 실패**: 첫 시도에서 "Failed to connect ... private repo access" 메시지 후 두 번째 시도엔 메시지 없이 link만 됨. 자동 deploy on push가 동작 안 할 수 있으니 Vercel 대시보드 → Settings → Git에서 수동 연결 권장. 그렇지 않으면 매번 `vercel deploy --prod` 수동.
 - **Leaflet `divIcon` 캐시**: 같은 (단일타입/혼합) 키 마커들은 `L.divIcon` 인스턴스를 공유해도 안전 (Leaflet은 html을 템플릿으로만 쓰고 DOM은 마커별 생성). 59개 마커 × 매 렌더 → 3 인스턴스로 절감.
 
 ---

@@ -1,6 +1,7 @@
 import type { TrashBin } from './types';
 
 export type LatLng = { lat: number; lng: number };
+export type DistanceMode = 'euclidean' | 'manhattan';
 
 const EARTH_RADIUS_METERS = 6371000;
 
@@ -17,15 +18,29 @@ export function haversineMeters(a: LatLng, b: LatLng): number {
   return 2 * EARTH_RADIUS_METERS * Math.asin(Math.sqrt(h));
 }
 
+export function manhattanMeters(a: LatLng, b: LatLng): number {
+  const corner: LatLng = { lat: b.lat, lng: a.lng };
+  return haversineMeters(a, corner) + haversineMeters(corner, b);
+}
+
+export function distanceMeters(
+  a: LatLng,
+  b: LatLng,
+  mode: DistanceMode = 'euclidean',
+): number {
+  return mode === 'manhattan' ? manhattanMeters(a, b) : haversineMeters(a, b);
+}
+
 export function findNearest(
   bins: TrashBin[],
   origin: LatLng,
+  mode: DistanceMode = 'euclidean',
 ): { bin: TrashBin; meters: number } | null {
   if (bins.length === 0) return null;
   let bestBin = bins[0];
-  let bestMeters = haversineMeters(origin, bestBin);
+  let bestMeters = distanceMeters(origin, bestBin, mode);
   for (let i = 1; i < bins.length; i++) {
-    const m = haversineMeters(origin, bins[i]);
+    const m = distanceMeters(origin, bins[i], mode);
     if (m < bestMeters) {
       bestBin = bins[i];
       bestMeters = m;
@@ -37,4 +52,22 @@ export function findNearest(
 export function formatDistance(meters: number): string {
   if (meters < 1000) return `${Math.round(meters)}m`;
   return `${(meters / 1000).toFixed(1)}km`;
+}
+
+export function pathPositions(
+  origin: LatLng,
+  target: LatLng,
+  mode: DistanceMode = 'euclidean',
+): [number, number][] {
+  if (mode === 'manhattan') {
+    return [
+      [origin.lat, origin.lng],
+      [origin.lat, target.lng],
+      [target.lat, target.lng],
+    ];
+  }
+  return [
+    [origin.lat, origin.lng],
+    [target.lat, target.lng],
+  ];
 }

@@ -1,16 +1,30 @@
 'use client';
 
 import { useEffect } from 'react';
-import { Circle, MapContainer, TileLayer, useMap } from 'react-leaflet';
+import {
+  CircleMarker,
+  MapContainer,
+  Polyline,
+  TileLayer,
+  useMap,
+  useMapEvents,
+} from 'react-leaflet';
 import { BinMarker } from './BinMarker';
 import { UserMarker } from './UserMarker';
-import type { LatLng } from '@/lib/geo';
+import {
+  pathPositions,
+  type DistanceMode,
+  type LatLng,
+} from '@/lib/geo';
 import type { TrashBin } from '@/lib/types';
 
 type Props = {
   bins: TrashBin[];
   userLocation?: LatLng | null;
-  highlightBinId?: string | null;
+  highlightBin?: TrashBin | null;
+  distanceMode?: DistanceMode;
+  onMapClick?: (latlng: LatLng) => void;
+  tapMode?: boolean;
 };
 
 const JUNGGU_CENTER: [number, number] = [37.5635, 126.987];
@@ -26,28 +40,66 @@ function PanToUser({ target }: { target: LatLng | null | undefined }) {
   return null;
 }
 
+function MapClickHandler({ onClick }: { onClick: (ll: LatLng) => void }) {
+  useMapEvents({
+    click: (e) => onClick({ lat: e.latlng.lat, lng: e.latlng.lng }),
+  });
+  return null;
+}
+
 function HighlightRing({ bin }: { bin: TrashBin }) {
   return (
-    <Circle
+    <CircleMarker
       center={[bin.lat, bin.lng]}
-      radius={28}
+      radius={26}
       pathOptions={{
-        color: '#facc15',
-        weight: 3,
-        fillColor: '#facc15',
-        fillOpacity: 0.18,
+        color: '#f97316',
+        weight: 4,
+        fillColor: '#fde047',
+        fillOpacity: 0.45,
+        className: 'highlight-ring',
       }}
       interactive={false}
     />
   );
 }
 
-export function Map({ bins, userLocation, highlightBinId }: Props) {
-  const highlight = highlightBinId
-    ? bins.find((b) => b.id === highlightBinId) ?? null
-    : null;
-
+function DistanceLine({
+  origin,
+  target,
+  mode,
+}: {
+  origin: LatLng;
+  target: LatLng;
+  mode: DistanceMode;
+}) {
   return (
+    <Polyline
+      positions={pathPositions(origin, target, mode)}
+      pathOptions={{
+        color: '#0ea5e9',
+        weight: 3,
+        opacity: 0.75,
+        dashArray: '6 6',
+      }}
+      interactive={false}
+    />
+  );
+}
+
+export function Map({
+  bins,
+  userLocation,
+  highlightBin,
+  distanceMode = 'euclidean',
+  onMapClick,
+  tapMode = false,
+}: Props) {
+  return (
+    <div
+      className={tapMode ? 'tap-mode-active' : undefined}
+      style={{ height: '100%', width: '100%' }}
+    >
     <MapContainer
       center={JUNGGU_CENTER}
       zoom={14}
@@ -62,10 +114,19 @@ export function Map({ bins, userLocation, highlightBinId }: Props) {
       {bins.map((bin) => (
         <BinMarker key={bin.id} bin={bin} />
       ))}
-      {highlight && <HighlightRing bin={highlight} />}
+      {highlightBin && <HighlightRing bin={highlightBin} />}
+      {userLocation && highlightBin && (
+        <DistanceLine
+          origin={userLocation}
+          target={{ lat: highlightBin.lat, lng: highlightBin.lng }}
+          mode={distanceMode}
+        />
+      )}
       {userLocation && <UserMarker position={userLocation} />}
       <PanToUser target={userLocation} />
+      {onMapClick && <MapClickHandler onClick={onMapClick} />}
     </MapContainer>
+    </div>
   );
 }
 

@@ -5,6 +5,14 @@
 - Bun · Next.js 16 (App Router) · TypeScript strict · Tailwind v4
 - Leaflet + react-leaflet + OpenStreetMap (API 키 0)
 
+## 🚀 배포
+
+- **Production**: https://junggu-trash-map.vercel.app
+- **Repo**: https://github.com/jetsongdev/junggu-trash-map (private)
+- **Vercel 대시보드**: https://vercel.com/ssssccccchhhhhs-projects/junggu-trash-map
+
+iPad/모바일에서 실제 GPS 권한까지 테스트하려면 위 URL로 접속 (HTTPS 필수). LAN 직접 접근은 Geolocation에 한계 — `http://192.168.x.x:3001`은 Safari가 권한 prompt 거부.
+
 ## 실행
 
 ```bash

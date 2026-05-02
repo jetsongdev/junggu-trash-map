@@ -16,6 +16,14 @@ Each major milestone gets one mobile screenshot in `docs/snapshots/NN-slug/`. Af
 
 Project-specific overrides live in `.snapshot.config.json` at the repo root — viewport, dev URL, wait text, etc. The skill reads it automatically.
 
+## Deploy / verification
+
+- **GitHub remote**: `origin → https://github.com/jetsongdev/junggu-trash-map` (private)
+- **Vercel project**: `ssssccccchhhhhs-projects/junggu-trash-map`, alias `https://junggu-trash-map.vercel.app`
+- 코드 변경 후 사용자가 iPad/모바일에서 검증할 수 있도록 push 후 `vercel deploy --prod` (또는 `vercel`로 preview)로 배포 URL을 새로 굽는다.
+- Vercel 대시보드에서 GitHub 자동 연결을 켜면 push만으로 자동 deploy. 첫 link 시도에서 자동 연결 실패한 적 있으니 안 되면 대시보드 → Settings → Git에서 수동 연결.
+- `.vercel/`은 `.gitignore`에 포함되어 있음 — 커밋 금지.
+
 ## CHANGELOG
 
 `CHANGELOG.md` follows [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/) — `[Unreleased]` at top, then versioned releases under it.

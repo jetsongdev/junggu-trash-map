@@ -51,3 +51,20 @@ body {
   0%   { transform: scale(0.6); opacity: 1; }
   100% { transform: scale(1.6); opacity: 0; }
 }
+
+.tap-mode-active .leaflet-container,
+.tap-mode-active .leaflet-grab,
+.tap-mode-active .leaflet-tile,
+.tap-mode-active .leaflet-marker-icon {
+  cursor: crosshair !important;
+}
+
+.highlight-ring {
+  animation: highlight-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes highlight-pulse {
+  0%   { stroke-width: 4; stroke-opacity: 1;    fill-opacity: 0.45; }
+  50%  { stroke-width: 9; stroke-opacity: 0.55; fill-opacity: 0.25; }
+  100% { stroke-width: 4; stroke-opacity: 1;    fill-opacity: 0.45; }
+}

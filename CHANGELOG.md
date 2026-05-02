@@ -9,10 +9,23 @@
 
 ## [Unreleased]
 
+### Infrastructure — Tier 2 검증 환경
+- GitHub private repo `jetsongdev/junggu-trash-map` 생성 + 첫 push
+- Vercel 프로젝트 link + Production deploy → https://junggu-trash-map.vercel.app
+- iPad/모바일에서 HTTPS로 접속해 실제 GPS 권한·watchPosition 동작 검증 가능
+
+### Added — Phase 2.1+: 탭으로 위치 지정 (iOS Safari fallback)
+- 새 칩 **🎯 지도 탭** — 모드 토글 후 지도 한 번 클릭으로 사용자 위치 설정 (cursor `crosshair`, 클릭 후 모드 자동 종료)
+- GPS 권한 거부 / 신호 없음 / 타임아웃 별 에러 메시지 분기, 각 분기에서 탭 모드 우회 안내 포함
+- iPad Safari에서 위치 권한 거부됐을 때, 설정 들어가지 않고도 앱 사용 가능 / 데스크톱에서 시뮬레이션 도구로도 사용
+
 ### Added — Phase 2.1: Geolocation
 - "📍 내 위치" 버튼 — 권한 요청 → 지도가 사용자 위치로 panTo(zoom≥16, 0.6s flyTo) + 펄스 점 표시
-- 가장 가까운 휴지통 자동 강조 (노란 ring) + 거리 라벨 ("가까운 통 121m (이름)") in 통계 바
-- `lib/geo.ts` — Haversine 거리, `findNearest`, `formatDistance` (m/km 전환)
+- **실시간 추적**: `watchPosition`으로 사용자가 움직일 때마다 마커·강조·거리 라벨 자동 갱신 (clearWatch on toggle off + unmount)
+- 가장 가까운 휴지통 자동 강조 — `CircleMarker` 픽셀 고정 ring(주황 #f97316 + 노랑 fill) + `highlight-pulse` 애니메이션
+- **거리 선** — 사용자 위치 ↔ 가장 가까운 통 사이 dashed sky-300 polyline (`pathPositions`로 mode별 모양 결정)
+- 거리 라벨 in 통계 바 ("가까운 통 121m (이름)") — m/km 자동 전환
+- `lib/geo.ts` — Haversine + Manhattan + `distanceMeters` 디스패처 + `findNearest(mode)` + `pathPositions(mode)` (UI 토글은 추후)
 - 권한 거부 / 브라우저 미지원 시 칩에 에러 메시지
 
 ### Added — Phase 0: PoC 부트스트랩

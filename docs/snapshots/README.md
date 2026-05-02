@@ -9,6 +9,9 @@
 | 01 | 2026-04-28 | 실데이터 통합 직후 (Phase 0+1) | [01-real-data-integration](./01-real-data-integration/) |
 | 02 | 2026-05-01 | 리팩터 후 + 재활용 필터 적용 상태 (56/59) | [02-post-simplify](./02-post-simplify/) |
 | 03 | 2026-05-01 | 내 위치 + 가까운 휴지통 강조 (P2.1) | [03-geolocation](./03-geolocation/) |
+| 04 | 2026-05-02 | 필터 + 위치 결합 (재활용+중림로10, 88m 점프) | [04-locate-with-filter](./04-locate-with-filter/) |
+| 05 | 2026-05-02 | 실시간 추적 + 거리 선 (시청/명동/DDP 3프레임) | [05-realtime-tracking](./05-realtime-tracking/) |
+| 06 | 2026-05-02 | 🎯 지도 탭으로 위치 지정 (iPad/GPS 거부 우회) | [06-tap-to-locate](./06-tap-to-locate/) |
 
 ## 새 스냅샷 찍는 법
 
