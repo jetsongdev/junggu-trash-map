@@ -3,7 +3,7 @@ index: 12
 slug: route-optimization
 date: 2026-05-02
 phase: "Phase 2.7 — 출발/목적지 + 경유 휴지통 최적화"
-git_sha: 6e982ec
+git_sha: f6e67fd
 viewport: 390x844
 state: "출발=시청 부근, 목적지=동쪽(을지로 너머), 경유=을지로입구역 1-1번출구 앞 (+47m)"
 ---
