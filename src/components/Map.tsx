@@ -18,6 +18,32 @@ import {
 } from '@/lib/geo';
 import type { TrashBin } from '@/lib/types';
 
+export type TileTheme = 'light' | 'dark';
+
+type TilePreset = {
+  url: string;
+  attribution: string;
+  subdomains: string;
+  maxZoom: number;
+};
+
+const TILE_PRESETS: Record<TileTheme, TilePreset> = {
+  light: {
+    url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    subdomains: 'abc',
+    maxZoom: 19,
+  },
+  dark: {
+    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 20,
+  },
+};
+
 type Props = {
   bins: TrashBin[];
   userLocation?: LatLng | null;
@@ -25,6 +51,7 @@ type Props = {
   distanceMode?: DistanceMode;
   onMapClick?: (latlng: LatLng) => void;
   tapMode?: boolean;
+  tileTheme?: TileTheme;
 };
 
 const JUNGGU_CENTER: [number, number] = [37.5635, 126.987];
@@ -94,10 +121,17 @@ export function Map({
   distanceMode = 'euclidean',
   onMapClick,
   tapMode = false,
+  tileTheme = 'dark',
 }: Props) {
+  const preset = TILE_PRESETS[tileTheme];
   return (
     <div
-      className={tapMode ? 'tap-mode-active' : undefined}
+      className={[
+        tapMode ? 'tap-mode-active' : '',
+        tileTheme === 'dark' ? 'tile-theme-dark' : '',
+      ]
+        .filter(Boolean)
+        .join(' ') || undefined}
       style={{ height: '100%', width: '100%' }}
     >
     <MapContainer
@@ -107,10 +141,11 @@ export function Map({
       style={{ height: '100%', width: '100%' }}
     >
       <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-        subdomains="abcd"
-        maxZoom={20}
+        key={tileTheme}
+        attribution={preset.attribution}
+        url={preset.url}
+        subdomains={preset.subdomains}
+        maxZoom={preset.maxZoom}
       />
       {bins.map((bin) => (
         <BinMarker key={bin.id} bin={bin} />

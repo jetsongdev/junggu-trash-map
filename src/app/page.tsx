@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FilterChips } from '@/components/FilterChips';
 import { LocateButton } from '@/components/LocateButton';
+import type { TileTheme } from '@/components/Map';
 import { fetchBins, filterByTypes } from '@/lib/data';
 import {
   findNearest,
@@ -36,6 +37,11 @@ export default function Page() {
     const saved = window.localStorage.getItem('distanceMode');
     return saved === 'manhattan' ? 'manhattan' : 'euclidean';
   });
+  const [tileTheme, setTileTheme] = useState<TileTheme>(() => {
+    if (typeof window === 'undefined') return 'dark';
+    const saved = window.localStorage.getItem('tileTheme');
+    return saved === 'light' ? 'light' : 'dark';
+  });
   const watchIdRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -64,6 +70,10 @@ export default function Page() {
   useEffect(() => {
     window.localStorage.setItem('distanceMode', distanceMode);
   }, [distanceMode]);
+
+  useEffect(() => {
+    window.localStorage.setItem('tileTheme', tileTheme);
+  }, [tileTheme]);
 
   const visible = useMemo(() => filterByTypes(bins, selected), [bins, selected]);
   const nearest = useMemo(
@@ -187,6 +197,17 @@ export default function Page() {
             <span aria-hidden>🎯</span>
             <span>{tapMode ? '지도 탭하세요' : '지도 탭'}</span>
           </button>
+          <button
+            type="button"
+            onClick={() =>
+              setTileTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
+            }
+            aria-label={`타일 테마 ${tileTheme === 'dark' ? '라이트로 전환' : '다크로 전환'}`}
+            className="min-h-[44px] rounded-full px-4 text-sm font-medium transition flex items-center gap-1.5 bg-neutral-800 text-neutral-200 ring-1 ring-neutral-700 hover:bg-neutral-700"
+          >
+            <span aria-hidden>{tileTheme === 'dark' ? '🌑' : '☀️'}</span>
+            <span>{tileTheme === 'dark' ? '다크' : '라이트'}</span>
+          </button>
         </div>
         <div className="mt-2 text-xs text-neutral-400">
           📍 {visible.length} / 전체 {bins.length}개
@@ -208,6 +229,7 @@ export default function Page() {
           distanceMode={distanceMode}
           onMapClick={tapMode ? handleMapClick : undefined}
           tapMode={tapMode}
+          tileTheme={tileTheme}
         />
       </main>
     </div>

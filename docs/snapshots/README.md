@@ -15,6 +15,7 @@
 | 07 | 2026-05-02 | 📐 Manhattan 거리 토글 (L자 격자, 154m vs 직선 121m) | [07-manhattan-toggle](./07-manhattan-toggle/) |
 | 08 | 2026-05-02 | 🌑 CartoDB Dark Matter 타일 (다크 헤더와 통일) | [08-dark-tiles](./08-dark-tiles/) |
 | 09 | 2026-05-02 | 🎨 다크 테마 가독성 — 비활성 칩·줌·어트리뷰션 다크 통일 | [09-dark-theme-polish](./09-dark-theme-polish/) |
+| 10 | 2026-05-02 | 🌑/☀️ 라이트/다크 타일 토글 (2프레임 비교) | [10-tile-theme-toggle](./10-tile-theme-toggle/) |
 
 ## 새 스냅샷 찍는 법
 

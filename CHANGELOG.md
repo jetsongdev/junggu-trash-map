@@ -16,6 +16,12 @@
 - **Vercel Analytics + Speed Insights 설치** — RUM(Real User Monitoring), Core Web Vitals 자동 수집
 - iPad/모바일에서 HTTPS로 접속해 실제 GPS 권한·watchPosition 동작 검증 가능
 
+### Added — Phase 2.4++: 라이트/다크 타일 토글
+- 새 칩 **🌑 다크 ↔ ☀️ 라이트** — CartoDB Dark Matter ↔ OpenStreetMap Standard
+- 다크 모드: 어트리뷰션·줌 컨트롤도 다크. 라이트 모드: leaflet 기본 (흰)
+- `localStorage['tileTheme']` 영속화 — 야외 햇빛 → 라이트, 실내 → 다크 선호 기억
+- `TILE_PRESETS` 객체로 깔끔하게 정리 (Map.tsx export `TileTheme` 타입)
+
 ### Changed — Phase 2.4+: 다크 테마 가독성 통일
 - 모든 비활성 칩(FilterChips·LocateButton·격자·지도 탭) 흰색 → `bg-neutral-800 text-neutral-200`
 - 활성 "전체" 칩 흰색으로 invert (가장 강한 selected 표현)
