@@ -8,11 +8,14 @@ import type { TileTheme } from '@/components/Map';
 import { fetchBins, filterByTypes } from '@/lib/data';
 import {
   findNearest,
+  findOptimalDetour,
   formatDistance,
   type DistanceMode,
   type LatLng,
 } from '@/lib/geo';
 import type { BinType, TrashBin } from '@/lib/types';
+
+type TapTarget = 'origin' | 'destination' | null;
 
 const Map = dynamic(() => import('@/components/Map'), {
   ssr: false,
@@ -29,9 +32,10 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
 
   const [userLocation, setUserLocation] = useState<LatLng | null>(null);
+  const [destination, setDestination] = useState<LatLng | null>(null);
   const [locatePending, setLocatePending] = useState(false);
   const [locateError, setLocateError] = useState<string | null>(null);
-  const [tapMode, setTapMode] = useState(false);
+  const [tapTarget, setTapTarget] = useState<TapTarget>(null);
   const [distanceMode, setDistanceMode] = useState<DistanceMode>(() => {
     if (typeof window === 'undefined') return 'euclidean';
     const saved = window.localStorage.getItem('distanceMode');
@@ -76,10 +80,18 @@ export default function Page() {
   }, [tileTheme]);
 
   const visible = useMemo(() => filterByTypes(bins, selected), [bins, selected]);
-  const nearest = useMemo(
-    () => (userLocation ? findNearest(visible, userLocation, distanceMode) : null),
-    [visible, userLocation, distanceMode],
-  );
+
+  const route = useMemo(() => {
+    if (!userLocation || !destination) return null;
+    return findOptimalDetour(visible, userLocation, destination, distanceMode);
+  }, [visible, userLocation, destination, distanceMode]);
+
+  const nearest = useMemo(() => {
+    if (!userLocation || destination) return null;
+    return findNearest(visible, userLocation, distanceMode);
+  }, [visible, userLocation, destination, distanceMode]);
+
+  const highlight = route?.bin ?? nearest?.bin ?? null;
 
   const toggle = (type: BinType) => {
     setSelected((prev) => {
@@ -92,6 +104,13 @@ export default function Page() {
   const clearTypes = () =>
     setSelected((prev) => (prev.size === 0 ? prev : new Set()));
 
+  const stopWatch = () => {
+    if (watchIdRef.current !== null && 'geolocation' in navigator) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+    }
+  };
+
   const locate = () => {
     if (!('geolocation' in navigator)) {
       setLocateError('이 브라우저는 위치를 지원하지 않습니다');
@@ -101,7 +120,7 @@ export default function Page() {
 
     setLocatePending(true);
     setLocateError(null);
-    setTapMode(false);
+    setTapTarget(null);
     const id = navigator.geolocation.watchPosition(
       (pos) => {
         setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
@@ -111,42 +130,57 @@ export default function Page() {
         setLocatePending(false);
         const msg =
           err.code === err.PERMISSION_DENIED
-            ? '위치 권한 거부됨 — Safari 설정 > 위치 허용 후 새로고침, 또는 🎯 지도 탭 사용'
+            ? '위치 권한 거부됨 — Safari 설정 > 위치 허용 후 새로고침, 또는 🎯 출발 탭 사용'
             : err.code === err.POSITION_UNAVAILABLE
-              ? '위치 신호 없음 — 🎯 지도 탭으로 지정 가능'
+              ? '위치 신호 없음 — 🎯 출발 탭으로 지정 가능'
               : err.code === err.TIMEOUT
-                ? '위치 가져오기 타임아웃 — 🎯 지도 탭 사용'
+                ? '위치 가져오기 타임아웃 — 🎯 출발 탭 사용'
                 : '위치 가져오기 실패';
         setLocateError(msg);
-        if (watchIdRef.current !== null && 'geolocation' in navigator) {
-          navigator.geolocation.clearWatch(watchIdRef.current);
-          watchIdRef.current = null;
-        }
+        stopWatch();
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 5000 },
     );
     watchIdRef.current = id;
   };
   const clearLocation = () => {
-    if (watchIdRef.current !== null && 'geolocation' in navigator) {
-      navigator.geolocation.clearWatch(watchIdRef.current);
-      watchIdRef.current = null;
-    }
+    stopWatch();
     setUserLocation(null);
     setLocateError(null);
   };
-  const toggleTapMode = () => {
-    setTapMode((prev) => !prev);
+
+  const handleMapClick = (latlng: LatLng) => {
+    if (tapTarget === 'origin') {
+      stopWatch();
+      setUserLocation(latlng);
+    } else if (tapTarget === 'destination') {
+      setDestination(latlng);
+    }
+    setTapTarget(null);
+  };
+
+  const onOriginTap = () => {
+    setTapTarget((prev) => (prev === 'origin' ? null : 'origin'));
     setLocateError(null);
   };
-  const handleMapClick = (latlng: LatLng) => {
-    setUserLocation(latlng);
-    setTapMode(false);
-    if (watchIdRef.current !== null && 'geolocation' in navigator) {
-      navigator.geolocation.clearWatch(watchIdRef.current);
-      watchIdRef.current = null;
+  const onDestinationButton = () => {
+    if (destination) {
+      setDestination(null);
+    } else {
+      setTapTarget((prev) => (prev === 'destination' ? null : 'destination'));
     }
   };
+
+  const destButtonLabel = destination
+    ? '🏁 목적지 해제'
+    : tapTarget === 'destination'
+      ? '🏁 목적지 탭하세요'
+      : '🏁 목적지';
+
+  const inactiveChip =
+    'bg-neutral-800 text-neutral-200 ring-1 ring-neutral-700 hover:bg-neutral-700';
+  const chipBase =
+    'min-h-[44px] rounded-full px-4 text-sm font-medium transition flex items-center gap-1.5';
 
   return (
     <div className="flex h-dvh flex-col bg-neutral-950 text-neutral-100">
@@ -176,26 +210,40 @@ export default function Page() {
               )
             }
             aria-pressed={distanceMode === 'manhattan'}
-            className={`min-h-[44px] rounded-full px-4 text-sm font-medium transition flex items-center gap-1.5 ${
+            className={`${chipBase} ${
               distanceMode === 'manhattan'
                 ? 'bg-amber-500 text-white shadow'
-                : 'bg-neutral-800 text-neutral-200 ring-1 ring-neutral-700 hover:bg-neutral-700'
+                : inactiveChip
             }`}
           >
             <span>{distanceMode === 'euclidean' ? '📏 직선' : '📐 격자'}</span>
           </button>
           <button
             type="button"
-            onClick={toggleTapMode}
-            aria-pressed={tapMode}
-            className={`min-h-[44px] rounded-full px-4 text-sm font-medium transition flex items-center gap-1.5 ${
-              tapMode
+            onClick={onOriginTap}
+            aria-pressed={tapTarget === 'origin'}
+            className={`${chipBase} ${
+              tapTarget === 'origin'
                 ? 'bg-violet-500 text-white shadow'
-                : 'bg-neutral-800 text-neutral-200 ring-1 ring-neutral-700 hover:bg-neutral-700'
+                : inactiveChip
             }`}
           >
             <span aria-hidden>🎯</span>
-            <span>{tapMode ? '지도 탭하세요' : '지도 탭'}</span>
+            <span>{tapTarget === 'origin' ? '출발 탭하세요' : '출발 탭'}</span>
+          </button>
+          <button
+            type="button"
+            onClick={onDestinationButton}
+            aria-pressed={tapTarget === 'destination' || !!destination}
+            className={`${chipBase} ${
+              destination
+                ? 'bg-rose-500 text-white shadow'
+                : tapTarget === 'destination'
+                  ? 'bg-rose-500 text-white shadow'
+                  : inactiveChip
+            }`}
+          >
+            <span>{destButtonLabel}</span>
           </button>
           <button
             type="button"
@@ -203,7 +251,7 @@ export default function Page() {
               setTileTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
             }
             aria-label={`타일 테마 ${tileTheme === 'dark' ? '라이트로 전환' : '다크로 전환'}`}
-            className="min-h-[44px] rounded-full px-4 text-sm font-medium transition flex items-center gap-1.5 bg-neutral-800 text-neutral-200 ring-1 ring-neutral-700 hover:bg-neutral-700"
+            className={`${chipBase} ${inactiveChip}`}
           >
             <span aria-hidden>{tileTheme === 'dark' ? '🌑' : '☀️'}</span>
             <span>{tileTheme === 'dark' ? '다크' : '라이트'}</span>
@@ -211,7 +259,12 @@ export default function Page() {
         </div>
         <div className="mt-2 text-xs text-neutral-400">
           📍 {visible.length} / 전체 {bins.length}개
-          {nearest && (
+          {route && (
+            <span className="ml-2 text-cyan-300">
+              · 출발→{route.bin.name.split(',')[0]}→목적지 {formatDistance(route.cost.total)} (경유 +{formatDistance(route.cost.extra)})
+            </span>
+          )}
+          {!route && nearest && (
             <span className="ml-2 text-sky-300">
               · 가까운 통 {formatDistance(nearest.meters)} ({nearest.bin.name.split(',')[0]})
             </span>
@@ -225,10 +278,11 @@ export default function Page() {
         <Map
           bins={visible}
           userLocation={userLocation}
-          highlightBin={nearest?.bin ?? null}
+          destination={destination}
+          highlightBin={highlight}
           distanceMode={distanceMode}
-          onMapClick={tapMode ? handleMapClick : undefined}
-          tapMode={tapMode}
+          onMapClick={tapTarget ? handleMapClick : undefined}
+          tapMode={tapTarget !== null}
           tileTheme={tileTheme}
         />
       </main>

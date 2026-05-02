@@ -49,6 +49,7 @@
 - [x] **P2.4+** 다크 테마 가독성 — 비활성 칩 다크 그레이, 활성 "전체" 흰색 invert, Leaflet 줌·어트리뷰션 다크 override (`!important`).
 - [x] **P2.4++** 라이트/다크 타일 토글 — `TILE_PRESETS` 객체, `tileTheme` state + localStorage, `.tile-theme-dark` wrapper로 leaflet UI 다크화 가드. 칩 한 개로 전환.
 - [x] **P2.2** PWA manifest + iOS 풀스크린 메타 — `app/manifest.ts` + `icon.tsx`/`apple-icon.tsx` 동적 PNG (next/og), `appleWebApp` metadata. Safari "홈 화면에 추가"로 풀스크린 PWA.
+- [x] **P2.7** 경로 최적화 (출발+목적지+경유 통) — `findOptimalDetour` 알고리즘, 🏁 목적지 칩, RouteLine(청록), DestinationMarker, 통계 바 분기.
 
 ---
 

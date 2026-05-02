@@ -16,6 +16,15 @@
 - **Vercel Analytics + Speed Insights 설치** — RUM(Real User Monitoring), Core Web Vitals 자동 수집
 - iPad/모바일에서 HTTPS로 접속해 실제 GPS 권한·watchPosition 동작 검증 가능
 
+### Added — Phase 2.7: 경로 최적화 (출발 → 휴지통 → 목적지)
+- 새 칩 **🏁 목적지** — 클릭 시 destination tap mode, 다음 지도 클릭으로 목적지 설정 (set 후 "해제" 라벨)
+- 기존 "🎯 지도 탭" → **"🎯 출발 탭"** rename
+- 출발 + 목적지 둘 다 set되면 **detour 알고리즘**으로 경로상 가장 효율적인 휴지통 선택 (`dist(출발,통) + dist(통,목적지) - dist(출발,목적지)`)
+- 새 청록 점선 경로 polyline (출발 → 경유 통 → 목적지) + 🏁 목적지 마커
+- 통계 라벨: `출발→{통이름}→목적지 N m (경유 +M m)` — 총 거리 + 우회 비용 분리 표기
+- distanceMode 따라 자동 (직선/격자)
+- `lib/geo.ts`: `routePositions`, `detourCost`, `findOptimalDetour` 추가
+
 ### Added — Phase 2.2: PWA 설치 가능
 - `app/manifest.ts` — Next.js MetadataRoute.Manifest, `display: standalone`, theme/background `#0a0a0a`
 - `app/icon.tsx` (192×192) + `app/apple-icon.tsx` (180×180) — `next/og` `ImageResponse`로 빌드 시점 PNG 동적 생성

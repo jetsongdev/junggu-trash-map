@@ -71,3 +71,51 @@ export function pathPositions(
     [target.lat, target.lng],
   ];
 }
+
+export function routePositions(
+  origin: LatLng,
+  via: LatLng,
+  destination: LatLng,
+  mode: DistanceMode = 'euclidean',
+): [number, number][] {
+  const seg1 = pathPositions(origin, via, mode);
+  const seg2 = pathPositions(via, destination, mode);
+  return [...seg1, ...seg2.slice(1)];
+}
+
+export type DetourCost = {
+  via1: number;
+  via2: number;
+  total: number;
+  direct: number;
+  extra: number;
+};
+
+export function detourCost(
+  origin: LatLng,
+  via: LatLng,
+  destination: LatLng,
+  mode: DistanceMode = 'euclidean',
+): DetourCost {
+  const via1 = distanceMeters(origin, via, mode);
+  const via2 = distanceMeters(via, destination, mode);
+  const direct = distanceMeters(origin, destination, mode);
+  return { via1, via2, total: via1 + via2, direct, extra: via1 + via2 - direct };
+}
+
+export function findOptimalDetour(
+  bins: TrashBin[],
+  origin: LatLng,
+  destination: LatLng,
+  mode: DistanceMode = 'euclidean',
+): { bin: TrashBin; cost: DetourCost } | null {
+  if (bins.length === 0) return null;
+  let best: { bin: TrashBin; cost: DetourCost } | null = null;
+  for (const bin of bins) {
+    const cost = detourCost(origin, bin, destination, mode);
+    if (!best || cost.extra < best.cost.extra) {
+      best = { bin, cost };
+    }
+  }
+  return best;
+}

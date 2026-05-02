@@ -10,9 +10,11 @@ import {
   useMapEvents,
 } from 'react-leaflet';
 import { BinMarker } from './BinMarker';
+import { DestinationMarker } from './DestinationMarker';
 import { UserMarker } from './UserMarker';
 import {
   pathPositions,
+  routePositions,
   type DistanceMode,
   type LatLng,
 } from '@/lib/geo';
@@ -47,6 +49,7 @@ const TILE_PRESETS: Record<TileTheme, TilePreset> = {
 type Props = {
   bins: TrashBin[];
   userLocation?: LatLng | null;
+  destination?: LatLng | null;
   highlightBin?: TrashBin | null;
   distanceMode?: DistanceMode;
   onMapClick?: (latlng: LatLng) => void;
@@ -114,9 +117,35 @@ function DistanceLine({
   );
 }
 
+function RouteLine({
+  origin,
+  via,
+  destination,
+  mode,
+}: {
+  origin: LatLng;
+  via: LatLng;
+  destination: LatLng;
+  mode: DistanceMode;
+}) {
+  return (
+    <Polyline
+      positions={routePositions(origin, via, destination, mode)}
+      pathOptions={{
+        color: '#22d3ee',
+        weight: 4,
+        opacity: 0.85,
+        dashArray: '8 6',
+      }}
+      interactive={false}
+    />
+  );
+}
+
 export function Map({
   bins,
   userLocation,
+  destination,
   highlightBin,
   distanceMode = 'euclidean',
   onMapClick,
@@ -124,6 +153,8 @@ export function Map({
   tileTheme = 'dark',
 }: Props) {
   const preset = TILE_PRESETS[tileTheme];
+  const showRoute = !!(userLocation && destination && highlightBin);
+  const showDistanceOnly = !!(userLocation && highlightBin && !destination);
   return (
     <div
       className={[
@@ -151,14 +182,23 @@ export function Map({
         <BinMarker key={bin.id} bin={bin} />
       ))}
       {highlightBin && <HighlightRing bin={highlightBin} />}
-      {userLocation && highlightBin && (
+      {showDistanceOnly && (
         <DistanceLine
-          origin={userLocation}
-          target={{ lat: highlightBin.lat, lng: highlightBin.lng }}
+          origin={userLocation!}
+          target={{ lat: highlightBin!.lat, lng: highlightBin!.lng }}
+          mode={distanceMode}
+        />
+      )}
+      {showRoute && (
+        <RouteLine
+          origin={userLocation!}
+          via={{ lat: highlightBin!.lat, lng: highlightBin!.lng }}
+          destination={destination!}
           mode={distanceMode}
         />
       )}
       {userLocation && <UserMarker position={userLocation} />}
+      {destination && <DestinationMarker position={destination} />}
       <PanToUser target={userLocation} />
       {onMapClick && <MapClickHandler onClick={onMapClick} />}
     </MapContainer>
