@@ -16,6 +16,11 @@
 - **Vercel Analytics + Speed Insights 설치** — RUM(Real User Monitoring), Core Web Vitals 자동 수집
 - iPad/모바일에서 HTTPS로 접속해 실제 GPS 권한·watchPosition 동작 검증 가능
 
+### Changed — Phase 2.4+: 다크 테마 가독성 통일
+- 모든 비활성 칩(FilterChips·LocateButton·격자·지도 탭) 흰색 → `bg-neutral-800 text-neutral-200`
+- 활성 "전체" 칩 흰색으로 invert (가장 강한 selected 표현)
+- Leaflet 줌 컨트롤·어트리뷰션 다크 톤 override (Tailwind layer/specificity 회피 위해 `!important`)
+
 ### Changed — Phase 2.4: 다크 타일 (CartoDB Dark Matter)
 - 지도 배경 OSM Light → CartoDB Dark Matter (`{s}.basemaps.cartocdn.com/dark_all/...`) — 다크 헤더와 통일
 - 어트리뷰션에 © CARTO 추가, subdomains `abcd` (4-shard 분산), maxZoom 19→20, `{r}` retina 지원

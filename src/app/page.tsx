@@ -169,7 +169,7 @@ export default function Page() {
             className={`min-h-[44px] rounded-full px-4 text-sm font-medium transition flex items-center gap-1.5 ${
               distanceMode === 'manhattan'
                 ? 'bg-amber-500 text-white shadow'
-                : 'bg-white text-neutral-700 ring-1 ring-neutral-300 hover:bg-neutral-100'
+                : 'bg-neutral-800 text-neutral-200 ring-1 ring-neutral-700 hover:bg-neutral-700'
             }`}
           >
             <span>{distanceMode === 'euclidean' ? '📏 직선' : '📐 격자'}</span>
@@ -181,7 +181,7 @@ export default function Page() {
             className={`min-h-[44px] rounded-full px-4 text-sm font-medium transition flex items-center gap-1.5 ${
               tapMode
                 ? 'bg-violet-500 text-white shadow'
-                : 'bg-white text-neutral-700 ring-1 ring-neutral-300 hover:bg-neutral-100'
+                : 'bg-neutral-800 text-neutral-200 ring-1 ring-neutral-700 hover:bg-neutral-700'
             }`}
           >
             <span aria-hidden>🎯</span>

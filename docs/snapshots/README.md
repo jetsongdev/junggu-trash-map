@@ -14,6 +14,7 @@
 | 06 | 2026-05-02 | 🎯 지도 탭으로 위치 지정 (iPad/GPS 거부 우회) | [06-tap-to-locate](./06-tap-to-locate/) |
 | 07 | 2026-05-02 | 📐 Manhattan 거리 토글 (L자 격자, 154m vs 직선 121m) | [07-manhattan-toggle](./07-manhattan-toggle/) |
 | 08 | 2026-05-02 | 🌑 CartoDB Dark Matter 타일 (다크 헤더와 통일) | [08-dark-tiles](./08-dark-tiles/) |
+| 09 | 2026-05-02 | 🎨 다크 테마 가독성 — 비활성 칩·줌·어트리뷰션 다크 통일 | [09-dark-theme-polish](./09-dark-theme-polish/) |
 
 ## 새 스냅샷 찍는 법
 

@@ -9,12 +9,36 @@ body {
     "Pretendard", "Noto Sans KR", sans-serif;
 }
 
-/* Leaflet popup tweaks for our dark header / light map combo */
+/* Leaflet popup tweaks */
 .leaflet-popup-content {
   margin: 10px 14px;
 }
 .leaflet-popup-content-wrapper {
   border-radius: 8px;
+}
+
+/* Leaflet zoom control — dark theme (override leaflet defaults) */
+.leaflet-bar a,
+.leaflet-bar a:hover {
+  background-color: #171717 !important;
+  color: #e5e5e5 !important;
+  border-bottom-color: #404040 !important;
+}
+.leaflet-bar a:hover {
+  background-color: #262626 !important;
+}
+.leaflet-bar a.leaflet-disabled {
+  background-color: #0a0a0a !important;
+  color: #525252 !important;
+}
+
+/* Leaflet attribution — dark backdrop */
+.leaflet-control-attribution {
+  background: rgba(23, 23, 23, 0.85) !important;
+  color: #d4d4d4 !important;
+}
+.leaflet-control-attribution a {
+  color: #93c5fd !important;
 }
 
 .bin-marker {

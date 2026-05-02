@@ -46,6 +46,7 @@
 - [x] **개발 환경 정체성** — `~/.gitconfig` global = jetsong.dev, `~/Documents/workspace/saluscare/` overlay = work. `includeIf`로 디렉토리별 자동 분기.
 - [x] **P2.6** Manhattan 거리 토글 UI — Codex 위임 작업, `page.tsx` 한 파일에서 setter 활성화 + amber 칩 + localStorage 영속화. 직선 121m → 격자 154m (명동성당 좌표).
 - [x] **P2.4** 다크 타일 — `<TileLayer>` URL을 CartoDB Dark Matter로 교체, 다크 헤더와 통일. subdomains 4-shard, maxZoom 20, retina 지원.
+- [x] **P2.4+** 다크 테마 가독성 — 비활성 칩 다크 그레이, 활성 "전체" 흰색 invert, Leaflet 줌·어트리뷰션 다크 override (`!important`).
 
 ---
 
