@@ -4,7 +4,7 @@ title: "🔗 URL 쿼리스트링 공유 + 딥링크"
 index: 17
 date: 2026-05-03
 phase: P2.5
-git_sha: 1962747c06107dd971922948a003a5fbde6e85c2
+git_sha: 89a8b6614cda09d573a8b0e2c1a25c0bdf7ba2c5
 viewport: 390x844
 ---
 
