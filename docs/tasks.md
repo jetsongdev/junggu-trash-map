@@ -5,7 +5,9 @@
 
 ## 현재 상태 (2026-05-03)
 
-- **Phase**: 2 핵심 마무리 — Geolocation·필터·테마·PWA·경로·ETA·검색 다 들어감. 잔여는 P2.9~P2.16 (방향·즐겨찾기·다크 자동·햅틱·클러스터링·URL 공유·다중 경유 등 nice-to-have)
+- **Phase**: 2 핵심 마무리 — Geolocation·필터·테마(시스템 자동)·PWA·경로·ETA·검색·햅틱 다 들어감. 잔여는 P2.9 (속도 슬라이더) / P2.5 (URL 공유) / P2.10 (다중 경유) / P2.13 (방향) / P2.14 (즐겨찾기). P2.3 클러스터링은 25구 전엔 보류
+- **사용자 환경 영속화** (`localStorage`): `distanceMode` (직선/격자), `tileTheme` (다크/라이트, **빈 값일 때 시스템 prefers-color-scheme 자동 감지**), `walkingSpeed` (3/4/5 km/h)
+- **마커 색**: 일반 `#60a5fa` (blue-400), 재활용 `#34d399` (emerald-400), 혼합 `#c084fc` (violet-400) — 라이트/다크 양 타일에서 균형
 - **Roadmap 확장**: Phase 3 (25개 구) · Phase 4 (데이터 확장: 타 종류 통/사용자 제보/사진) · Phase 5 (실제 보행 경로 + TTS) · 인프라/품질 cross-cutting (테스트·Sentry·Lighthouse CI·i18n) 후보 등록됨
 - **Stack**: Next.js 16 (Turbopack) · Bun · TypeScript strict · Tailwind v4 · Leaflet + OSM/CartoDB · Vercel Analytics + Speed Insights
 - **Dev**: `bun run dev` → http://localhost:3000 (점유 시 자동 3001)
@@ -15,7 +17,6 @@
 - **Data**: `public/data/junggu.json` — 표준데이터 변환 **59 그룹** (혼합 56 / 단일 3 모두 일반). 같은 좌표 다중 행 그룹화: `TrashBin.types: ('일반'|'재활용')[]`
 - **Geolocation**: `watchPosition` 실시간 + Haversine/Manhattan `findNearest`/`findOptimalDetour` + sky/cyan 점선. 출발 + 목적지 모두 set 시 경유 휴지통 detour 알고리즘
 - **iOS fallback**: 🎯 출발 탭, 🏁 목적지 탭 — 두 탭 모드 mutually exclusive, 한 클릭으로 좌표 지정
-- **사용자 환경 영속화** (`localStorage`): `distanceMode` (직선/격자), `tileTheme` (다크/라이트), `walkingSpeed` (3/4/5 km/h)
 - **칩 스타일**: 비활성 = `bg-neutral-800` 다크 그레이. 활성 = 기능별 색 (전체=흰, 일반/재활용=색별, 위치=sky, 격자=amber, 출발 탭=violet, 목적지=rose)
 
 ---
@@ -55,6 +56,9 @@
 - [x] **P2.7** 경로 최적화 (출발+목적지+경유 통) — `findOptimalDetour` 알고리즘, 🏁 목적지 칩, RouteLine(청록), DestinationMarker, 통계 바 분기.
 - [x] **P2.8** ETA + 보행 속도 3단계 — `lib/eta.ts`, cycle 칩(🐢/🚶/🏃, 3/4/5 km/h), localStorage 영속화, 통계 바 시간 표시 (nearest·route 모두).
 - [x] **P2.12** 주소·랜드마크 검색 — Nominatim 검색 박스, 300ms debounce, 출발/목적지 즉시 지정 + 지도 이동
+- [x] **P2.11** 마커 색상 미세 조정 — blue/emerald/violet 톤을 라이트·다크 타일 모두에서 균형 있게 재조정
+- [x] **P2.15** 시스템 다크 모드 자동 감지 — 첫 방문 기본값만 `prefers-color-scheme` 반영, 이후 명시 토글 우선
+- [x] **P2.16** 터치 햅틱 피드백 — 지원 디바이스에서 마커 탭 시 짧은 진동
 
 ---
 
@@ -66,11 +70,8 @@
 - [ ] **P2.5** URL 쿼리스트링 필터·환경 공유 — `?type=재활용&speed=fast&origin=lat,lng&dest=lat,lng&theme=dark` 식으로 `useSearchParams` + 상태 직렬화/역직렬화. 링크 공유 시나리오
 - [ ] **P2.10** 다중 휴지통 경유 — 그리디 또는 N≤4 TSP. 출발→통1→통2→...→목적지 전체 detour 최소화. 산책길 시나리오
 - [ ] **P2.3** 클러스터링 — `leaflet.markercluster`. 마커 100+ 시 lag 방지. **25구 확장(Phase 3) 전엔 ø**
-- [ ] **P2.11** 마커 색상 채도 다크 배경에 맞게 미세 조정 (선택) — 현재 `#3b82f6`/`#10b981`이 충분히 보이지만 톤 통일 가능
 - [ ] **P2.13** 방향 화살표 — `deviceorientation` 기반 사용자 마커 회전. 좁은 골목에서 "지금 보는 방향" 즉시 파악
 - [ ] **P2.14** 즐겨찾기/최근 휴지통 — localStorage. 같은 동선 반복 사용자(출퇴근/산책 루틴) 대응
-- [ ] **P2.15** 시스템 다크 모드 자동 감지 — `prefers-color-scheme`로 첫 방문 기본값. 명시 토글 후엔 사용자 선택 우선
-- [ ] **P2.16** 터치 햅틱 피드백 — `navigator.vibrate` (가능한 디바이스에서) 마커 선택 시 짧은 진동
 
 ---
 

@@ -21,6 +21,7 @@
 | 13 | 2026-05-02 | ⏱ ETA + 보행 속도 3단계 (느림 3 / 보통 4 / 빠름 5 km/h) | [13-eta-walking-speed](./13-eta-walking-speed/) |
 | 14 | 2026-05-03 | 🔎 주소·랜드마크 검색 박스 (Nominatim, "명동성당" 3건 드롭다운) | [14-address-search](./14-address-search/) |
 | 15 | 2026-05-03 | 🔄 저장된 환경설정 복원 baseline — 라이트+격자+빠름 (hydration hotfix 검증) | [15-prefs-restored](./15-prefs-restored/) |
+| 16 | 2026-05-03 | 🎨 폴리싱 셋트 — 마커 톤 (blue/emerald/violet-400) + 시스템 다크 자동 + 햅틱 | [16-polish-bundle](./16-polish-bundle/) |
 
 ## 새 스냅샷 찍는 법
 

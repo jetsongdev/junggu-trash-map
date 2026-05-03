@@ -52,10 +52,17 @@ export default function Page() {
   const prefsHydratedRef = useRef(false);
 
   useEffect(() => {
+    if (prefsHydratedRef.current) return;
     const dm = window.localStorage.getItem('distanceMode');
     if (dm === 'manhattan') setDistanceMode('manhattan');
     const tt = window.localStorage.getItem('tileTheme');
-    if (tt === 'light') setTileTheme('light');
+    if (tt === 'dark' || tt === 'light') {
+      setTileTheme(tt);
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      setTileTheme('dark');
+    } else {
+      setTileTheme('light');
+    }
     const ws = window.localStorage.getItem('walkingSpeed');
     if (ws === 'slow' || ws === 'fast') setWalkingSpeed(ws);
     prefsHydratedRef.current = true;
@@ -88,11 +95,6 @@ export default function Page() {
     if (!prefsHydratedRef.current) return;
     window.localStorage.setItem('distanceMode', distanceMode);
   }, [distanceMode]);
-
-  useEffect(() => {
-    if (!prefsHydratedRef.current) return;
-    window.localStorage.setItem('tileTheme', tileTheme);
-  }, [tileTheme]);
 
   useEffect(() => {
     if (!prefsHydratedRef.current) return;
@@ -302,7 +304,11 @@ export default function Page() {
           <button
             type="button"
             onClick={() =>
-              setTileTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
+              setTileTheme((prev) => {
+                const next = prev === 'dark' ? 'light' : 'dark';
+                window.localStorage.setItem('tileTheme', next);
+                return next;
+              })
             }
             aria-label={`타일 테마 ${tileTheme === 'dark' ? '라이트로 전환' : '다크로 전환'}`}
             className={`${chipBase} ${inactiveChip}`}
