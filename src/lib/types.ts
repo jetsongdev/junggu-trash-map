@@ -19,11 +19,11 @@ export type TrashBin = {
 };
 
 export const TYPE_STYLE: Record<BinType, { color: string; emoji: string }> = {
-  일반: { color: '#3b82f6', emoji: '🗑️' },
-  재활용: { color: '#10b981', emoji: '♻️' },
+  일반: { color: '#60a5fa', emoji: '🗑️' },
+  재활용: { color: '#34d399', emoji: '♻️' },
 };
 
-export const MIXED_STYLE = { color: '#a855f7', emoji: '🗑️♻️' };
+export const MIXED_STYLE = { color: '#c084fc', emoji: '🗑️♻️' };
 
 export function styleFor(types: BinType[]): { color: string; emoji: string } {
   if (types.length >= 2) return MIXED_STYLE;

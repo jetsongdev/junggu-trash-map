@@ -4,13 +4,15 @@ import { memo } from 'react';
 import L from 'leaflet';
 import { Marker, Popup } from 'react-leaflet';
 import { BinPopup } from './BinPopup';
+import { HAPTIC, vibrate } from '@/lib/haptic';
 import type { TrashBin } from '@/lib/types';
 import { styleFor } from '@/lib/types';
 
 const ICON_CACHE = new Map<string, L.DivIcon>();
 
 function iconKey(types: TrashBin['types']): string {
-  return types.length >= 2 ? 'mixed' : types[0];
+  const { color } = styleFor(types);
+  return `${types.length >= 2 ? 'mixed' : types[0]}:${color}`;
 }
 
 function makeIcon(types: TrashBin['types']): L.DivIcon {
@@ -51,7 +53,13 @@ type Props = {
 
 function BinMarkerImpl({ bin }: Props) {
   return (
-    <Marker position={[bin.lat, bin.lng]} icon={getIcon(bin.types)}>
+    <Marker
+      position={[bin.lat, bin.lng]}
+      icon={getIcon(bin.types)}
+      eventHandlers={{
+        click: () => vibrate(HAPTIC.SELECT),
+      }}
+    >
       <Popup>
         <BinPopup bin={bin} />
       </Popup>

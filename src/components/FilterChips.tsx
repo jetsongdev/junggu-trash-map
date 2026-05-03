@@ -1,5 +1,6 @@
 'use client';
 
+import { HAPTIC, vibrate } from '@/lib/haptic';
 import { BIN_TYPES, TYPE_STYLE, type BinType } from '@/lib/types';
 
 type Props = {
@@ -18,7 +19,10 @@ export function FilterChips({ selected, onToggle, onClear }: Props) {
     <div className="flex flex-wrap items-center gap-2">
       <button
         type="button"
-        onClick={onClear}
+        onClick={() => {
+          vibrate(HAPTIC.TAP);
+          onClear();
+        }}
         aria-pressed={isAll}
         className={`min-h-[44px] rounded-full px-4 text-sm font-medium transition ${
           isAll ? 'bg-white text-neutral-900 shadow' : INACTIVE
@@ -33,7 +37,10 @@ export function FilterChips({ selected, onToggle, onClear }: Props) {
           <button
             key={type}
             type="button"
-            onClick={() => onToggle(type)}
+            onClick={() => {
+              vibrate(HAPTIC.TAP);
+              onToggle(type);
+            }}
             aria-pressed={active}
             className={`min-h-[44px] rounded-full px-4 text-sm font-medium transition flex items-center gap-1.5 ${
               active ? 'text-white shadow' : INACTIVE
