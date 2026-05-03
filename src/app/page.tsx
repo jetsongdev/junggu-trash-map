@@ -1,10 +1,12 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { FilterChips } from '@/components/FilterChips';
 import { LocateButton } from '@/components/LocateButton';
 import { SearchBox } from '@/components/SearchBox';
+import { ShareButton } from '@/components/ShareButton';
 import type { TileTheme } from '@/components/Map';
 import { fetchBins, filterByTypes } from '@/lib/data';
 import {
@@ -23,8 +25,21 @@ import {
 } from '@/lib/eta';
 import { HAPTIC, vibrate } from '@/lib/haptic';
 import type { BinType, TrashBin } from '@/lib/types';
+import {
+  parseUrlParams,
+  type AppState,
+} from '@/lib/url-share';
 
 type TapTarget = 'origin' | 'destination' | null;
+
+const DEFAULT_APP_STATE: AppState = {
+  selected: new Set<BinType>(),
+  tileTheme: 'dark',
+  distanceMode: 'euclidean',
+  walkingSpeed: 'normal',
+  userLocation: null,
+  destination: null,
+};
 
 const Map = dynamic(() => import('@/components/Map'), {
   ssr: false,
@@ -35,7 +50,8 @@ const Map = dynamic(() => import('@/components/Map'), {
   ),
 });
 
-export default function Page() {
+function PageContent() {
+  const searchParams = useSearchParams();
   const [bins, setBins] = useState<TrashBin[]>([]);
   const [selected, setSelected] = useState<Set<BinType>>(() => new Set());
   const [error, setError] = useState<string | null>(null);
@@ -54,20 +70,67 @@ export default function Page() {
 
   useEffect(() => {
     if (prefsHydratedRef.current) return;
-    const dm = window.localStorage.getItem('distanceMode');
-    if (dm === 'manhattan') setDistanceMode('manhattan');
-    const tt = window.localStorage.getItem('tileTheme');
-    if (tt === 'dark' || tt === 'light') {
-      setTileTheme(tt);
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      setTileTheme('dark');
-    } else {
-      setTileTheme('light');
+
+    const urlState = parseUrlParams(searchParams);
+
+    if (searchParams.has('types') && urlState.selected) {
+      setSelected(new Set(urlState.selected));
     }
-    const ws = window.localStorage.getItem('walkingSpeed');
-    if (ws === 'slow' || ws === 'fast') setWalkingSpeed(ws);
-    prefsHydratedRef.current = true;
-  }, []);
+
+    if (searchParams.has('mode')) {
+      if (urlState.distanceMode) {
+        setDistanceMode(urlState.distanceMode);
+      }
+    } else {
+      const storedDistanceMode = window.localStorage.getItem('distanceMode');
+      if (storedDistanceMode === 'manhattan') {
+        setDistanceMode('manhattan');
+      }
+    }
+
+    if (searchParams.has('theme')) {
+      if (urlState.tileTheme) {
+        setTileTheme(urlState.tileTheme);
+      }
+    } else {
+      const storedTheme = window.localStorage.getItem('tileTheme');
+      if (storedTheme === 'dark' || storedTheme === 'light') {
+        setTileTheme(storedTheme);
+      } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        setTileTheme('dark');
+      } else {
+        setTileTheme('light');
+      }
+    }
+
+    if (searchParams.has('speed')) {
+      if (urlState.walkingSpeed) {
+        setWalkingSpeed(urlState.walkingSpeed);
+      }
+    } else {
+      const storedWalkingSpeed = window.localStorage.getItem('walkingSpeed');
+      if (storedWalkingSpeed === 'slow' || storedWalkingSpeed === 'fast') {
+        setWalkingSpeed(storedWalkingSpeed);
+      }
+    }
+
+    if (searchParams.has('origin') && urlState.userLocation) {
+      stopWatch();
+      setUserLocation(urlState.userLocation);
+    }
+
+    if (searchParams.has('dest') && urlState.destination) {
+      setDestination(urlState.destination);
+    }
+
+    if (searchParams.has('origin') || searchParams.has('dest')) {
+      setMapFocusTarget(urlState.destination ?? urlState.userLocation ?? null);
+    }
+
+    queueMicrotask(() => {
+      prefsHydratedRef.current = true;
+    });
+  }, [searchParams]);
 
   useEffect(() => {
     let active = true;
@@ -230,6 +293,14 @@ export default function Page() {
     'bg-neutral-800 text-neutral-200 ring-1 ring-neutral-700 hover:bg-neutral-700';
   const chipBase =
     'min-h-[44px] rounded-full px-4 text-sm font-medium transition flex items-center gap-1.5';
+  const shareState: AppState = {
+    selected,
+    tileTheme,
+    distanceMode,
+    walkingSpeed,
+    userLocation,
+    destination,
+  };
 
   return (
     <div className="flex h-dvh flex-col bg-neutral-950 text-neutral-100">
@@ -326,6 +397,11 @@ export default function Page() {
             <span aria-hidden>{tileTheme === 'dark' ? '🌑' : '☀️'}</span>
             <span>{tileTheme === 'dark' ? '다크' : '라이트'}</span>
           </button>
+          <ShareButton
+            state={shareState}
+            defaults={DEFAULT_APP_STATE}
+            className={`${chipBase} ${inactiveChip}`}
+          />
         </div>
         <div className="mt-2 text-xs text-neutral-400">
           📍 {visible.length} / 전체 {bins.length}개
@@ -358,5 +434,13 @@ export default function Page() {
         />
       </main>
     </div>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={null}>
+      <PageContent />
+    </Suspense>
   );
 }
