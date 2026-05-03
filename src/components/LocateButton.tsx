@@ -1,5 +1,7 @@
 'use client';
 
+import { HAPTIC, vibrate } from '@/lib/haptic';
+
 type Props = {
   active: boolean;
   pending: boolean;
@@ -8,7 +10,11 @@ type Props = {
 };
 
 export function LocateButton({ active, pending, onLocate, onClear }: Props) {
-  const handle = active ? onClear : onLocate;
+  const handle = () => {
+    vibrate(HAPTIC.TAP);
+    if (active) onClear();
+    else onLocate();
+  };
   const label = pending ? '찾는 중…' : active ? '위치 끄기' : '내 위치';
 
   return (

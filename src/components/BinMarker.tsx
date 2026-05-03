@@ -4,6 +4,7 @@ import { memo } from 'react';
 import L from 'leaflet';
 import { Marker, Popup } from 'react-leaflet';
 import { BinPopup } from './BinPopup';
+import { HAPTIC, vibrate } from '@/lib/haptic';
 import type { TrashBin } from '@/lib/types';
 import { styleFor } from '@/lib/types';
 
@@ -56,11 +57,7 @@ function BinMarkerImpl({ bin }: Props) {
       position={[bin.lat, bin.lng]}
       icon={getIcon(bin.types)}
       eventHandlers={{
-        click: () => {
-          if ('vibrate' in navigator && typeof navigator.vibrate === 'function') {
-            navigator.vibrate(12);
-          }
-        },
+        click: () => vibrate(HAPTIC.SELECT),
       }}
     >
       <Popup>

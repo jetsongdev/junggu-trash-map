@@ -21,6 +21,7 @@ import {
   WALKING_SPEEDS,
   type WalkingSpeed,
 } from '@/lib/eta';
+import { HAPTIC, vibrate } from '@/lib/haptic';
 import type { BinType, TrashBin } from '@/lib/types';
 
 type TapTarget = 'origin' | 'destination' | null;
@@ -175,8 +176,10 @@ export default function Page() {
     if (tapTarget === 'origin') {
       stopWatch();
       setUserLocation(latlng);
+      vibrate(HAPTIC.CONFIRM);
     } else if (tapTarget === 'destination') {
       setDestination(latlng);
+      vibrate(HAPTIC.CONFIRM);
     }
     setTapTarget(null);
   };
@@ -204,10 +207,12 @@ export default function Page() {
   };
 
   const onOriginTap = () => {
+    vibrate(HAPTIC.TAP);
     setTapTarget((prev) => (prev === 'origin' ? null : 'origin'));
     setLocateError(null);
   };
   const onDestinationButton = () => {
+    vibrate(HAPTIC.TAP);
     if (destination) {
       setDestination(null);
     } else {
@@ -251,11 +256,12 @@ export default function Page() {
           />
           <button
             type="button"
-            onClick={() =>
+            onClick={() => {
+              vibrate(HAPTIC.TAP);
               setDistanceMode((prev) =>
                 prev === 'euclidean' ? 'manhattan' : 'euclidean',
-              )
-            }
+              );
+            }}
             aria-pressed={distanceMode === 'manhattan'}
             className={`${chipBase} ${
               distanceMode === 'manhattan'
@@ -294,7 +300,10 @@ export default function Page() {
           </button>
           <button
             type="button"
-            onClick={() => setWalkingSpeed((prev) => nextSpeed(prev))}
+            onClick={() => {
+              vibrate(HAPTIC.TAP);
+              setWalkingSpeed((prev) => nextSpeed(prev));
+            }}
             aria-label={`보행 속도: ${WALKING_SPEEDS[walkingSpeed].label}, 클릭해 다음 단계로`}
             className={`${chipBase} ${inactiveChip}`}
           >
@@ -303,13 +312,14 @@ export default function Page() {
           </button>
           <button
             type="button"
-            onClick={() =>
+            onClick={() => {
+              vibrate(HAPTIC.TAP);
               setTileTheme((prev) => {
                 const next = prev === 'dark' ? 'light' : 'dark';
                 window.localStorage.setItem('tileTheme', next);
                 return next;
-              })
-            }
+              });
+            }}
             aria-label={`타일 테마 ${tileTheme === 'dark' ? '라이트로 전환' : '다크로 전환'}`}
             className={`${chipBase} ${inactiveChip}`}
           >

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { HAPTIC, vibrate } from '@/lib/haptic';
 import type { NominatimResult } from '@/lib/search';
 
 type SelectMode = 'origin' | 'destination' | null;
@@ -126,6 +127,7 @@ export function SearchBox({ onSelect, tapMode }: Props) {
       return;
     }
 
+    vibrate(HAPTIC.SELECT);
     onSelect(lat, lon, result.display_name, resolveMode(tapMode));
     skipNextFetchRef.current = true;
     setQuery(result.display_name);
