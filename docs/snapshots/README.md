@@ -19,6 +19,8 @@
 | 11 | 2026-05-02 | 📲 PWA manifest + 아이콘 (홈 화면 추가 가능) | [11-pwa-manifest](./11-pwa-manifest/) |
 | 12 | 2026-05-02 | 🚶 경로 최적화 — 출발 → 경유 통 → 목적지 (detour 알고리즘) | [12-route-optimization](./12-route-optimization/) |
 | 13 | 2026-05-02 | ⏱ ETA + 보행 속도 3단계 (느림 3 / 보통 4 / 빠름 5 km/h) | [13-eta-walking-speed](./13-eta-walking-speed/) |
+| 14 | 2026-05-03 | 🔎 주소·랜드마크 검색 박스 (Nominatim, "명동성당" 3건 드롭다운) | [14-address-search](./14-address-search/) |
+| 15 | 2026-05-03 | 🔄 저장된 환경설정 복원 baseline — 라이트+격자+빠름 (hydration hotfix 검증) | [15-prefs-restored](./15-prefs-restored/) |
 
 ## 새 스냅샷 찍는 법
 

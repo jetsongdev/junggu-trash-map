@@ -9,6 +9,12 @@
 
 ## [Unreleased]
 
+### Added
+- 주소·랜드마크 검색 박스로 출발/목적지를 빠르게 지정할 수 있습니다.
+
+### Fixed
+- 저장된 사용자 환경설정(거리 모드/타일 테마/보행 속도)이 있을 때 첫 페이지 로드 시 발생하던 hydration mismatch 경고 제거 — 첫 페인트는 기본값으로 그린 뒤 마운트 후 localStorage 값을 적용하도록 변경.
+
 ### Infrastructure — Tier 2 검증 환경
 - GitHub private repo `jetsongdev/junggu-trash-map` 생성 + 첫 push
 - Vercel 프로젝트 link + Production deploy → https://junggu-trash-map.vercel.app

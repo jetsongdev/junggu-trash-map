@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FilterChips } from '@/components/FilterChips';
 import { LocateButton } from '@/components/LocateButton';
+import { SearchBox } from '@/components/SearchBox';
 import type { TileTheme } from '@/components/Map';
 import { fetchBins, filterByTypes } from '@/lib/data';
 import {
@@ -40,25 +41,25 @@ export default function Page() {
 
   const [userLocation, setUserLocation] = useState<LatLng | null>(null);
   const [destination, setDestination] = useState<LatLng | null>(null);
+  const [mapFocusTarget, setMapFocusTarget] = useState<LatLng | null>(null);
   const [locatePending, setLocatePending] = useState(false);
   const [locateError, setLocateError] = useState<string | null>(null);
   const [tapTarget, setTapTarget] = useState<TapTarget>(null);
-  const [distanceMode, setDistanceMode] = useState<DistanceMode>(() => {
-    if (typeof window === 'undefined') return 'euclidean';
-    const saved = window.localStorage.getItem('distanceMode');
-    return saved === 'manhattan' ? 'manhattan' : 'euclidean';
-  });
-  const [tileTheme, setTileTheme] = useState<TileTheme>(() => {
-    if (typeof window === 'undefined') return 'dark';
-    const saved = window.localStorage.getItem('tileTheme');
-    return saved === 'light' ? 'light' : 'dark';
-  });
-  const [walkingSpeed, setWalkingSpeed] = useState<WalkingSpeed>(() => {
-    if (typeof window === 'undefined') return 'normal';
-    const saved = window.localStorage.getItem('walkingSpeed');
-    return saved === 'slow' || saved === 'fast' ? saved : 'normal';
-  });
+  const [distanceMode, setDistanceMode] = useState<DistanceMode>('euclidean');
+  const [tileTheme, setTileTheme] = useState<TileTheme>('dark');
+  const [walkingSpeed, setWalkingSpeed] = useState<WalkingSpeed>('normal');
   const watchIdRef = useRef<number | null>(null);
+  const prefsHydratedRef = useRef(false);
+
+  useEffect(() => {
+    const dm = window.localStorage.getItem('distanceMode');
+    if (dm === 'manhattan') setDistanceMode('manhattan');
+    const tt = window.localStorage.getItem('tileTheme');
+    if (tt === 'light') setTileTheme('light');
+    const ws = window.localStorage.getItem('walkingSpeed');
+    if (ws === 'slow' || ws === 'fast') setWalkingSpeed(ws);
+    prefsHydratedRef.current = true;
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -84,14 +85,17 @@ export default function Page() {
   }, []);
 
   useEffect(() => {
+    if (!prefsHydratedRef.current) return;
     window.localStorage.setItem('distanceMode', distanceMode);
   }, [distanceMode]);
 
   useEffect(() => {
+    if (!prefsHydratedRef.current) return;
     window.localStorage.setItem('tileTheme', tileTheme);
   }, [tileTheme]);
 
   useEffect(() => {
+    if (!prefsHydratedRef.current) return;
     window.localStorage.setItem('walkingSpeed', walkingSpeed);
   }, [walkingSpeed]);
 
@@ -175,6 +179,28 @@ export default function Page() {
     setTapTarget(null);
   };
 
+  const handleSearchSelect = (
+    lat: number,
+    lon: number,
+    _label: string,
+    mode: TapTarget,
+  ) => {
+    const target = { lat, lng: lon };
+
+    if (mode === 'origin') {
+      stopWatch();
+      setUserLocation(target);
+    } else if (mode === 'destination') {
+      setDestination(target);
+    } else {
+      setDestination(target);
+    }
+
+    setTapTarget(null);
+    setLocateError(null);
+    setMapFocusTarget(target);
+  };
+
   const onOriginTap = () => {
     setTapTarget((prev) => (prev === 'origin' ? null : 'origin'));
     setLocateError(null);
@@ -210,6 +236,9 @@ export default function Page() {
       </header>
 
       <section className="border-b border-neutral-800 bg-neutral-900 px-4 py-3">
+        <div className="mb-3">
+          <SearchBox onSelect={handleSearchSelect} tapMode={tapTarget} />
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <FilterChips selected={selected} onToggle={toggle} onClear={clearTypes} />
           <LocateButton
@@ -305,6 +334,7 @@ export default function Page() {
           userLocation={userLocation}
           destination={destination}
           highlightBin={highlight}
+          focusTarget={mapFocusTarget}
           distanceMode={distanceMode}
           onMapClick={tapTarget ? handleMapClick : undefined}
           tapMode={tapTarget !== null}

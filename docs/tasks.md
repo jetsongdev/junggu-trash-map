@@ -5,7 +5,8 @@
 
 ## 현재 상태 (2026-05-03)
 
-- **Phase**: 2 거의 마무리 — Geolocation·필터·테마·PWA·경로·ETA 다 들어감. 잔여는 다중 경유·URL 공유·클러스터링 등 nice-to-have
+- **Phase**: 2 핵심 마무리 — Geolocation·필터·테마·PWA·경로·ETA·검색 다 들어감. 잔여는 P2.9~P2.16 (방향·즐겨찾기·다크 자동·햅틱·클러스터링·URL 공유·다중 경유 등 nice-to-have)
+- **Roadmap 확장**: Phase 3 (25개 구) · Phase 4 (데이터 확장: 타 종류 통/사용자 제보/사진) · Phase 5 (실제 보행 경로 + TTS) · 인프라/품질 cross-cutting (테스트·Sentry·Lighthouse CI·i18n) 후보 등록됨
 - **Stack**: Next.js 16 (Turbopack) · Bun · TypeScript strict · Tailwind v4 · Leaflet + OSM/CartoDB · Vercel Analytics + Speed Insights
 - **Dev**: `bun run dev` → http://localhost:3000 (점유 시 자동 3001)
 - **Build**: `bun run build` 통과
@@ -53,6 +54,7 @@
 - [x] **P2.2** PWA manifest + iOS 풀스크린 메타 — `app/manifest.ts` + `icon.tsx`/`apple-icon.tsx` 동적 PNG (next/og), `appleWebApp` metadata. Safari "홈 화면에 추가"로 풀스크린 PWA.
 - [x] **P2.7** 경로 최적화 (출발+목적지+경유 통) — `findOptimalDetour` 알고리즘, 🏁 목적지 칩, RouteLine(청록), DestinationMarker, 통계 바 분기.
 - [x] **P2.8** ETA + 보행 속도 3단계 — `lib/eta.ts`, cycle 칩(🐢/🚶/🏃, 3/4/5 km/h), localStorage 영속화, 통계 바 시간 표시 (nearest·route 모두).
+- [x] **P2.12** 주소·랜드마크 검색 — Nominatim 검색 박스, 300ms debounce, 출발/목적지 즉시 지정 + 지도 이동
 
 ---
 
@@ -65,6 +67,10 @@
 - [ ] **P2.10** 다중 휴지통 경유 — 그리디 또는 N≤4 TSP. 출발→통1→통2→...→목적지 전체 detour 최소화. 산책길 시나리오
 - [ ] **P2.3** 클러스터링 — `leaflet.markercluster`. 마커 100+ 시 lag 방지. **25구 확장(Phase 3) 전엔 ø**
 - [ ] **P2.11** 마커 색상 채도 다크 배경에 맞게 미세 조정 (선택) — 현재 `#3b82f6`/`#10b981`이 충분히 보이지만 톤 통일 가능
+- [ ] **P2.13** 방향 화살표 — `deviceorientation` 기반 사용자 마커 회전. 좁은 골목에서 "지금 보는 방향" 즉시 파악
+- [ ] **P2.14** 즐겨찾기/최근 휴지통 — localStorage. 같은 동선 반복 사용자(출퇴근/산책 루틴) 대응
+- [ ] **P2.15** 시스템 다크 모드 자동 감지 — `prefers-color-scheme`로 첫 방문 기본값. 명시 토글 후엔 사용자 선택 우선
+- [ ] **P2.16** 터치 햅틱 피드백 — `navigator.vibrate` (가능한 디바이스에서) 마커 선택 시 짧은 진동
 
 ---
 
@@ -78,6 +84,42 @@
   - (c) Postgres + PostGIS, `ST_Within(viewport)` 쿼리
 - [ ] **P3.2** 결정한 전략으로 구현
 - [ ] **P3.3** 자치구 진입 가이드 UI (현재 위치 → 자동 자치구 감지)
+
+---
+
+## 📦 Open — Phase 4: 데이터 확장
+
+표준 휴지통 데이터 외 종류와 사용자 제보·사진까지.
+
+- [ ] **P4.1** 타 종류 통 합치기 — 담배꽁초·의류수거함·폐의약품함 (별도 공공 데이터셋). 필터 칩에 추가, transform 스크립트 확장
+- [ ] **P4.2** 사용자 제보 기능 — 없음/넘침/위치 오류. 익명, Vercel KV 또는 Postgres. 관리자 페이지(P3 결정 포인트) 트리거 가능
+- [ ] **P4.3** 휴지통 사진 1장 — Supabase Storage 또는 정적 추가. 골목 안쪽 통 식별용
+
+---
+
+## 🧭 Open — Phase 5: 라우팅 품질
+
+직선/격자 추정 → 실제 보행 경로.
+
+- [ ] **P5.1** 실제 보행 경로 — OSRM/GraphHopper로 turn-by-turn 폴리라인 + ETA 정확도 향상. 외부 API rate limit·의존성 trade-off 검토
+- [ ] **P5.2** 음성 안내 (TTS) — Web Speech API. 보행 직전 hands-free 시나리오
+
+---
+
+## 🛠 Open — 인프라/품질 (cross-cutting)
+
+특정 Phase에 종속되지 않는 품질·관측·국제화 작업.
+
+- [ ] **I.1** 테스트 인프라 — vitest 도입, 순수 함수 우선 (`lib/geo.ts`, `lib/eta.ts`, `scripts/transform.ts`). 회귀 방지
+- [ ] **I.2** 에러 모니터링 — Sentry 또는 Vercel Observability. Geolocation 실패율, 빈 데이터 fetch 에러 RUM 보완
+- [ ] **I.3** Lighthouse CI — PR마다 PWA/접근성 점수 회귀 차단
+- [ ] **I.4** i18n (en/ja/zh) — `next-intl`. 명동·남대문 외국인 관광객 시나리오
+
+---
+
+## 🎮 Open — 실험적 (선택)
+
+- [ ] **X.1** "오늘 절약한 보행거리/시간" 누적 — (출발→목적지 직선) − (출발→가까운통→목적지) 차이 누적 표시. 분리수거 동기부여
 
 ---
 
@@ -116,6 +158,7 @@
 - **`vercel link` GitHub 자동 연결 실패**: 첫 시도에서 "Failed to connect ... private repo access" 메시지 후 두 번째 시도엔 메시지 없이 link만 됨. 추후 `vercel git connect`로 명시 연결 시도하면 "already connected" 응답 (한 번 설정되면 자동). push가 production/preview 자동 deploy를 트리거.
 - **Vercel commit-email-GitHub 매칭**: 커밋 author 이메일이 GitHub 계정에 등록 안 돼있으면 deploy block. CLI는 generic "Unexpected error"만 떨굼, dashboard에 사유. → git identity를 GitHub 계정 이메일로 맞추기 (이 repo는 jetsong.dev@gmail.com).
 - **Leaflet `divIcon` 캐시**: 같은 (단일타입/혼합) 키 마커들은 `L.divIcon` 인스턴스를 공유해도 안전 (Leaflet은 html을 템플릿으로만 쓰고 DOM은 마커별 생성). 59개 마커 × 매 렌더 → 3 인스턴스로 절감.
+- **localStorage 초기화 ≠ useState 초기화**: `useState(() => localStorage.getItem(...))` 패턴은 SSR(server) → 기본값, CSR(client) → 저장값으로 첫 렌더가 갈라져 hydration mismatch. 항상 기본값으로 useState → mount 후 useEffect에서 localStorage 읽어 setState. 첫 effect의 자동 persist는 hydratedRef로 가드해서 default가 saved를 덮어쓰지 않도록 할 것.
 
 ---
 

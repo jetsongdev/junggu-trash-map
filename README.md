@@ -68,10 +68,15 @@ docs/
 
 ## 다음 단계 결정 포인트
 
-- **25개 구 확장**: JSON 한 덩어리 1MB+ 도달 시 자치구별 파일 분할 + 뷰포트 bbox lazy-load. 그 전엔 단일 JSON 충분
+- **25개 구 확장 (Phase 3)**: JSON 한 덩어리 1MB+ 도달 시 자치구별 파일 분할 + 뷰포트 bbox lazy-load. 그 전엔 단일 JSON 충분
+- **데이터 확장 (Phase 4)**: 타 종류 통(담배꽁초/의류수거함/폐의약품함) 합치기, 사용자 제보(없음·넘침·위치 오류), 휴지통 사진
+- **라우팅 품질 (Phase 5)**: 직선/격자 추정 → OSRM/GraphHopper turn-by-turn. 외부 API rate limit 트레이드오프 검토 필요. TTS 음성 안내도 후보
+- **인프라/품질 (cross-cutting)**: vitest 도입(순수 함수 우선), Sentry/Vercel Observability, Lighthouse CI, i18n(en/ja/zh)
 - **카카오맵 전환**: 한글 주소·로드뷰·POI 검색 필요해지면. 지금은 OSM 충분
 - **DB 도입**: 사용자 제보·수정 기능 도입할 때 (Postgres + PostGIS)
 - **인증**: 관리자 페이지 도입 시 (NextAuth / Clerk)
+
+전체 작업 큐와 P 번호는 [`docs/tasks.md`](docs/tasks.md) 참고.
 
 ## 가드레일 (개발 시 주의)
 

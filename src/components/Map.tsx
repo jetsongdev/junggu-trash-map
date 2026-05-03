@@ -51,6 +51,7 @@ type Props = {
   userLocation?: LatLng | null;
   destination?: LatLng | null;
   highlightBin?: TrashBin | null;
+  focusTarget?: LatLng | null;
   distanceMode?: DistanceMode;
   onMapClick?: (latlng: LatLng) => void;
   tapMode?: boolean;
@@ -147,6 +148,7 @@ export function Map({
   userLocation,
   destination,
   highlightBin,
+  focusTarget,
   distanceMode = 'euclidean',
   onMapClick,
   tapMode = false,
@@ -200,6 +202,7 @@ export function Map({
       {userLocation && <UserMarker position={userLocation} />}
       {destination && <DestinationMarker position={destination} />}
       <PanToUser target={userLocation} />
+      <PanToUser target={focusTarget} />
       {onMapClick && <MapClickHandler onClick={onMapClick} />}
     </MapContainer>
     </div>
