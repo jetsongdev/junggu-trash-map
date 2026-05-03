@@ -3,7 +3,7 @@ index: 16
 slug: polish-bundle
 date: 2026-05-03
 phase: "P2.11 + P2.15 + P2.16"
-git_sha: 812331f (dirty)
+git_sha: 4c2744b
 viewport: 390x844
 ---
 
