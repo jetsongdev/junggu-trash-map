@@ -3,7 +3,7 @@ index: 14
 slug: address-search
 date: 2026-05-03
 phase: "P2.12"
-git_sha: 69eecb8 (dirty)
+git_sha: 94282bf
 viewport: 390x844
 ---
 

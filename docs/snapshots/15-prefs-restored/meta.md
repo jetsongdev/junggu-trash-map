@@ -3,7 +3,7 @@ index: 15
 slug: prefs-restored
 date: 2026-05-03
 phase: "hotfix"
-git_sha: 69eecb8 (dirty)
+git_sha: 94282bf
 viewport: 390x844
 ---
 
