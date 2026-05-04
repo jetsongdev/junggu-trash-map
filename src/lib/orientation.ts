@@ -28,7 +28,8 @@ function readHeading(e: OrientationLike): number | null {
   let raw: number;
   if (typeof e.webkitCompassHeading === 'number') {
     raw = e.webkitCompassHeading;
-  } else if (e.alpha != null && (e.absolute === true || 'webkitCompassHeading' in e)) {
+  } else if (e.alpha != null) {
+    if (e.absolute === false) return null;
     raw = (360 - e.alpha) % 360;
   } else {
     return null;
@@ -42,13 +43,6 @@ function smoothHeading(prev: number, next: number, weight: number): number {
   else if (delta < -180) delta += 360;
   const result = prev + delta * weight;
   return ((result % 360) + 360) % 360;
-}
-
-function pickEventName(): 'deviceorientationabsolute' | 'deviceorientation' | null {
-  if (typeof window === 'undefined') return null;
-  if ('ondeviceorientationabsolute' in window) return 'deviceorientationabsolute';
-  if ('ondeviceorientation' in window) return 'deviceorientation';
-  return null;
 }
 
 export function useDeviceHeading(enabled: boolean) {
@@ -78,8 +72,6 @@ export function useDeviceHeading(enabled: boolean) {
       smoothedRef.current = null;
       return;
     }
-    const eventName = pickEventName();
-    if (!eventName) return;
     const handler = (e: Event) => {
       const raw = readHeading(e as OrientationLike);
       if (raw == null || !Number.isFinite(raw)) return;
@@ -91,9 +83,11 @@ export function useDeviceHeading(enabled: boolean) {
       lastUpdateRef.current = now;
       setHeading(smoothed);
     };
-    window.addEventListener(eventName, handler as EventListener);
+    window.addEventListener('deviceorientationabsolute', handler as EventListener);
+    window.addEventListener('deviceorientation', handler as EventListener);
     return () => {
-      window.removeEventListener(eventName, handler as EventListener);
+      window.removeEventListener('deviceorientationabsolute', handler as EventListener);
+      window.removeEventListener('deviceorientation', handler as EventListener);
     };
   }, [enabled, supported, permission]);
 
