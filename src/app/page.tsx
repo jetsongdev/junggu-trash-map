@@ -483,7 +483,7 @@ function PageContent() {
         <Map
           bins={visible}
           userLocation={userLocation}
-          userHeading={compassMode === 'cone' ? compass.heading : null}
+          userHeading={compassMode !== 'off' ? compass.heading : null}
           mapBearing={
             compassMode === 'head-up' && compass.heading != null
               ? -compass.heading

@@ -255,7 +255,14 @@ export function Map({
             rank={(i + 2) as 2 | 3}
           />
         ))}
-      {userLocation && <UserMarker position={userLocation} heading={userHeading} />}
+      {userLocation && (
+        <UserMarker
+          position={userLocation}
+          heading={
+            userHeading != null ? userHeading + (mapBearing ?? 0) : null
+          }
+        />
+      )}
       {destination && <DestinationMarker position={destination} />}
       <PanToUser target={userLocation} />
       <PanToUser target={focusTarget} />
