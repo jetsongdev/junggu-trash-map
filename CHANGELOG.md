@@ -18,9 +18,10 @@
 - 보행 속도를 슬라이더로 2~7 km/h 사이 0.5 단위로 자유롭게 조정할 수 있습니다. 칩을 누르면 슬라이더가 펼쳐지며, 속도에 따라 🐢/🚶/🏃 이모지가 자동으로 바뀝니다. URL 공유와 환경설정에 그대로 저장됩니다 (이전 'slow'/'normal'/'fast' 링크는 자동으로 3/4/5 km/h로 변환).
 
 ### Infrastructure
-- `lib/geo.ts` · `lib/eta.ts` · `lib/url-share.ts` 순수 함수 59개 vitest 단위 테스트 추가 (`bun run test`).
+- `lib/geo.ts` · `lib/eta.ts` · `lib/url-share.ts` 순수 함수 59개 vitest 단위 테스트 추가 (`bun run test`). 이후 P2.9 슬라이더와 I.2 모니터링 분량 합쳐 85개로 확장.
 - Add Lighthouse CI GitHub Actions workflow for PR performance/a11y gating.
-- feat: Sentry error monitoring (client/server, production-only)
+- Sentry 클라이언트/서버 에러 모니터링 통합 (`@sentry/nextjs@10.51`, production-only init). geolocation 실패·`fetchBins` 에러·uncaught 브라우저 에러 자동 수집. `NEXT_PUBLIC_SENTRY_DSN` 미설정 시 안전한 no-op.
+- 프로젝트 스킬 3종 추가 (`.claude/skills/trash-*`): `trash-feature-merge-flow` (P*.* 머지 9단계 자동화), `trash-codex-integrate` (Codex sandbox 산출물 정리), `trash-lighthouse-pr-watch` (PR 게이트 모니터링·머지). 다음 세션부터 자동 트리거.
 
 ### Changed
 - 휴지통 마커 색상을 라이트/다크 타일 모두에서 더 균형 있게 보이도록 파랑·초록·보라 톤으로 미세 조정했습니다.
