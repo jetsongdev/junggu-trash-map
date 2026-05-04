@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
+import '@/lib/leaflet-globals';
+import 'leaflet-rotate/dist/leaflet-rotate.js';
 import {
   CircleMarker,
   MapContainer,
@@ -19,6 +21,11 @@ import {
   type LatLng,
 } from '@/lib/geo';
 import type { TrashBin } from '@/lib/types';
+
+type RotatedMap = ReturnType<typeof useMap> & {
+  setBearing?: (theta: number) => void;
+  getBearing?: () => number;
+};
 
 export type TileTheme = 'light' | 'dark';
 
@@ -49,6 +56,8 @@ const TILE_PRESETS: Record<TileTheme, TilePreset> = {
 type Props = {
   bins: TrashBin[];
   userLocation?: LatLng | null;
+  userHeading?: number | null;
+  mapBearing?: number | null;
   destination?: LatLng | null;
   highlights?: TrashBin[];
   focusTarget?: LatLng | null;
@@ -68,6 +77,15 @@ function PanToUser({ target }: { target: LatLng | null | undefined }) {
       duration: 0.6,
     });
   }, [map, target]);
+  return null;
+}
+
+function BearingController({ bearing }: { bearing: number | null }) {
+  const map = useMap() as RotatedMap;
+  useEffect(() => {
+    if (typeof map.setBearing !== 'function') return;
+    map.setBearing(bearing ?? 0);
+  }, [map, bearing]);
   return null;
 }
 
@@ -155,6 +173,8 @@ function RouteLine({
 export function Map({
   bins,
   userLocation,
+  userHeading,
+  mapBearing,
   destination,
   highlights = [],
   focusTarget,
@@ -186,6 +206,7 @@ export function Map({
       zoom={14}
       scrollWheelZoom
       style={{ height: '100%', width: '100%' }}
+      {...({ rotate: true, rotateControl: false, touchRotate: false, bearing: 0 } as object)}
     >
       <TileLayer
         key={tileTheme}
@@ -234,10 +255,18 @@ export function Map({
             rank={(i + 2) as 2 | 3}
           />
         ))}
-      {userLocation && <UserMarker position={userLocation} />}
+      {userLocation && (
+        <UserMarker
+          position={userLocation}
+          heading={
+            userHeading != null ? userHeading + (mapBearing ?? 0) : null
+          }
+        />
+      )}
       {destination && <DestinationMarker position={destination} />}
       <PanToUser target={userLocation} />
       <PanToUser target={focusTarget} />
+      <BearingController bearing={mapBearing ?? 0} />
       {onMapClick && <MapClickHandler onClick={onMapClick} />}
     </MapContainer>
     </div>
