@@ -58,7 +58,7 @@
 - [x] **P2.8** ETA + 보행 속도 3단계 — `lib/eta.ts`, cycle 칩(🐢/🚶/🏃, 3/4/5 km/h), localStorage 영속화, 통계 바 시간 표시 (nearest·route 모두).
 - [x] **P2.12** 주소·랜드마크 검색 — Nominatim 검색 박스, 300ms debounce, 출발/목적지 즉시 지정 + 지도 이동
 - [x] **P2.11** 마커 색상 미세 조정 — blue/emerald/violet 톤을 라이트·다크 타일 모두에서 균형 있게 재조정
-- [x] **P2.10** 가까운/경유 휴지통 Top-3 후보 시각화 — 목적지 없으면 nearest 3개, 목적지 있으면 detour 3개를 rank별 크기·투명도로 읽기 전용 표시
+- [x] **P2.10** 가까운/경유 휴지통 Top-3 후보 시각화 — 목적지 없으면 nearest 3개, 목적지 있으면 detour 3개를 rank별 크기로 표시. Top-3 각각에 굵기·색이 다른 점선 연결, 비후보 마커는 opacity 0.25로 dimming해 후보만 도드라지게.
 - [x] **P2.15** 시스템 다크 모드 자동 감지 — 첫 방문 기본값만 `prefers-color-scheme` 반영, 이후 명시 토글 우선
 - [x] **P2.16** 터치 햅틱 피드백 — 지원 디바이스에서 마커·검색·필터/모드 칩 탭 + 좌표 확정에 강도별 진동(`lib/haptic.ts`, TAP 6ms / SELECT 12ms / CONFIRM 18ms)
 - [x] **P2.5** URL 쿼리스트링 공유 — 영문 alias(`general,recycle`) 기반 `types/theme/mode/speed/origin/dest` URL을 우선 적용하고, 현재 필터·환경·좌표 상태를 공유 링크로 복사/공유

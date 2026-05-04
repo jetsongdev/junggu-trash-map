@@ -24,6 +24,7 @@
 | 16 | 2026-05-03 | 🎨 폴리싱 셋트 — 마커 톤 (blue/emerald/violet-400) + 시스템 다크 자동 + 햅틱 | [16-polish-bundle](./16-polish-bundle/) |
 | 17 | 2026-05-03 | 🔗 URL 쿼리스트링 공유 + 딥링크 (🔗 공유 버튼, 6개 파라미터) | [17-url-share](./17-url-share/) |
 | 18 | 2026-05-04 | 🥇🥈🥉 가까운/경유 휴지통 Top-3 후보 시각화 (rank별 opacity·크기) | [18-top3-candidates](./18-top3-candidates/) |
+| 19 | 2026-05-04 | 🔵🔵🔵 Top-3 후보 가독성 개선 — 선 3개 연결 + 비후보 희미하게 | [19-top3-readability](./19-top3-readability/) |
 
 ## 새 스냅샷 찍는 법
 
