@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { etaSeconds, formatEta, nextSpeed, WALKING_SPEEDS } from '../eta';
+import {
+  clampKmh,
+  etaSeconds,
+  formatEta,
+  formatKmh,
+  getSpeedDisplay,
+  nextSpeed,
+  speedToKmh,
+  WALKING_SPEEDS,
+} from '../eta';
 
 describe('nextSpeed', () => {
   it('cycles slow → normal → fast → slow', () => {
@@ -66,5 +75,83 @@ describe('formatEta', () => {
 
   it('negative → clamps to 0', () => {
     expect(formatEta(-5)).toBe('약 0초');
+  });
+});
+
+describe('etaSeconds with numeric km/h', () => {
+  it('400m at 4.5 km/h ≈ 320s', () => {
+    expect(etaSeconds(400, 4.5)).toBeCloseTo(320, 0);
+  });
+
+  it('1000m at 6 km/h = 600s', () => {
+    expect(etaSeconds(1000, 6)).toBeCloseTo(600, 0);
+  });
+
+  it('0m at any speed → 0s', () => {
+    expect(etaSeconds(0, 5.5)).toBe(0);
+  });
+});
+
+describe('speedToKmh', () => {
+  it('preset → corresponding kmh', () => {
+    expect(speedToKmh('slow')).toBe(3);
+    expect(speedToKmh('normal')).toBe(4);
+    expect(speedToKmh('fast')).toBe(5);
+  });
+
+  it('number → identity', () => {
+    expect(speedToKmh(4.5)).toBe(4.5);
+    expect(speedToKmh(7)).toBe(7);
+  });
+});
+
+describe('clampKmh', () => {
+  it('within range → identity', () => {
+    expect(clampKmh(4)).toBe(4);
+    expect(clampKmh(2.5)).toBe(2.5);
+  });
+
+  it('below MIN → MIN', () => {
+    expect(clampKmh(1)).toBe(2);
+    expect(clampKmh(-5)).toBe(2);
+  });
+
+  it('above MAX → MAX', () => {
+    expect(clampKmh(8)).toBe(7);
+    expect(clampKmh(100)).toBe(7);
+  });
+
+  it('NaN/Infinity → DEFAULT', () => {
+    expect(clampKmh(NaN)).toBe(4);
+    expect(clampKmh(Infinity)).toBe(4);
+  });
+});
+
+describe('getSpeedDisplay', () => {
+  it('< 3.5 → 🐢 느림', () => {
+    expect(getSpeedDisplay(2)).toEqual({ emoji: '🐢', label: '느림' });
+    expect(getSpeedDisplay(3.4)).toEqual({ emoji: '🐢', label: '느림' });
+  });
+
+  it('3.5 ~ 4.5 → 🚶 보통', () => {
+    expect(getSpeedDisplay(3.5)).toEqual({ emoji: '🚶', label: '보통' });
+    expect(getSpeedDisplay(4.4)).toEqual({ emoji: '🚶', label: '보통' });
+  });
+
+  it('≥ 4.5 → 🏃 빠름', () => {
+    expect(getSpeedDisplay(4.5)).toEqual({ emoji: '🏃', label: '빠름' });
+    expect(getSpeedDisplay(7)).toEqual({ emoji: '🏃', label: '빠름' });
+  });
+});
+
+describe('formatKmh', () => {
+  it('integer → no decimal', () => {
+    expect(formatKmh(4)).toBe('4');
+    expect(formatKmh(7)).toBe('7');
+  });
+
+  it('non-integer → one decimal', () => {
+    expect(formatKmh(4.5)).toBe('4.5');
+    expect(formatKmh(2.5)).toBe('2.5');
   });
 });

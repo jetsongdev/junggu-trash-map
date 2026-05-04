@@ -6,7 +6,7 @@ const DEFAULTS: AppState = {
   selected: new Set(),
   tileTheme: 'dark',
   distanceMode: 'euclidean',
-  walkingSpeed: 'normal',
+  walkingSpeed: 4,
   userLocation: null,
   destination: null,
 };
@@ -50,8 +50,32 @@ describe('parseUrlParams', () => {
     expect(parseUrlParams(params({ mode: 'manhattan' })).distanceMode).toBe('manhattan');
   });
 
-  it('speed=fast', () => {
-    expect(parseUrlParams(params({ speed: 'fast' })).walkingSpeed).toBe('fast');
+  it('speed=fast (legacy preset)', () => {
+    expect(parseUrlParams(params({ speed: 'fast' })).walkingSpeed).toBe(5);
+  });
+
+  it('speed=slow (legacy preset)', () => {
+    expect(parseUrlParams(params({ speed: 'slow' })).walkingSpeed).toBe(3);
+  });
+
+  it('speed=4.5 (numeric)', () => {
+    expect(parseUrlParams(params({ speed: '4.5' })).walkingSpeed).toBe(4.5);
+  });
+
+  it('speed=2 (boundary)', () => {
+    expect(parseUrlParams(params({ speed: '2' })).walkingSpeed).toBe(2);
+  });
+
+  it('speed=1 (out-of-range) → undefined', () => {
+    expect(parseUrlParams(params({ speed: '1' })).walkingSpeed).toBeUndefined();
+  });
+
+  it('speed=8 (out-of-range) → undefined', () => {
+    expect(parseUrlParams(params({ speed: '8' })).walkingSpeed).toBeUndefined();
+  });
+
+  it('speed=abc → undefined', () => {
+    expect(parseUrlParams(params({ speed: 'abc' })).walkingSpeed).toBeUndefined();
   });
 
   it('valid origin coord', () => {
@@ -117,10 +141,16 @@ describe('buildShareUrl', () => {
     expect(url.searchParams.get('mode')).toBe('manhattan');
   });
 
-  it('fast speed → speed=fast', () => {
-    const state: AppState = { ...DEFAULTS, walkingSpeed: 'fast' };
+  it('5 km/h → speed=5', () => {
+    const state: AppState = { ...DEFAULTS, walkingSpeed: 5 };
     const url = new URL(buildShareUrl(state, DEFAULTS));
-    expect(url.searchParams.get('speed')).toBe('fast');
+    expect(url.searchParams.get('speed')).toBe('5');
+  });
+
+  it('4.5 km/h → speed=4.5', () => {
+    const state: AppState = { ...DEFAULTS, walkingSpeed: 4.5 };
+    const url = new URL(buildShareUrl(state, DEFAULTS));
+    expect(url.searchParams.get('speed')).toBe('4.5');
   });
 
   it('userLocation → origin param', () => {
