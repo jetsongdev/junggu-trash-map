@@ -191,21 +191,15 @@ export function Map({
     highlights.map((bin, index) => [bin.id, (index + 1) as 1 | 2 | 3]),
   );
   const hasCandidates = highlights.length > 0;
-  const counterRotate = `${-(mapBearing ?? 0)}deg`;
   return (
     <div
       className={[
         tapMode ? 'tap-mode-active' : '',
         tileTheme === 'dark' ? 'tile-theme-dark' : '',
-        mapBearing != null ? 'map-rotated' : '',
       ]
         .filter(Boolean)
         .join(' ') || undefined}
-      style={{
-        height: '100%',
-        width: '100%',
-        ['--map-counter-rotate' as string]: counterRotate,
-      }}
+      style={{ height: '100%', width: '100%' }}
     >
     <MapContainer
       center={JUNGGU_CENTER}
