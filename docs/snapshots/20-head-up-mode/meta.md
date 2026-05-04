@@ -4,7 +4,7 @@ title: "🧭 헤드업 모드 — 지도 자체가 사용자 시선 방향으로
 index: 20
 date: 2026-05-04
 phase: P2.13
-git_sha: 5056f390e6049ad505607e22a091d5564462aa18
+git_sha: 4828d588e603d881293f5c3d16ea717c2c679aa4
 viewport: 390x844
 ---
 
