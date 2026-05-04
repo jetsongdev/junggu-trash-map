@@ -42,10 +42,10 @@ bun run build           # production 빌드 통과
 
 본 세션에 `codex:rescue` 같은 백그라운드 task가 진행 중이면 **다른 브랜치를 checkout하면서 우리 워크트리를 가로챌 수 있음** (실제 사고: 같은 워크트리에서 P2.9 commit이 chore/i.3 브랜치에 잘못 들어감 → 복구 라운드 필요). 이런 race를 막으려면:
 
-```bash
-# 진행 중 background task 확인 — codex:status 또는 직접
-node "$CLAUDE_PLUGIN_DATA/.../codex-companion.mjs" status 2>/dev/null
-```
+진단 방법:
+- 채팅에서 `/codex:status` 슬래시 커맨드 (codex 플러그인 설치 시)
+- 직전 `<task-notification>` 알림이 와있는지 conversation 점검
+- Agent 도구 백그라운드 task는 spawn 시 받은 `agentId`로 SendMessage 시도 (응답 없으면 진행 중)
 
 진행 중 task가 있으면:
 - 옵션 A: task 완료까지 머지 흐름 보류

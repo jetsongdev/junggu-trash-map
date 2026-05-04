@@ -4,7 +4,7 @@ title: "☀️📐 라이트 + 격자 — Manhattan 거리 (143m, +32m)"
 index: 23
 date: 2026-05-04
 phase: P2.x (시각 다양성 누적)
-git_sha: c59564b0ae739293a3bf113abd3e2f8c0d5f37c5
+git_sha: 249e5838ed41ff2380955ae9657b3130837da7d7
 viewport: 390x844
 ---
 
