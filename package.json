@@ -4,13 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "lighthouse": "lhci autorun",
     "test": "vitest run",
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@sentry/nextjs": "^10.51.0",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "leaflet": "^1.9.4",
