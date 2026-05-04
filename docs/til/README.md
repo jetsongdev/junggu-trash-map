@@ -10,6 +10,7 @@
 | 2026-05-04 | [Leaflet divIcon CSS transform:scale](./2026-05-04-leaflet-divicon-css-transform-scale.md) | `transform:scale()`은 레이아웃 변형 X — width/height 직접 계산 |
 | 2026-05-04 | [Top-3 가독성 dim non-candidates](./2026-05-04-top3-readability-dim-non-candidates.md) | 후보를 키우지 말고 비후보를 죽여라 |
 | 2026-05-04 | [deviceorientation iOS/Android quirks](./2026-05-04-deviceorientation-ios-android-quirks.md) | iOS는 권한 + webkitCompassHeading, Android는 alpha 반전 |
+| 2026-05-04 | [deviceorientation heading jitter](./2026-05-04-deviceorientation-heading-jitter.md) | 4겹 디펜스 — 이벤트 소스 content filter / 화면 회전 / throttle / EMA wrap-around |
 | 2026-05-04 | [leaflet-rotate window.L bootstrap](./2026-05-04-leaflet-rotate-window-l-bootstrap.md) | UMD 글로벌 의존 — window.L 셋업 모듈 분리해 먼저 import |
 | 2026-05-04 | [leaflet-rotate marker double-rotation](./2026-05-04-leaflet-rotate-marker-double-rotation.md) | 플러그인이 markerPane 직립 처리 — counter-rotate 직접 걸지 말 것 |
 

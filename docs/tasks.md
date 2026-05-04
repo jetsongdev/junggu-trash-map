@@ -165,6 +165,7 @@
 - **`leaflet-rotate`는 markerPane을 `_norotatePane`에 분리**: 이미 마커 직립 처리됨. 컨테이너에 counter-rotate CSS를 추가로 걸면 double-rotation 버그. [TIL](./til/2026-05-04-leaflet-rotate-marker-double-rotation.md).
 - **`leaflet-rotate` UMD bundle은 `window.L` 글로벌 의존**: ESM 환경에선 `window.L = L` 셋업 모듈을 분리해 plugin import보다 먼저 평가되도록 해야 한다. [TIL](./til/2026-05-04-leaflet-rotate-window-l-bootstrap.md).
 - **`deviceorientation`은 iOS/Android 두 방언**: iOS는 사용자 제스처 안에서 `requestPermission()` + `webkitCompassHeading` 사용, Android는 권한 무관 + `(360 - alpha) % 360`로 좌표계 반전. 150ms throttle로 떨림 흡수. [TIL](./til/2026-05-04-deviceorientation-ios-android-quirks.md).
+- **`deviceorientation` heading 튐 4겹 디펜스**: (1) 이벤트 두 개 listen + `absolute===false` 거부, (2) `screen.orientation.angle` 빼서 화면 회전 보정, (3) 60ms throttle, (4) EMA wrap-around 스무딩. `'on…' in window` feature detect는 silent-fail 위험. [TIL](./til/2026-05-04-deviceorientation-heading-jitter.md).
 - **Top-N 강조는 비후보 dimming이 효과적**: 강조 대상의 크기·진하기를 키우는 것보다, 비강조 대상을 죽이는 게 시각 노이즈 ratio 측면에서 압도적. 배경 마커 56개 vs 후보 3개 같이 N>>M 구도면 더더욱. [TIL](./til/2026-05-04-top3-readability-dim-non-candidates.md).
 
 ---
