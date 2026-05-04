@@ -4,7 +4,7 @@ title: "🥇🥈🥉 가까운/경유 휴지통 Top-3 후보 시각화"
 index: 18
 date: 2026-05-04
 phase: P2.10
-git_sha: 71b260d46c92fb2c0fe6b4720181fca3402e2f99
+git_sha: c41165870ff80dbf9e3a2e9a34e3b543f3b97c39
 viewport: 390x844
 ---
 
