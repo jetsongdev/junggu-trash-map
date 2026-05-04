@@ -4,7 +4,7 @@ title: "🚶 보행 속도 슬라이더 — 2~7 km/h 0.5 step (cycle 칩 → 슬
 index: 21
 date: 2026-05-04
 phase: P2.9
-git_sha: b9bbbc3dd435d4db5aedd027c51c86ca2bb2c506
+git_sha: 0b86e8f002ec89f1fbedc231a98a00b6bfeccec5
 viewport: 390x844
 ---
 
