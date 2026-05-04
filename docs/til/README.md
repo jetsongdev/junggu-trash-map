@@ -11,6 +11,8 @@
 | 2026-05-04 | [Top-3 가독성 dim non-candidates](./2026-05-04-top3-readability-dim-non-candidates.md) | 후보를 키우지 말고 비후보를 죽여라 |
 | 2026-05-04 | [deviceorientation iOS/Android quirks](./2026-05-04-deviceorientation-ios-android-quirks.md) | iOS는 권한 + webkitCompassHeading, Android는 alpha 반전 |
 | 2026-05-04 | [deviceorientation heading jitter](./2026-05-04-deviceorientation-heading-jitter.md) | 4겹 디펜스 — 이벤트 소스 content filter / 화면 회전 / throttle / EMA wrap-around |
+| 2026-05-04 | [GitHub Actions first workflow bootstrap](./2026-05-04-github-actions-first-workflow-bootstrap.md) | `pull_request: branches:`는 base 필터, 워크플로우는 main에 있어야 트리거됨 — workflow_dispatch escape hatch |
+| 2026-05-04 | [Lighthouse CI config traps](./2026-05-04-lighthouse-ci-config-traps.md) | preset: mobile은 무효 값, PWA 카테고리 LH12에서 제거, 임계치는 측정값에서 ratchet up |
 | 2026-05-04 | [leaflet-rotate window.L bootstrap](./2026-05-04-leaflet-rotate-window-l-bootstrap.md) | UMD 글로벌 의존 — window.L 셋업 모듈 분리해 먼저 import |
 | 2026-05-04 | [leaflet-rotate marker double-rotation](./2026-05-04-leaflet-rotate-marker-double-rotation.md) | 플러그인이 markerPane 직립 처리 — counter-rotate 직접 걸지 말 것 |
 

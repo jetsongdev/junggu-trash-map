@@ -166,6 +166,8 @@
 - **`leaflet-rotate` UMD bundle은 `window.L` 글로벌 의존**: ESM 환경에선 `window.L = L` 셋업 모듈을 분리해 plugin import보다 먼저 평가되도록 해야 한다. [TIL](./til/2026-05-04-leaflet-rotate-window-l-bootstrap.md).
 - **`deviceorientation`은 iOS/Android 두 방언**: iOS는 사용자 제스처 안에서 `requestPermission()` + `webkitCompassHeading` 사용, Android는 권한 무관 + `(360 - alpha) % 360`로 좌표계 반전. 150ms throttle로 떨림 흡수. [TIL](./til/2026-05-04-deviceorientation-ios-android-quirks.md).
 - **`deviceorientation` heading 튐 4겹 디펜스**: (1) 이벤트 두 개 listen + `absolute===false` 거부, (2) `screen.orientation.angle` 빼서 화면 회전 보정, (3) 60ms throttle, (4) EMA wrap-around 스무딩. `'on…' in window` feature detect는 silent-fail 위험. [TIL](./til/2026-05-04-deviceorientation-heading-jitter.md).
+- **GitHub Actions 첫 워크플로우는 chicken-and-egg**: 워크플로우는 default branch(main)에 있어야 PR 트리거 인식. `pull_request: branches:`는 PR의 base를 필터함(head 아님). 첫 도입 시 `workflow_dispatch:` escape hatch를 함께 박을 것. [TIL](./til/2026-05-04-github-actions-first-workflow-bootstrap.md).
+- **Lighthouse CI 첫 baseline**: `preset: "mobile"`은 무효 값(default라 빼야 함, 유효 값은 perf/experimental/desktop). PWA 카테고리는 LH 12부터 제거. 첫 임계치는 일반 가이드 점수가 아니라 **측정값 - 마진**에서 시작해 ratchet up. [TIL](./til/2026-05-04-lighthouse-ci-config-traps.md).
 - **Top-N 강조는 비후보 dimming이 효과적**: 강조 대상의 크기·진하기를 키우는 것보다, 비강조 대상을 죽이는 게 시각 노이즈 ratio 측면에서 압도적. 배경 마커 56개 vs 후보 3개 같이 N>>M 구도면 더더욱. [TIL](./til/2026-05-04-top3-readability-dim-non-candidates.md).
 
 ---
