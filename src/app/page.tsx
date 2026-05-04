@@ -469,17 +469,6 @@ function PageContent() {
       </section>
 
       <main className="relative min-h-0 flex-1">
-        {searchParams.get('debug') === 'compass' && (
-          <div className="pointer-events-none absolute right-2 top-2 z-[1000] rounded bg-black/85 p-2 font-mono text-[10px] leading-tight text-white shadow">
-            <div>plugin: {typeof window !== 'undefined' && typeof (window as unknown as { L?: { Map?: { prototype?: { setBearing?: unknown } } } }).L?.Map?.prototype?.setBearing === 'function' ? '✓' : '✗'}</div>
-            <div>rotatePane: {typeof window !== 'undefined' && document.querySelector('.leaflet-rotate-pane') ? '✓' : '✗'}</div>
-            <div>support: {compass.supported ? '✓' : '✗'}</div>
-            <div>perm: {compass.permission}</div>
-            <div>mode: {compassMode}</div>
-            <div>heading: {compass.heading?.toFixed(1) ?? 'null'}</div>
-            <div>bearing: {compassMode === 'head-up' && compass.heading != null ? (-compass.heading).toFixed(1) : 'null'}</div>
-          </div>
-        )}
         <Map
           bins={visible}
           userLocation={userLocation}
