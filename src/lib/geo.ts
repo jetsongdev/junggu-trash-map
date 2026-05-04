@@ -49,6 +49,25 @@ export function findNearest(
   return { bin: bestBin, meters: bestMeters };
 }
 
+export function findTopNearest(
+  bins: TrashBin[],
+  origin: LatLng,
+  mode: DistanceMode = 'euclidean',
+  n = 3,
+): { bin: TrashBin; meters: number }[] {
+  if (n <= 0 || bins.length === 0) return [];
+  const top: { bin: TrashBin; meters: number }[] = [];
+  for (const bin of bins) {
+    const candidate = { bin, meters: distanceMeters(origin, bin, mode) };
+    let insertAt = top.findIndex((entry) => candidate.meters < entry.meters);
+    if (insertAt === -1) insertAt = top.length;
+    if (insertAt >= n) continue;
+    top.splice(insertAt, 0, candidate);
+    if (top.length > n) top.pop();
+  }
+  return top;
+}
+
 export function formatDistance(meters: number): string {
   if (meters < 1000) return `${Math.round(meters)}m`;
   return `${(meters / 1000).toFixed(1)}km`;
@@ -118,4 +137,24 @@ export function findOptimalDetour(
     }
   }
   return best;
+}
+
+export function findTopDetours(
+  bins: TrashBin[],
+  origin: LatLng,
+  destination: LatLng,
+  mode: DistanceMode = 'euclidean',
+  n = 3,
+): { bin: TrashBin; cost: DetourCost }[] {
+  if (n <= 0 || bins.length === 0) return [];
+  const top: { bin: TrashBin; cost: DetourCost }[] = [];
+  for (const bin of bins) {
+    const candidate = { bin, cost: detourCost(origin, bin, destination, mode) };
+    let insertAt = top.findIndex((entry) => candidate.cost.extra < entry.cost.extra);
+    if (insertAt === -1) insertAt = top.length;
+    if (insertAt >= n) continue;
+    top.splice(insertAt, 0, candidate);
+    if (top.length > n) top.pop();
+  }
+  return top;
 }

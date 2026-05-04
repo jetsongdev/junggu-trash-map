@@ -10,8 +10,8 @@ import { ShareButton } from '@/components/ShareButton';
 import type { TileTheme } from '@/components/Map';
 import { fetchBins, filterByTypes } from '@/lib/data';
 import {
-  findNearest,
-  findOptimalDetour,
+  findTopDetours,
+  findTopNearest,
   formatDistance,
   type DistanceMode,
   type LatLng,
@@ -167,17 +167,19 @@ function PageContent() {
 
   const visible = useMemo(() => filterByTypes(bins, selected), [bins, selected]);
 
-  const route = useMemo(() => {
+  const routeCandidates = useMemo(() => {
     if (!userLocation || !destination) return null;
-    return findOptimalDetour(visible, userLocation, destination, distanceMode);
+    return findTopDetours(visible, userLocation, destination, distanceMode, 3);
   }, [visible, userLocation, destination, distanceMode]);
 
-  const nearest = useMemo(() => {
-    if (!userLocation || destination) return null;
-    return findNearest(visible, userLocation, distanceMode);
+  const nearestCandidates = useMemo(() => {
+    if (!userLocation || destination) return [];
+    return findTopNearest(visible, userLocation, distanceMode, 3);
   }, [visible, userLocation, destination, distanceMode]);
 
-  const highlight = route?.bin ?? nearest?.bin ?? null;
+  const bestRouteCandidate = routeCandidates?.[0] ?? null;
+  const bestNearestCandidate = nearestCandidates[0] ?? null;
+  const highlights = routeCandidates?.map(({ bin }) => bin) ?? nearestCandidates.map(({ bin }) => bin);
 
   const toggle = (type: BinType) => {
     setSelected((prev) => {
@@ -405,14 +407,14 @@ function PageContent() {
         </div>
         <div className="mt-2 text-xs text-neutral-400">
           📍 {visible.length} / 전체 {bins.length}개
-          {route && (
+          {bestRouteCandidate && (
             <span className="ml-2 text-cyan-300">
-              · 출발→{route.bin.name.split(',')[0]}→목적지 {formatDistance(route.cost.total)} · {formatEta(etaSeconds(route.cost.total, walkingSpeed))} (경유 +{formatDistance(route.cost.extra)})
+              · 출발→{bestRouteCandidate.bin.name.split(',')[0]}→목적지 {formatDistance(bestRouteCandidate.cost.total)} · {formatEta(etaSeconds(bestRouteCandidate.cost.total, walkingSpeed))} (경유 +{formatDistance(bestRouteCandidate.cost.extra)})
             </span>
           )}
-          {!route && nearest && (
+          {!bestRouteCandidate && bestNearestCandidate && (
             <span className="ml-2 text-sky-300">
-              · 가까운 통 {formatDistance(nearest.meters)} · {formatEta(etaSeconds(nearest.meters, walkingSpeed))} ({nearest.bin.name.split(',')[0]})
+              · 가까운 통 {formatDistance(bestNearestCandidate.meters)} · {formatEta(etaSeconds(bestNearestCandidate.meters, walkingSpeed))} ({bestNearestCandidate.bin.name.split(',')[0]})
             </span>
           )}
           {locateError && <span className="ml-2 text-red-400">({locateError})</span>}
@@ -425,7 +427,7 @@ function PageContent() {
           bins={visible}
           userLocation={userLocation}
           destination={destination}
-          highlightBin={highlight}
+          highlights={highlights}
           focusTarget={mapFocusTarget}
           distanceMode={distanceMode}
           onMapClick={tapTarget ? handleMapClick : undefined}
