@@ -95,22 +95,31 @@ function HighlightRing({ bin }: { bin: TrashBin }) {
   );
 }
 
+const DISTANCE_LINE_STYLE: Record<1 | 2 | 3, { color: string; weight: number; opacity: number }> = {
+  1: { color: '#0ea5e9', weight: 3, opacity: 0.85 },
+  2: { color: '#7dd3fc', weight: 2, opacity: 0.6 },
+  3: { color: '#bae6fd', weight: 1.5, opacity: 0.4 },
+};
+
 function DistanceLine({
   origin,
   target,
   mode,
+  rank = 1,
 }: {
   origin: LatLng;
   target: LatLng;
   mode: DistanceMode;
+  rank?: 1 | 2 | 3;
 }) {
+  const style = DISTANCE_LINE_STYLE[rank];
   return (
     <Polyline
       positions={pathPositions(origin, target, mode)}
       pathOptions={{
-        color: '#0ea5e9',
-        weight: 3,
-        opacity: 0.75,
+        color: style.color,
+        weight: style.weight,
+        opacity: style.opacity,
         dashArray: '6 6',
       }}
       interactive={false}
@@ -161,6 +170,7 @@ export function Map({
   const highlightRanks = new globalThis.Map(
     highlights.map((bin, index) => [bin.id, (index + 1) as 1 | 2 | 3]),
   );
+  const hasCandidates = highlights.length > 0;
   return (
     <div
       className={[
@@ -184,17 +194,28 @@ export function Map({
         subdomains={preset.subdomains}
         maxZoom={preset.maxZoom}
       />
-      {bins.map((bin) => (
-        <BinMarker key={bin.id} bin={bin} rank={highlightRanks.get(bin.id)} />
-      ))}
+      {bins.map((bin) => {
+        const rank = highlightRanks.get(bin.id);
+        return (
+          <BinMarker
+            key={bin.id}
+            bin={bin}
+            rank={rank}
+            dimmed={hasCandidates && !rank}
+          />
+        );
+      })}
       {primaryHighlight && <HighlightRing bin={primaryHighlight} />}
-      {showDistanceOnly && (
-        <DistanceLine
-          origin={userLocation!}
-          target={{ lat: primaryHighlight!.lat, lng: primaryHighlight!.lng }}
-          mode={distanceMode}
-        />
-      )}
+      {showDistanceOnly &&
+        highlights.map((bin, i) => (
+          <DistanceLine
+            key={bin.id}
+            origin={userLocation!}
+            target={{ lat: bin.lat, lng: bin.lng }}
+            mode={distanceMode}
+            rank={(i + 1) as 1 | 2 | 3}
+          />
+        ))}
       {showRoute && (
         <RouteLine
           origin={userLocation!}
@@ -203,6 +224,16 @@ export function Map({
           mode={distanceMode}
         />
       )}
+      {showRoute &&
+        highlights.slice(1).map((bin, i) => (
+          <DistanceLine
+            key={bin.id}
+            origin={userLocation!}
+            target={{ lat: bin.lat, lng: bin.lng }}
+            mode={distanceMode}
+            rank={(i + 2) as 2 | 3}
+          />
+        ))}
       {userLocation && <UserMarker position={userLocation} />}
       {destination && <DestinationMarker position={destination} />}
       <PanToUser target={userLocation} />
