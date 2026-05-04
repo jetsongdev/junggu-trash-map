@@ -49,6 +49,7 @@ const TILE_PRESETS: Record<TileTheme, TilePreset> = {
 type Props = {
   bins: TrashBin[];
   userLocation?: LatLng | null;
+  userHeading?: number | null;
   destination?: LatLng | null;
   highlights?: TrashBin[];
   focusTarget?: LatLng | null;
@@ -155,6 +156,7 @@ function RouteLine({
 export function Map({
   bins,
   userLocation,
+  userHeading,
   destination,
   highlights = [],
   focusTarget,
@@ -234,7 +236,7 @@ export function Map({
             rank={(i + 2) as 2 | 3}
           />
         ))}
-      {userLocation && <UserMarker position={userLocation} />}
+      {userLocation && <UserMarker position={userLocation} heading={userHeading} />}
       {destination && <DestinationMarker position={destination} />}
       <PanToUser target={userLocation} />
       <PanToUser target={focusTarget} />

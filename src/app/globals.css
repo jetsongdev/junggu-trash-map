@@ -67,12 +67,21 @@ body {
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.7));
 }
 
-.user-dot {
+.user-marker-inner {
   position: relative;
   display: block;
+  width: 80px;
+  height: 80px;
+}
+
+.user-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
   width: 14px;
   height: 14px;
-  margin: 4px;
+  margin-top: -7px;
+  margin-left: -7px;
   border-radius: 9999px;
   background: #0ea5e9;
   box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.25), 0 1px 4px rgba(0, 0, 0, 0.4);
@@ -85,6 +94,24 @@ body {
   border-radius: 9999px;
   border: 2px solid rgba(14, 165, 233, 0.55);
   animation: user-pulse 1.6s ease-out infinite;
+}
+
+.user-cone {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: conic-gradient(
+    from -30deg,
+    rgba(14, 165, 233, 0.55) 0deg,
+    rgba(14, 165, 233, 0.45) 30deg,
+    rgba(14, 165, 233, 0.55) 60deg,
+    transparent 60deg 360deg
+  );
+  -webkit-mask: radial-gradient(circle, transparent 12px, black 13px);
+  mask: radial-gradient(circle, transparent 12px, black 13px);
+  transform-origin: center;
+  pointer-events: none;
+  transition: transform 120ms ease-out;
 }
 
 @keyframes user-pulse {

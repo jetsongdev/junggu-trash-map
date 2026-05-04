@@ -24,6 +24,7 @@ import {
   type WalkingSpeed,
 } from '@/lib/eta';
 import { HAPTIC, vibrate } from '@/lib/haptic';
+import { useDeviceHeading } from '@/lib/orientation';
 import type { BinType, TrashBin } from '@/lib/types';
 import {
   parseUrlParams,
@@ -65,8 +66,11 @@ function PageContent() {
   const [distanceMode, setDistanceMode] = useState<DistanceMode>('euclidean');
   const [tileTheme, setTileTheme] = useState<TileTheme>('dark');
   const [walkingSpeed, setWalkingSpeed] = useState<WalkingSpeed>('normal');
+  const [compassEnabled, setCompassEnabled] = useState(false);
   const watchIdRef = useRef<number | null>(null);
   const prefsHydratedRef = useRef(false);
+
+  const compass = useDeviceHeading(compassEnabled);
 
   useEffect(() => {
     if (prefsHydratedRef.current) return;
@@ -385,6 +389,39 @@ function PageContent() {
           </button>
           <button
             type="button"
+            onClick={async () => {
+              vibrate(HAPTIC.TAP);
+              if (compassEnabled) {
+                setCompassEnabled(false);
+                return;
+              }
+              const result = await compass.request();
+              if (result === 'granted') {
+                setCompassEnabled(true);
+              }
+            }}
+            disabled={!compass.supported || compass.permission === 'denied'}
+            aria-pressed={compassEnabled}
+            aria-label={
+              !compass.supported
+                ? '방향 센서 미지원'
+                : compass.permission === 'denied'
+                  ? '방향 권한 거부됨'
+                  : compassEnabled
+                    ? '방향 표시 끄기'
+                    : '방향 표시 켜기'
+            }
+            className={`${chipBase} ${
+              compassEnabled
+                ? 'bg-sky-500 text-white shadow'
+                : inactiveChip
+            } ${!compass.supported || compass.permission === 'denied' ? 'opacity-40 cursor-not-allowed' : ''}`}
+          >
+            <span aria-hidden>🧭</span>
+            <span>방향</span>
+          </button>
+          <button
+            type="button"
             onClick={() => {
               vibrate(HAPTIC.TAP);
               setTileTheme((prev) => {
@@ -426,6 +463,7 @@ function PageContent() {
         <Map
           bins={visible}
           userLocation={userLocation}
+          userHeading={compassEnabled ? compass.heading : null}
           destination={destination}
           highlights={highlights}
           focusTarget={mapFocusTarget}
