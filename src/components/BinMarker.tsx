@@ -11,10 +11,10 @@ import { styleFor } from '@/lib/types';
 const ICON_CACHE = new Map<string, L.DivIcon>();
 type Rank = 1 | 2 | 3;
 
-const RANK_STYLE: Record<Rank, { opacity: number; iconSize?: number; scale: number }> = {
+const RANK_STYLE: Record<Rank, { opacity: number; scale: number }> = {
   1: { opacity: 1, scale: 1 },
-  2: { opacity: 0.55, iconSize: 24, scale: 0.75 },
-  3: { opacity: 0.35, iconSize: 20, scale: 0.625 },
+  2: { opacity: 0.55, scale: 0.75 },
+  3: { opacity: 0.35, scale: 0.625 },
 };
 
 function iconKey(types: TrashBin['types'], rank?: Rank): string {
@@ -29,27 +29,23 @@ function makeIcon(types: TrashBin['types'], rank?: Rank): L.DivIcon {
   const baseHeight = 32;
   const baseFontSize = isMixed ? 15 : 18;
   const rankStyle = rank ? RANK_STYLE[rank] : RANK_STYLE[1];
-  const iconWidth = rankStyle.iconSize ?? baseWidth;
-  const iconHeight = rankStyle.iconSize ?? baseHeight;
+  const iconWidth = Math.round(baseWidth * rankStyle.scale);
+  const iconHeight = Math.round(baseHeight * rankStyle.scale);
+  const fontSize = Math.round(baseFontSize * rankStyle.scale);
   const html = `<span style="
     display:inline-flex;align-items:center;justify-content:center;
-    width:${iconWidth}px;height:${iconHeight}px;
-    opacity:${rankStyle.opacity};
-  "><span style="
-    display:inline-flex;align-items:center;justify-content:center;
-    width:${baseWidth}px;height:${baseHeight}px;border-radius:9999px;
-    background:${color};color:#fff;font-size:${baseFontSize}px;line-height:1;
+    width:${iconWidth}px;height:${iconHeight}px;border-radius:9999px;
+    background:${color};color:#fff;font-size:${fontSize}px;line-height:1;
     box-shadow:0 1px 4px rgba(0,0,0,0.35);
     border:2px solid #fff;
     white-space:nowrap;
-    transform:scale(${rankStyle.scale});
-    transform-origin:center;
-  ">${emoji}</span></span>`;
+    opacity:${rankStyle.opacity};
+  ">${emoji}</span>`;
   return L.divIcon({
     html,
     className: 'bin-marker',
     iconSize: [iconWidth, iconHeight],
-    iconAnchor: [iconWidth / 2, iconHeight / 2],
+    iconAnchor: [Math.round(iconWidth / 2), Math.round(iconHeight / 2)],
     popupAnchor: [0, -16],
   });
 }
