@@ -63,6 +63,7 @@
 - [x] **P2.16** 터치 햅틱 피드백 — 지원 디바이스에서 마커·검색·필터/모드 칩 탭 + 좌표 확정에 강도별 진동(`lib/haptic.ts`, TAP 6ms / SELECT 12ms / CONFIRM 18ms)
 - [x] **P2.5** URL 쿼리스트링 공유 — 영문 alias(`general,recycle`) 기반 `types/theme/mode/speed/origin/dest` URL을 우선 적용하고, 현재 필터·환경·좌표 상태를 공유 링크로 복사/공유
 - [x] **P2.13** 방향 화살표 — `deviceorientation` 기반 부채꼴 cone (60°) + 🧭 토글 칩 opt-in. iOS는 `requestPermission`, Android는 즉시 시작. `webkitCompassHeading` 우선, fallback `(360 - alpha) % 360`. 권한 거부 시 칩 비활성화.
+- [x] **I.3** Lighthouse CI — PR마다 PWA/접근성/성능 점수 회귀 차단
 
 ---
 
@@ -114,7 +115,6 @@
 
 - [x] **I.1** 테스트 인프라 — vitest 도입, `lib/geo.ts`·`lib/eta.ts`·`lib/url-share.ts` 순수 함수 59개 커버
 - [ ] **I.2** 에러 모니터링 — Sentry 또는 Vercel Observability. Geolocation 실패율, 빈 데이터 fetch 에러 RUM 보완
-- [ ] **I.3** Lighthouse CI — PR마다 PWA/접근성 점수 회귀 차단
 - [ ] **I.4** i18n (en/ja/zh) — `next-intl`. 명동·남대문 외국인 관광객 시나리오
 
 ---

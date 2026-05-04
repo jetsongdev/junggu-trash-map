@@ -18,6 +18,7 @@
 
 ### Infrastructure
 - `lib/geo.ts` · `lib/eta.ts` · `lib/url-share.ts` 순수 함수 59개 vitest 단위 테스트 추가 (`bun run test`).
+- Add Lighthouse CI GitHub Actions workflow for PR performance/a11y gating.
 
 ### Changed
 - 휴지통 마커 색상을 라이트/다크 타일 모두에서 더 균형 있게 보이도록 파랑·초록·보라 톤으로 미세 조정했습니다.

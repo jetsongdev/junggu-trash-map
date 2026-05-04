@@ -1,0 +1,132 @@
+name: Lighthouse CI
+
+on:
+  pull_request:
+    branches-ignore:
+      - main
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: lighthouse-ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.8
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build application
+        run: bun run build
+
+      - name: Start production server
+        run: |
+          bun run start --port 3000 > /tmp/lighthouse-next.log 2>&1 &
+          echo $! > /tmp/lighthouse-next.pid
+
+      - name: Wait for server readiness
+        run: |
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:3000 > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+
+          cat /tmp/lighthouse-next.log
+          exit 1
+
+      - name: Run Lighthouse CI
+        id: lighthouse
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          configPath: ./lighthouserc.json
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+          urls: |
+            http://localhost:3000
+
+      - name: Comment Lighthouse results on PR
+        if: always()
+        uses: actions/github-script@v8
+        env:
+          LIGHTHOUSE_MANIFEST: ${{ steps.lighthouse.outputs.manifest }}
+          LIGHTHOUSE_LINKS: ${{ steps.lighthouse.outputs.links }}
+          LIGHTHOUSE_JOB_STATUS: ${{ steps.lighthouse.outcome }}
+        with:
+          script: |
+            const marker = '<!-- lighthouse-ci-report -->';
+            const manifest = process.env.LIGHTHOUSE_MANIFEST ? JSON.parse(process.env.LIGHTHOUSE_MANIFEST) : [];
+            const links = process.env.LIGHTHOUSE_LINKS ? JSON.parse(process.env.LIGHTHOUSE_LINKS) : {};
+            const representative = manifest.find((entry) => entry.isRepresentativeRun) ?? manifest[0];
+            const summary = representative?.summary ?? {};
+            const url = representative?.url ?? 'http://localhost:3000';
+            const reportLink = links[url];
+            const lines = [
+              marker,
+              '## Lighthouse CI',
+              '',
+              `Workflow result: **${process.env.LIGHTHOUSE_JOB_STATUS === 'success' ? 'pass' : 'fail'}**`,
+              '',
+              '| Category | Score |',
+              '| --- | ---: |',
+              `| Performance | ${summary.performance ?? 'n/a'} |`,
+              `| Accessibility | ${summary.accessibility ?? 'n/a'} |`,
+              `| Best Practices | ${summary['best-practices'] ?? 'n/a'} |`,
+              `| SEO | ${summary.seo ?? 'n/a'} |`,
+              `| PWA | ${summary.pwa ?? 'n/a'} |`,
+            ];
+
+            if (reportLink) {
+              lines.push('', `[Open full Lighthouse report](${reportLink})`);
+            }
+
+            const body = lines.join('\n');
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number,
+            });
+            const existing = comments.find((comment) =>
+              comment.user?.type === 'Bot' && comment.body?.includes(marker)
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body,
+              });
+            }
+
+      - name: Stop production server
+        if: always()
+        run: |
+          if [ -f /tmp/lighthouse-next.pid ]; then
+            kill "$(cat /tmp/lighthouse-next.pid)" || true
+          fi
