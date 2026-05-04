@@ -17,11 +17,15 @@ import {
   type LatLng,
 } from '@/lib/geo';
 import {
+  clampKmh,
+  DEFAULT_KMH,
   etaSeconds,
   formatEta,
-  nextSpeed,
-  WALKING_SPEEDS,
-  type WalkingSpeed,
+  formatKmh,
+  getSpeedDisplay,
+  MAX_KMH,
+  MIN_KMH,
+  STEP_KMH,
 } from '@/lib/eta';
 import { HAPTIC, vibrate } from '@/lib/haptic';
 import { useDeviceHeading } from '@/lib/orientation';
@@ -37,7 +41,7 @@ const DEFAULT_APP_STATE: AppState = {
   selected: new Set<BinType>(),
   tileTheme: 'dark',
   distanceMode: 'euclidean',
-  walkingSpeed: 'normal',
+  walkingSpeed: DEFAULT_KMH,
   userLocation: null,
   destination: null,
 };
@@ -65,7 +69,8 @@ function PageContent() {
   const [tapTarget, setTapTarget] = useState<TapTarget>(null);
   const [distanceMode, setDistanceMode] = useState<DistanceMode>('euclidean');
   const [tileTheme, setTileTheme] = useState<TileTheme>('dark');
-  const [walkingSpeed, setWalkingSpeed] = useState<WalkingSpeed>('normal');
+  const [walkingSpeed, setWalkingSpeed] = useState<number>(DEFAULT_KMH);
+  const [speedSliderOpen, setSpeedSliderOpen] = useState(false);
   const [compassMode, setCompassMode] = useState<'off' | 'cone' | 'head-up'>('off');
   const watchIdRef = useRef<number | null>(null);
   const prefsHydratedRef = useRef(false);
@@ -108,13 +113,20 @@ function PageContent() {
     }
 
     if (searchParams.has('speed')) {
-      if (urlState.walkingSpeed) {
+      if (urlState.walkingSpeed != null) {
         setWalkingSpeed(urlState.walkingSpeed);
       }
     } else {
-      const storedWalkingSpeed = window.localStorage.getItem('walkingSpeed');
-      if (storedWalkingSpeed === 'slow' || storedWalkingSpeed === 'fast') {
-        setWalkingSpeed(storedWalkingSpeed);
+      const stored = window.localStorage.getItem('walkingSpeed');
+      if (stored != null) {
+        // Legacy preset names → kmh
+        if (stored === 'slow') setWalkingSpeed(3);
+        else if (stored === 'fast') setWalkingSpeed(5);
+        else if (stored === 'normal') setWalkingSpeed(4);
+        else {
+          const num = Number.parseFloat(stored);
+          if (Number.isFinite(num)) setWalkingSpeed(clampKmh(num));
+        }
       }
     }
 
@@ -166,7 +178,7 @@ function PageContent() {
 
   useEffect(() => {
     if (!prefsHydratedRef.current) return;
-    window.localStorage.setItem('walkingSpeed', walkingSpeed);
+    window.localStorage.setItem('walkingSpeed', formatKmh(walkingSpeed));
   }, [walkingSpeed]);
 
   const visible = useMemo(() => filterByTypes(bins, selected), [bins, selected]);
@@ -379,13 +391,18 @@ function PageContent() {
             type="button"
             onClick={() => {
               vibrate(HAPTIC.TAP);
-              setWalkingSpeed((prev) => nextSpeed(prev));
+              setSpeedSliderOpen((prev) => !prev);
             }}
-            aria-label={`보행 속도: ${WALKING_SPEEDS[walkingSpeed].label}, 클릭해 다음 단계로`}
-            className={`${chipBase} ${inactiveChip}`}
+            aria-pressed={speedSliderOpen}
+            aria-label={`보행 속도 ${formatKmh(walkingSpeed)}km/h. 클릭해 슬라이더 ${
+              speedSliderOpen ? '닫기' : '열기'
+            }`}
+            className={`${chipBase} ${
+              speedSliderOpen ? 'bg-emerald-600 text-white shadow' : inactiveChip
+            }`}
           >
-            <span aria-hidden>{WALKING_SPEEDS[walkingSpeed].emoji}</span>
-            <span>{WALKING_SPEEDS[walkingSpeed].label} {WALKING_SPEEDS[walkingSpeed].kmh}km/h</span>
+            <span aria-hidden>{getSpeedDisplay(walkingSpeed).emoji}</span>
+            <span>{formatKmh(walkingSpeed)}km/h</span>
           </button>
           <button
             type="button"
@@ -451,6 +468,26 @@ function PageContent() {
             className={`${chipBase} ${inactiveChip}`}
           />
         </div>
+        {speedSliderOpen && (
+          <div className="mt-2 flex items-center gap-3 rounded-lg bg-neutral-800/80 px-3 py-2">
+            <span aria-hidden className="text-base">
+              {getSpeedDisplay(walkingSpeed).emoji}
+            </span>
+            <input
+              type="range"
+              min={MIN_KMH}
+              max={MAX_KMH}
+              step={STEP_KMH}
+              value={walkingSpeed}
+              onChange={(e) => setWalkingSpeed(clampKmh(Number.parseFloat(e.target.value)))}
+              className="flex-1 accent-emerald-500"
+              aria-label="보행 속도 km/h"
+            />
+            <span className="min-w-[64px] text-right font-mono text-sm text-emerald-300">
+              {formatKmh(walkingSpeed)} km/h
+            </span>
+          </div>
+        )}
         <div className="mt-2 text-xs text-neutral-400">
           📍 {visible.length} / 전체 {bins.length}개
           {bestRouteCandidate && (

@@ -1,13 +1,13 @@
 import type { TileTheme } from '@/components/Map';
 import type { DistanceMode, LatLng } from '@/lib/geo';
-import type { WalkingSpeed } from '@/lib/eta';
+import { clampKmh, MAX_KMH, MIN_KMH, WALKING_SPEEDS, formatKmh } from '@/lib/eta';
 import type { BinType } from '@/lib/types';
 
 export type AppState = {
   selected: Set<BinType>;
   tileTheme: TileTheme;
   distanceMode: DistanceMode;
-  walkingSpeed: WalkingSpeed;
+  walkingSpeed: number;
   userLocation: LatLng | null;
   destination: LatLng | null;
 };
@@ -43,6 +43,17 @@ function parseEnumValue<T extends string>(
 ): T | undefined {
   if (!raw) return undefined;
   return allowed.includes(raw as T) ? (raw as T) : undefined;
+}
+
+function parseSpeed(raw: string | null): number | undefined {
+  if (!raw) return undefined;
+  if (raw === 'slow' || raw === 'normal' || raw === 'fast') {
+    return WALKING_SPEEDS[raw].kmh;
+  }
+  const num = Number.parseFloat(raw);
+  if (!Number.isFinite(num)) return undefined;
+  if (num < MIN_KMH || num > MAX_KMH) return undefined;
+  return clampKmh(num);
 }
 
 function isValidCoordinate(lat: number, lng: number): boolean {
@@ -101,12 +112,8 @@ export function parseUrlParams(searchParams: URLSearchParams): Partial<AppState>
   ]);
   if (distanceMode) nextState.distanceMode = distanceMode;
 
-  const walkingSpeed = parseEnumValue(searchParams.get('speed'), [
-    'slow',
-    'normal',
-    'fast',
-  ]);
-  if (walkingSpeed) nextState.walkingSpeed = walkingSpeed;
+  const walkingSpeed = parseSpeed(searchParams.get('speed'));
+  if (walkingSpeed != null) nextState.walkingSpeed = walkingSpeed;
 
   const userLocation = parseLatLng(searchParams.get('origin'));
   if (userLocation) nextState.userLocation = userLocation;
@@ -138,7 +145,7 @@ export function buildShareUrl(state: AppState, defaults: AppState): string {
   }
 
   if (state.walkingSpeed !== defaults.walkingSpeed) {
-    url.searchParams.set('speed', state.walkingSpeed);
+    url.searchParams.set('speed', formatKmh(state.walkingSpeed));
   }
 
   if (!sameLatLng(state.userLocation, defaults.userLocation) && state.userLocation) {
