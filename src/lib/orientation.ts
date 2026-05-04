@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-const THROTTLE_MS = 150;
+const THROTTLE_MS = 60;
 
 type Permission = 'unsupported' | 'prompt' | 'granted' | 'denied';
 
