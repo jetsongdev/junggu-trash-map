@@ -161,6 +161,11 @@
 - **Vercel commit-email-GitHub 매칭**: 커밋 author 이메일이 GitHub 계정에 등록 안 돼있으면 deploy block. CLI는 generic "Unexpected error"만 떨굼, dashboard에 사유. → git identity를 GitHub 계정 이메일로 맞추기 (이 repo는 jetsong.dev@gmail.com).
 - **Leaflet `divIcon` 캐시**: 같은 (단일타입/혼합) 키 마커들은 `L.divIcon` 인스턴스를 공유해도 안전 (Leaflet은 html을 템플릿으로만 쓰고 DOM은 마커별 생성). 59개 마커 × 매 렌더 → 3 인스턴스로 절감.
 - **localStorage 초기화 ≠ useState 초기화**: `useState(() => localStorage.getItem(...))` 패턴은 SSR(server) → 기본값, CSR(client) → 저장값으로 첫 렌더가 갈라져 hydration mismatch. 항상 기본값으로 useState → mount 후 useEffect에서 localStorage 읽어 setState. 첫 effect의 자동 persist는 hydratedRef로 가드해서 default가 saved를 덮어쓰지 않도록 할 것.
+- **divIcon `transform:scale()`은 레이아웃 변형 X**: 마커 크기를 진짜 줄이려면 `width/height/font-size`를 직접 곱해서 박을 것. 자세한 예시는 [TIL](./til/2026-05-04-leaflet-divicon-css-transform-scale.md).
+- **`leaflet-rotate`는 markerPane을 `_norotatePane`에 분리**: 이미 마커 직립 처리됨. 컨테이너에 counter-rotate CSS를 추가로 걸면 double-rotation 버그. [TIL](./til/2026-05-04-leaflet-rotate-marker-double-rotation.md).
+- **`leaflet-rotate` UMD bundle은 `window.L` 글로벌 의존**: ESM 환경에선 `window.L = L` 셋업 모듈을 분리해 plugin import보다 먼저 평가되도록 해야 한다. [TIL](./til/2026-05-04-leaflet-rotate-window-l-bootstrap.md).
+- **`deviceorientation`은 iOS/Android 두 방언**: iOS는 사용자 제스처 안에서 `requestPermission()` + `webkitCompassHeading` 사용, Android는 권한 무관 + `(360 - alpha) % 360`로 좌표계 반전. 150ms throttle로 떨림 흡수. [TIL](./til/2026-05-04-deviceorientation-ios-android-quirks.md).
+- **Top-N 강조는 비후보 dimming이 효과적**: 강조 대상의 크기·진하기를 키우는 것보다, 비강조 대상을 죽이는 게 시각 노이즈 ratio 측면에서 압도적. 배경 마커 56개 vs 후보 3개 같이 N>>M 구도면 더더욱. [TIL](./til/2026-05-04-top3-readability-dim-non-candidates.md).
 
 ---
 
@@ -176,6 +181,10 @@
 ## 📸 Snapshot 히스토리
 
 `docs/snapshots/`에 마일스톤 별 모바일 스크린샷이 누적되고 있음. Phase 종료 시점이나 큰 UX 변경 직후마다 글로벌 `snapshot` 스킬로 한 장 추가. 인덱스: `docs/snapshots/README.md`.
+
+## 📚 TIL (시행착오 기록)
+
+`docs/til/`에 작업 중 마주친 비명시적 함정과 해결 패턴을 사건당 한 파일로 누적. 코드만 봐서는 안 보이는 "왜 이렇게 짰는지"의 이유를 보존. 인덱스: `docs/til/README.md`.
 
 ## 📝 CHANGELOG
 
