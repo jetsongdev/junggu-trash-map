@@ -111,7 +111,7 @@
 
 특정 Phase에 종속되지 않는 품질·관측·국제화 작업.
 
-- [ ] **I.1** 테스트 인프라 — vitest 도입, 순수 함수 우선 (`lib/geo.ts`, `lib/eta.ts`, `scripts/transform.ts`). 회귀 방지
+- [x] **I.1** 테스트 인프라 — vitest 도입, `lib/geo.ts`·`lib/eta.ts`·`lib/url-share.ts` 순수 함수 59개 커버
 - [ ] **I.2** 에러 모니터링 — Sentry 또는 Vercel Observability. Geolocation 실패율, 빈 데이터 fetch 에러 RUM 보완
 - [ ] **I.3** Lighthouse CI — PR마다 PWA/접근성 점수 회귀 차단
 - [ ] **I.4** i18n (en/ja/zh) — `next-intl`. 명동·남대문 외국인 관광객 시나리오
