@@ -14,12 +14,25 @@ type OrientationLike = DeviceOrientationEvent & {
   webkitCompassHeading?: number;
 };
 
-function readHeading(e: OrientationLike): number | null {
-  if (typeof e.webkitCompassHeading === 'number') {
-    return e.webkitCompassHeading;
+function getScreenAngle(): number {
+  if (typeof window === 'undefined') return 0;
+  if (typeof screen !== 'undefined' && screen.orientation?.angle != null) {
+    return screen.orientation.angle;
   }
-  if (e.alpha == null) return null;
-  return (360 - e.alpha) % 360;
+  const legacy = (window as { orientation?: number }).orientation;
+  return typeof legacy === 'number' ? legacy : 0;
+}
+
+function readHeading(e: OrientationLike): number | null {
+  let raw: number;
+  if (typeof e.webkitCompassHeading === 'number') {
+    raw = e.webkitCompassHeading;
+  } else if (e.alpha != null) {
+    raw = (360 - e.alpha) % 360;
+  } else {
+    return null;
+  }
+  return ((raw - getScreenAngle()) % 360 + 360) % 360;
 }
 
 export function useDeviceHeading(enabled: boolean) {
