@@ -114,6 +114,14 @@ body {
   transition: transform 120ms ease-out;
 }
 
+.map-rotated .user-marker-inner,
+.map-rotated .bin-marker > span,
+.map-rotated .dest-flag {
+  transform: rotate(var(--map-counter-rotate, 0deg));
+  transform-origin: center;
+  transition: transform 150ms ease-out;
+}
+
 @keyframes user-pulse {
   0%   { transform: scale(0.6); opacity: 1; }
   100% { transform: scale(1.6); opacity: 0; }

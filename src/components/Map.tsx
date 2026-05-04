@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
+import '@/lib/leaflet-globals';
+import 'leaflet-rotate/dist/leaflet-rotate.js';
 import {
   CircleMarker,
   MapContainer,
@@ -19,6 +21,11 @@ import {
   type LatLng,
 } from '@/lib/geo';
 import type { TrashBin } from '@/lib/types';
+
+type RotatedMap = ReturnType<typeof useMap> & {
+  setBearing?: (theta: number) => void;
+  getBearing?: () => number;
+};
 
 export type TileTheme = 'light' | 'dark';
 
@@ -50,6 +57,7 @@ type Props = {
   bins: TrashBin[];
   userLocation?: LatLng | null;
   userHeading?: number | null;
+  mapBearing?: number | null;
   destination?: LatLng | null;
   highlights?: TrashBin[];
   focusTarget?: LatLng | null;
@@ -69,6 +77,15 @@ function PanToUser({ target }: { target: LatLng | null | undefined }) {
       duration: 0.6,
     });
   }, [map, target]);
+  return null;
+}
+
+function BearingController({ bearing }: { bearing: number | null }) {
+  const map = useMap() as RotatedMap;
+  useEffect(() => {
+    if (typeof map.setBearing !== 'function') return;
+    map.setBearing(bearing ?? 0);
+  }, [map, bearing]);
   return null;
 }
 
@@ -157,6 +174,7 @@ export function Map({
   bins,
   userLocation,
   userHeading,
+  mapBearing,
   destination,
   highlights = [],
   focusTarget,
@@ -173,21 +191,28 @@ export function Map({
     highlights.map((bin, index) => [bin.id, (index + 1) as 1 | 2 | 3]),
   );
   const hasCandidates = highlights.length > 0;
+  const counterRotate = `${-(mapBearing ?? 0)}deg`;
   return (
     <div
       className={[
         tapMode ? 'tap-mode-active' : '',
         tileTheme === 'dark' ? 'tile-theme-dark' : '',
+        mapBearing != null ? 'map-rotated' : '',
       ]
         .filter(Boolean)
         .join(' ') || undefined}
-      style={{ height: '100%', width: '100%' }}
+      style={{
+        height: '100%',
+        width: '100%',
+        ['--map-counter-rotate' as string]: counterRotate,
+      }}
     >
     <MapContainer
       center={JUNGGU_CENTER}
       zoom={14}
       scrollWheelZoom
       style={{ height: '100%', width: '100%' }}
+      {...({ rotate: true, rotateControl: false, touchRotate: false, bearing: 0 } as object)}
     >
       <TileLayer
         key={tileTheme}
@@ -240,6 +265,7 @@ export function Map({
       {destination && <DestinationMarker position={destination} />}
       <PanToUser target={userLocation} />
       <PanToUser target={focusTarget} />
+      <BearingController bearing={mapBearing ?? 0} />
       {onMapClick && <MapClickHandler onClick={onMapClick} />}
     </MapContainer>
     </div>

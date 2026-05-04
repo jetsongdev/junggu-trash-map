@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
+const THROTTLE_MS = 150;
 
 type Permission = 'unsupported' | 'prompt' | 'granted' | 'denied';
 
@@ -24,6 +26,7 @@ export function useDeviceHeading(enabled: boolean) {
   const [supported, setSupported] = useState(false);
   const [permission, setPermission] = useState<Permission>('prompt');
   const [heading, setHeading] = useState<number | null>(null);
+  const lastUpdateRef = useRef(0);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -46,9 +49,11 @@ export function useDeviceHeading(enabled: boolean) {
     }
     const handler = (e: Event) => {
       const h = readHeading(e as OrientationLike);
-      if (h != null && Number.isFinite(h)) {
-        setHeading(h);
-      }
+      if (h == null || !Number.isFinite(h)) return;
+      const now = Date.now();
+      if (now - lastUpdateRef.current < THROTTLE_MS) return;
+      lastUpdateRef.current = now;
+      setHeading(h);
     };
     window.addEventListener('deviceorientationabsolute', handler as EventListener);
     window.addEventListener('deviceorientation', handler as EventListener);

@@ -66,11 +66,11 @@ function PageContent() {
   const [distanceMode, setDistanceMode] = useState<DistanceMode>('euclidean');
   const [tileTheme, setTileTheme] = useState<TileTheme>('dark');
   const [walkingSpeed, setWalkingSpeed] = useState<WalkingSpeed>('normal');
-  const [compassEnabled, setCompassEnabled] = useState(false);
+  const [compassMode, setCompassMode] = useState<'off' | 'cone' | 'head-up'>('off');
   const watchIdRef = useRef<number | null>(null);
   const prefsHydratedRef = useRef(false);
 
-  const compass = useDeviceHeading(compassEnabled);
+  const compass = useDeviceHeading(compassMode !== 'off');
 
   useEffect(() => {
     if (prefsHydratedRef.current) return;
@@ -391,34 +391,43 @@ function PageContent() {
             type="button"
             onClick={async () => {
               vibrate(HAPTIC.TAP);
-              if (compassEnabled) {
-                setCompassEnabled(false);
-                return;
+              const next =
+                compassMode === 'off'
+                  ? 'cone'
+                  : compassMode === 'cone'
+                    ? 'head-up'
+                    : 'off';
+              if (compassMode === 'off') {
+                const result = await compass.request();
+                if (result !== 'granted') return;
               }
-              const result = await compass.request();
-              if (result === 'granted') {
-                setCompassEnabled(true);
-              }
+              setCompassMode(next);
             }}
             disabled={!compass.supported || compass.permission === 'denied'}
-            aria-pressed={compassEnabled}
+            aria-pressed={compassMode !== 'off'}
             aria-label={
               !compass.supported
                 ? '방향 센서 미지원'
                 : compass.permission === 'denied'
                   ? '방향 권한 거부됨'
-                  : compassEnabled
-                    ? '방향 표시 끄기'
-                    : '방향 표시 켜기'
+                  : compassMode === 'off'
+                    ? '방향 cone 켜기'
+                    : compassMode === 'cone'
+                      ? '헤드업 모드로 전환'
+                      : '방향 표시 끄기'
             }
             className={`${chipBase} ${
-              compassEnabled
-                ? 'bg-sky-500 text-white shadow'
-                : inactiveChip
+              compassMode === 'head-up'
+                ? 'bg-violet-500 text-white shadow'
+                : compassMode === 'cone'
+                  ? 'bg-sky-500 text-white shadow'
+                  : inactiveChip
             } ${!compass.supported || compass.permission === 'denied' ? 'opacity-40 cursor-not-allowed' : ''}`}
           >
             <span aria-hidden>🧭</span>
-            <span>방향</span>
+            <span>
+              {compassMode === 'head-up' ? '헤드업' : compassMode === 'cone' ? '방향' : '방향'}
+            </span>
           </button>
           <button
             type="button"
@@ -463,7 +472,12 @@ function PageContent() {
         <Map
           bins={visible}
           userLocation={userLocation}
-          userHeading={compassEnabled ? compass.heading : null}
+          userHeading={compassMode === 'cone' ? compass.heading : null}
+          mapBearing={
+            compassMode === 'head-up' && compass.heading != null
+              ? -compass.heading
+              : null
+          }
           destination={destination}
           highlights={highlights}
           focusTarget={mapFocusTarget}
