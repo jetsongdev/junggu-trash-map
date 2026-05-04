@@ -23,6 +23,7 @@
 | 15 | 2026-05-03 | 🔄 저장된 환경설정 복원 baseline — 라이트+격자+빠름 (hydration hotfix 검증) | [15-prefs-restored](./15-prefs-restored/) |
 | 16 | 2026-05-03 | 🎨 폴리싱 셋트 — 마커 톤 (blue/emerald/violet-400) + 시스템 다크 자동 + 햅틱 | [16-polish-bundle](./16-polish-bundle/) |
 | 17 | 2026-05-03 | 🔗 URL 쿼리스트링 공유 + 딥링크 (🔗 공유 버튼, 6개 파라미터) | [17-url-share](./17-url-share/) |
+| 18 | 2026-05-04 | 🥇🥈🥉 가까운/경유 휴지통 Top-3 후보 시각화 (rank별 opacity·크기) | [18-top3-candidates](./18-top3-candidates/) |
 
 ## 새 스냅샷 찍는 법
 
