@@ -26,6 +26,7 @@
 | 18 | 2026-05-04 | 🥇🥈🥉 가까운/경유 휴지통 Top-3 후보 시각화 (rank별 opacity·크기) | [18-top3-candidates](./18-top3-candidates/) |
 | 19 | 2026-05-04 | 🔵🔵🔵 Top-3 후보 가독성 개선 — 선 3개 연결 + 비후보 희미하게 | [19-top3-readability](./19-top3-readability/) |
 | 20 | 2026-05-04 | 🧭 헤드업 모드 — 지도 회전 + cone 일관성 (P2.13) | [20-head-up-mode](./20-head-up-mode/) |
+| 21 | 2026-05-04 | 🚶 보행 속도 슬라이더 — 2~7 km/h 0.5 step (P2.9) | [21-walking-speed-slider](./21-walking-speed-slider/) |
 
 ## 새 스냅샷 찍는 법
 
