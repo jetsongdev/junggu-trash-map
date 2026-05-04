@@ -3,13 +3,14 @@
 > 이 파일은 Claude가 매 세션 시작 시 읽고 작업 우선순위를 판단하는 1차 소스.
 > 사람과 에이전트 모두 직접 편집 가능. 컨벤션은 파일 끝 「운영 규칙」 참고.
 
-## 현재 상태 (2026-05-03)
+## 현재 상태 (2026-05-04)
 
-- **Phase**: 2 핵심 마무리 — Geolocation·필터·테마(시스템 자동)·PWA·경로·ETA·검색·햅틱·URL 공유 다 들어감. 잔여는 P2.9 (속도 슬라이더) / P2.10 (다중 경유) / P2.13 (방향) / P2.14 (즐겨찾기). P2.3 클러스터링은 25구 전엔 보류
+- **Phase**: 2 핵심 마무리 + 인프라 I.1 완료 — Geolocation·필터·테마(시스템 자동)·PWA·경로·ETA·검색·햅틱·URL 공유·vitest(59개) 다 들어감. 잔여는 P2.9 (속도 슬라이더) / P2.10 (다중 경유) / P2.13 (방향) / P2.14 (즐겨찾기). P2.3 클러스터링은 25구 전엔 보류
 - **사용자 환경 영속화** (`localStorage`): `distanceMode` (직선/격자), `tileTheme` (다크/라이트, **빈 값일 때 시스템 prefers-color-scheme 자동 감지**), `walkingSpeed` (3/4/5 km/h)
 - **마커 색**: 일반 `#60a5fa` (blue-400), 재활용 `#34d399` (emerald-400), 혼합 `#c084fc` (violet-400) — 라이트/다크 양 타일에서 균형
 - **Roadmap 확장**: Phase 3 (25개 구) · Phase 4 (데이터 확장: 타 종류 통/사용자 제보/사진) · Phase 5 (실제 보행 경로 + TTS) · 인프라/품질 cross-cutting (테스트·Sentry·Lighthouse CI·i18n) 후보 등록됨
 - **Stack**: Next.js 16 (Turbopack) · Bun · TypeScript strict · Tailwind v4 · Leaflet + OSM/CartoDB · Vercel Analytics + Speed Insights
+- **Test**: `bun run test` (vitest 4.x) — `lib/geo.ts`·`lib/eta.ts`·`lib/url-share.ts` 순수 함수 59개
 - **Dev**: `bun run dev` → http://localhost:3000 (점유 시 자동 3001)
 - **Build**: `bun run build` 통과
 - **Deploy**: `git push` → 자동 Vercel build → https://junggu-trash-map.vercel.app (16~22초). 수동 `vercel deploy`는 hotfix 시에만
