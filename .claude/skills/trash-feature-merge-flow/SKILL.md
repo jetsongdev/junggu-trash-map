@@ -38,19 +38,22 @@ bun run build           # production 빌드 통과
 
 테스트나 빌드가 깨지면 **머지 흐름 진입 X** — 사용자에게 보고하고 멈출 것.
 
-### 1b. 백그라운드 Codex/Agent 동시 작업 점검
+### 1b. 워크트리 race 방지 (본 세션이 백그라운드 task와 같은 디렉토리 공유 시)
 
-본 세션에 `codex:rescue` 같은 백그라운드 task가 진행 중이면 **다른 브랜치를 checkout하면서 우리 워크트리를 가로챌 수 있음** (실제 사고: 같은 워크트리에서 P2.9 commit이 chore/i.3 브랜치에 잘못 들어감 → 복구 라운드 필요). 이런 race를 막으려면:
+**리스크**: 본 세션이 `Agent` 도구 또는 `codex:rescue` 등으로 백그라운드 task를 띄운 상태이면, 그 task가 별도 브랜치를 checkout하면서 같은 워크트리의 파일을 갈아낄 수 있다. 결과로 본 세션의 commit이 의도한 브랜치 대신 task의 브랜치에 들어갈 수 있음 (실제 사고: P2.9 commit이 chore/i.3에 잘못 들어가 복구 라운드 필요).
 
-진단 방법:
-- 채팅에서 `/codex:status` 슬래시 커맨드 (codex 플러그인 설치 시)
-- 직전 `<task-notification>` 알림이 와있는지 conversation 점검
-- Agent 도구 백그라운드 task는 spawn 시 받은 `agentId`로 SendMessage 시도 (응답 없으면 진행 중)
+이 race는 **검증 가능한 셸 명령으로 진단 불가** — 본 세션이 직접 spawn한 Agent task가 있는지는 conversation 메모리(어떤 `agentId`를 받았고 완료 알림이 왔는가)에서 확인해야 한다. 외부 코드로 점검할 수 없다는 점을 솔직하게 받아들이고, 다음 두 가지 액션 중 택일:
 
-진행 중 task가 있으면:
-- 옵션 A: task 완료까지 머지 흐름 보류
-- 옵션 B: `git worktree add ../<branch>-merge <branch>` 로 별도 워크트리에서 작업 (격리)
-- 옵션 C: 실수로 다른 브랜치에 commit이 들어가면 `git branch -f <올바른-branch> <commit-sha>` + 원래 브랜치 reset으로 복구. 이 패턴은 흔하므로 reflog로 항상 살릴 수 있음.
+- **사전 예방 (권장)**: 본 세션이 백그라운드 Agent를 띄운 상태이면 머지 흐름 진입 전에 그 Agent의 완료 알림을 받았는지 확인. 모르겠으면 `git worktree add ../<branch>-merge <branch>` 로 별도 워크트리에서 작업해 격리.
+- **사후 복구 (반드시 검증 가능)**: commit이 잘못된 브랜치에 들어간 게 발견되면:
+  ```bash
+  git log --oneline -5      # 잘못 들어간 commit SHA 확인
+  git branch -f <올바른-branch> <commit-sha>   # 올바른 브랜치 ref를 그 commit으로 이동
+  git checkout <원래-브랜치>
+  git reset --hard <원래 위치 SHA>             # 원래 브랜치 정리
+  git push origin <올바른-branch> --force-with-lease
+  ```
+  reflog와 origin 모두 commit 보존하므로 데이터 손실 없음.
 
 ### 2. snapshot 캡처 (시각 변화 있을 때만)
 
