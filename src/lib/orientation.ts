@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 const THROTTLE_MS = 60;
+const SMOOTHING = 0.25;
 
 type Permission = 'unsupported' | 'prompt' | 'granted' | 'denied';
 
@@ -27,7 +28,7 @@ function readHeading(e: OrientationLike): number | null {
   let raw: number;
   if (typeof e.webkitCompassHeading === 'number') {
     raw = e.webkitCompassHeading;
-  } else if (e.alpha != null) {
+  } else if (e.alpha != null && (e.absolute === true || 'webkitCompassHeading' in e)) {
     raw = (360 - e.alpha) % 360;
   } else {
     return null;
@@ -35,11 +36,27 @@ function readHeading(e: OrientationLike): number | null {
   return ((raw - getScreenAngle()) % 360 + 360) % 360;
 }
 
+function smoothHeading(prev: number, next: number, weight: number): number {
+  let delta = next - prev;
+  if (delta > 180) delta -= 360;
+  else if (delta < -180) delta += 360;
+  const result = prev + delta * weight;
+  return ((result % 360) + 360) % 360;
+}
+
+function pickEventName(): 'deviceorientationabsolute' | 'deviceorientation' | null {
+  if (typeof window === 'undefined') return null;
+  if ('ondeviceorientationabsolute' in window) return 'deviceorientationabsolute';
+  if ('ondeviceorientation' in window) return 'deviceorientation';
+  return null;
+}
+
 export function useDeviceHeading(enabled: boolean) {
   const [supported, setSupported] = useState(false);
   const [permission, setPermission] = useState<Permission>('prompt');
   const [heading, setHeading] = useState<number | null>(null);
   const lastUpdateRef = useRef(0);
+  const smoothedRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -58,21 +75,25 @@ export function useDeviceHeading(enabled: boolean) {
   useEffect(() => {
     if (!enabled || !supported || permission !== 'granted') {
       setHeading(null);
+      smoothedRef.current = null;
       return;
     }
+    const eventName = pickEventName();
+    if (!eventName) return;
     const handler = (e: Event) => {
-      const h = readHeading(e as OrientationLike);
-      if (h == null || !Number.isFinite(h)) return;
+      const raw = readHeading(e as OrientationLike);
+      if (raw == null || !Number.isFinite(raw)) return;
+      const smoothed =
+        smoothedRef.current == null ? raw : smoothHeading(smoothedRef.current, raw, SMOOTHING);
+      smoothedRef.current = smoothed;
       const now = Date.now();
       if (now - lastUpdateRef.current < THROTTLE_MS) return;
       lastUpdateRef.current = now;
-      setHeading(h);
+      setHeading(smoothed);
     };
-    window.addEventListener('deviceorientationabsolute', handler as EventListener);
-    window.addEventListener('deviceorientation', handler as EventListener);
+    window.addEventListener(eventName, handler as EventListener);
     return () => {
-      window.removeEventListener('deviceorientationabsolute', handler as EventListener);
-      window.removeEventListener('deviceorientation', handler as EventListener);
+      window.removeEventListener(eventName, handler as EventListener);
     };
   }, [enabled, supported, permission]);
 
