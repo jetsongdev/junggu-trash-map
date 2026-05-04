@@ -27,6 +27,9 @@
 | 19 | 2026-05-04 | 🔵🔵🔵 Top-3 후보 가독성 개선 — 선 3개 연결 + 비후보 희미하게 | [19-top3-readability](./19-top3-readability/) |
 | 20 | 2026-05-04 | 🧭 헤드업 모드 — 지도 회전 + cone 일관성 (P2.13) | [20-head-up-mode](./20-head-up-mode/) |
 | 21 | 2026-05-04 | 🚶 보행 속도 슬라이더 — 2~7 km/h 0.5 step (P2.9) | [21-walking-speed-slider](./21-walking-speed-slider/) |
+| 22 | 2026-05-04 | ☀️📏 라이트 + 직선 — Top-3 시각화 + 통계 바 | [22-light-euclidean](./22-light-euclidean/) |
+| 23 | 2026-05-04 | ☀️📐 라이트 + 격자 — Manhattan 거리 (143m, +32m) | [23-light-manhattan](./23-light-manhattan/) |
+| 24 | 2026-05-04 | 🌑📐 다크 + 격자 — CartoDB Dark Matter + L자 점선 | [24-dark-manhattan](./24-dark-manhattan/) |
 
 ## 새 스냅샷 찍는 법
 
