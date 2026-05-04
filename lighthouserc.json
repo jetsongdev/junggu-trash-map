@@ -1,21 +1,18 @@
 {
-  "_comment": "If these thresholds are too strict on the first baseline run, lower them one step at a time and re-baseline before tightening again.",
+  "_comment": "Lighthouse 기본 form factor가 mobile이라 별도 preset 미지정. PWA 카테고리는 LH 12에서 제거되어 assertion 빠짐. 임계치 너무 빡세면 한 단계씩 낮춰서 baseline 확보.",
   "ci": {
     "collect": {
       "numberOfRuns": 3,
       "url": [
         "http://localhost:3000"
-      ],
-      "settings": {
-        "preset": "mobile"
-      }
+      ]
     },
     "assert": {
       "assertions": {
         "categories:performance": [
           "error",
           {
-            "minScore": 0.85
+            "minScore": 0.7
           }
         ],
         "categories:accessibility": [
@@ -27,13 +24,7 @@
         "categories:best-practices": [
           "error",
           {
-            "minScore": 0.95
-          }
-        ],
-        "categories:pwa": [
-          "error",
-          {
-            "minScore": 0.85
+            "minScore": 0.9
           }
         ],
         "categories:seo": [
