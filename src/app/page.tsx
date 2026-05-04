@@ -28,6 +28,7 @@ import {
   STEP_KMH,
 } from '@/lib/eta';
 import { HAPTIC, vibrate } from '@/lib/haptic';
+import { captureGeolocationError } from '@/lib/monitoring';
 import { useDeviceHeading } from '@/lib/orientation';
 import type { BinType, TrashBin } from '@/lib/types';
 import {
@@ -232,6 +233,7 @@ function PageContent() {
       },
       (err) => {
         setLocatePending(false);
+        captureGeolocationError(err);
         const msg =
           err.code === err.PERMISSION_DENIED
             ? '위치 권한 거부됨 — Safari 설정 > 위치 허용 후 새로고침, 또는 🎯 출발 탭 사용'

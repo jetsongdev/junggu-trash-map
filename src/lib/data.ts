@@ -1,11 +1,17 @@
 import type { BinType, TrashBin } from './types';
+import { captureLoadBinsError } from './monitoring';
 
 export async function fetchBins(): Promise<TrashBin[]> {
-  const res = await fetch('/data/junggu.json', { cache: 'force-cache' });
-  if (!res.ok) {
-    throw new Error(`Failed to load bin data: ${res.status}`);
+  try {
+    const res = await fetch('/data/junggu.json', { cache: 'force-cache' });
+    if (!res.ok) {
+      throw new Error(`Failed to load bin data: ${res.status}`);
+    }
+    return (await res.json()) as TrashBin[];
+  } catch (error) {
+    captureLoadBinsError(error);
+    throw error;
   }
-  return (await res.json()) as TrashBin[];
 }
 
 export function filterByTypes(bins: TrashBin[], selected: Set<BinType>): TrashBin[] {

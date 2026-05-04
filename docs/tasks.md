@@ -64,6 +64,7 @@
 - [x] **P2.5** URL 쿼리스트링 공유 — 영문 alias(`general,recycle`) 기반 `types/theme/mode/speed/origin/dest` URL을 우선 적용하고, 현재 필터·환경·좌표 상태를 공유 링크로 복사/공유
 - [x] **P2.13** 방향 화살표 — `deviceorientation` 기반 부채꼴 cone (60°) + 🧭 토글 칩 opt-in. iOS는 `requestPermission`, Android는 즉시 시작. `webkitCompassHeading` 우선, fallback `(360 - alpha) % 360`. 권한 거부 시 칩 비활성화. 헤드업 모드(P2.13b)는 지도 자체를 사용자 시선 방향으로 회전 (`leaflet-rotate@0.2.8`).
 - [x] **P2.9** 보행 속도 사용자 정의 km/h — cycle 칩 → 슬라이더(2~7 km/h, 0.5 step). 칩 클릭으로 슬라이더 panel 토글, emoji는 임계 자동(🐢/🚶/🏃). URL/localStorage 호환 (legacy preset 'slow'/'normal'/'fast' → 3/4/5).
+- [x] **I.2** 에러 모니터링 — Sentry 연동, production-only 초기화, geolocation/fetch 에러 캡처, global-error 추가
 - [x] **I.3** Lighthouse CI — PR마다 PWA/접근성/성능 점수 회귀 차단
 
 ---
@@ -114,7 +115,6 @@
 특정 Phase에 종속되지 않는 품질·관측·국제화 작업.
 
 - [x] **I.1** 테스트 인프라 — vitest 도입, `lib/geo.ts`·`lib/eta.ts`·`lib/url-share.ts` 순수 함수 59개 커버
-- [ ] **I.2** 에러 모니터링 — Sentry 또는 Vercel Observability. Geolocation 실패율, 빈 데이터 fetch 에러 RUM 보완
 - [ ] **I.4** i18n (en/ja/zh) — `next-intl`. 명동·남대문 외국인 관광객 시나리오
 
 ---
