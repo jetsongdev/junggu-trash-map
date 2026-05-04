@@ -189,6 +189,16 @@
 
 `docs/til/`에 작업 중 마주친 비명시적 함정과 해결 패턴을 사건당 한 파일로 누적. 코드만 봐서는 안 보이는 "왜 이렇게 짰는지"의 이유를 보존. 인덱스: `docs/til/README.md`.
 
+## 🛠 프로젝트 스킬
+
+`.claude/skills/`에 자주 반복되는 워크플로우를 스킬로 박아둠. 다음 세션부터 사용자 발화에 따라 자동 트리거.
+
+- **`trash-feature-merge-flow`** — `P*.*` feature 작업 → main 머지 9단계 (snapshot → tasks/CHANGELOG → commit/push → SHA 정합 → main 머지). "마무리", "머지 ㄱㄱ", "main으로" 같은 발화에 트리거.
+- **`trash-codex-integrate`** — Codex 위임 작업이 sandbox 제약으로 vendor shim/uncommit 상태로 끝났을 때 실제 패키지 설치 + import 경로 정리(next.config/tsconfig/vitest/사용자 코드) + commit·push. Codex 완료 알림 직후 워크트리에 `vendor/` 또는 `file:vendor/*` 발견 시 트리거.
+- **`trash-lighthouse-pr-watch`** — PR Lighthouse CI 결과 Monitor 폴링 → 점수 표 출력 → 통과 시 머지 + main sync. `gh pr create` 직후 또는 "lighthouse 점수", "PR 머지" 같은 발화에 트리거.
+
+각 스킬의 SKILL.md에 절차·함정·관련 TIL 링크가 들어있다. 스킬 자체도 진화 — 새 함정이 발견되면 SKILL.md에 추가.
+
 ## 📝 CHANGELOG
 
 `CHANGELOG.md`의 `[Unreleased]` 섹션은 사용자/리뷰어 관점의 변경 누적. Phase 종료, 새 기능, 버그 픽스, 의미 있는 인프라 변경 시 그 자리에서 한 줄. Keep a Changelog 컨벤션. 자세한 운영 규칙은 `CLAUDE.md`.
