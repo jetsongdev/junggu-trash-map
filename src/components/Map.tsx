@@ -50,7 +50,7 @@ type Props = {
   bins: TrashBin[];
   userLocation?: LatLng | null;
   destination?: LatLng | null;
-  highlightBin?: TrashBin | null;
+  highlights?: TrashBin[];
   focusTarget?: LatLng | null;
   distanceMode?: DistanceMode;
   onMapClick?: (latlng: LatLng) => void;
@@ -147,7 +147,7 @@ export function Map({
   bins,
   userLocation,
   destination,
-  highlightBin,
+  highlights = [],
   focusTarget,
   distanceMode = 'euclidean',
   onMapClick,
@@ -155,8 +155,12 @@ export function Map({
   tileTheme = 'dark',
 }: Props) {
   const preset = TILE_PRESETS[tileTheme];
-  const showRoute = !!(userLocation && destination && highlightBin);
-  const showDistanceOnly = !!(userLocation && highlightBin && !destination);
+  const primaryHighlight = highlights[0] ?? null;
+  const showRoute = !!(userLocation && destination && primaryHighlight);
+  const showDistanceOnly = !!(userLocation && primaryHighlight && !destination);
+  const highlightRanks = new globalThis.Map(
+    highlights.map((bin, index) => [bin.id, (index + 1) as 1 | 2 | 3]),
+  );
   return (
     <div
       className={[
@@ -181,20 +185,20 @@ export function Map({
         maxZoom={preset.maxZoom}
       />
       {bins.map((bin) => (
-        <BinMarker key={bin.id} bin={bin} />
+        <BinMarker key={bin.id} bin={bin} rank={highlightRanks.get(bin.id)} />
       ))}
-      {highlightBin && <HighlightRing bin={highlightBin} />}
+      {primaryHighlight && <HighlightRing bin={primaryHighlight} />}
       {showDistanceOnly && (
         <DistanceLine
           origin={userLocation!}
-          target={{ lat: highlightBin!.lat, lng: highlightBin!.lng }}
+          target={{ lat: primaryHighlight!.lat, lng: primaryHighlight!.lng }}
           mode={distanceMode}
         />
       )}
       {showRoute && (
         <RouteLine
           origin={userLocation!}
-          via={{ lat: highlightBin!.lat, lng: highlightBin!.lng }}
+          via={{ lat: primaryHighlight!.lat, lng: primaryHighlight!.lng }}
           destination={destination!}
           mode={distanceMode}
         />

@@ -5,7 +5,7 @@
 
 ## 현재 상태 (2026-05-04)
 
-- **Phase**: 2 핵심 마무리 + 인프라 I.1 완료 — Geolocation·필터·테마(시스템 자동)·PWA·경로·ETA·검색·햅틱·URL 공유·vitest(59개) 다 들어감. 잔여는 P2.9 (속도 슬라이더) / P2.10 (다중 경유) / P2.13 (방향) / P2.14 (즐겨찾기). P2.3 클러스터링은 25구 전엔 보류
+- **Phase**: 2 핵심 마무리 + 인프라 I.1 완료 — Geolocation·필터·테마(시스템 자동)·PWA·경로·ETA·검색·햅틱·URL 공유·vitest(59개) 다 들어감. 잔여는 P2.9 (속도 슬라이더) / P2.13 (방향) / P2.14 (즐겨찾기). P2.3 클러스터링은 25구 전엔 보류
 - **사용자 환경 영속화** (`localStorage`): `distanceMode` (직선/격자), `tileTheme` (다크/라이트, **빈 값일 때 시스템 prefers-color-scheme 자동 감지**), `walkingSpeed` (3/4/5 km/h)
 - **마커 색**: 일반 `#60a5fa` (blue-400), 재활용 `#34d399` (emerald-400), 혼합 `#c084fc` (violet-400) — 라이트/다크 양 타일에서 균형
 - **Roadmap 확장**: Phase 3 (25개 구) · Phase 4 (데이터 확장: 타 종류 통/사용자 제보/사진) · Phase 5 (실제 보행 경로 + TTS) · 인프라/품질 cross-cutting (테스트·Sentry·Lighthouse CI·i18n) 후보 등록됨
@@ -58,6 +58,7 @@
 - [x] **P2.8** ETA + 보행 속도 3단계 — `lib/eta.ts`, cycle 칩(🐢/🚶/🏃, 3/4/5 km/h), localStorage 영속화, 통계 바 시간 표시 (nearest·route 모두).
 - [x] **P2.12** 주소·랜드마크 검색 — Nominatim 검색 박스, 300ms debounce, 출발/목적지 즉시 지정 + 지도 이동
 - [x] **P2.11** 마커 색상 미세 조정 — blue/emerald/violet 톤을 라이트·다크 타일 모두에서 균형 있게 재조정
+- [x] **P2.10** 가까운/경유 휴지통 Top-3 후보 시각화 — 목적지 없으면 nearest 3개, 목적지 있으면 detour 3개를 rank별 크기·투명도로 읽기 전용 표시
 - [x] **P2.15** 시스템 다크 모드 자동 감지 — 첫 방문 기본값만 `prefers-color-scheme` 반영, 이후 명시 토글 우선
 - [x] **P2.16** 터치 햅틱 피드백 — 지원 디바이스에서 마커·검색·필터/모드 칩 탭 + 좌표 확정에 강도별 진동(`lib/haptic.ts`, TAP 6ms / SELECT 12ms / CONFIRM 18ms)
 - [x] **P2.5** URL 쿼리스트링 공유 — 영문 alias(`general,recycle`) 기반 `types/theme/mode/speed/origin/dest` URL을 우선 적용하고, 현재 필터·환경·좌표 상태를 공유 링크로 복사/공유
@@ -69,7 +70,6 @@
 핵심 기능 다 들어가있고, 아래는 사용성·확장성 강화. 가벼운 → 무거운 순:
 
 - [ ] **P2.9** 보행 속도 사용자 정의 km/h — 현 3단계 cycle 칩 → 슬라이더/입력 박스로 임의 km/h. 노약자/유아동반 같은 케이스 대응
-- [ ] **P2.10** 다중 휴지통 경유 — 그리디 또는 N≤4 TSP. 출발→통1→통2→...→목적지 전체 detour 최소화. 산책길 시나리오
 - [ ] **P2.3** 클러스터링 — `leaflet.markercluster`. 마커 100+ 시 lag 방지. **25구 확장(Phase 3) 전엔 ø**
 - [ ] **P2.13** 방향 화살표 — `deviceorientation` 기반 사용자 마커 회전. 좁은 골목에서 "지금 보는 방향" 즉시 파악
 - [ ] **P2.14** 즐겨찾기/최근 휴지통 — localStorage. 같은 동선 반복 사용자(출퇴근/산책 루틴) 대응
