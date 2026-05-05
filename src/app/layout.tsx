@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Analytics } from '@vercel/analytics/next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import { PreloadResources } from './preload-resources';
 import 'leaflet/dist/leaflet.css';
 import './globals.css';
 
@@ -32,6 +33,7 @@ export default function RootLayout({
   return (
     <html lang="ko" className="h-full antialiased">
       <body className="min-h-full">
+        <PreloadResources />
         {children}
         <Analytics />
         <SpeedInsights />
