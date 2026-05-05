@@ -1,4 +1,5 @@
 import { captureLoadBinsError } from './monitoring';
+import type { DistrictsGeoJson } from './point-in-district';
 import type { DistrictCode, DistrictMeta, Manifest } from './types';
 
 const MANIFEST_URL = '/data/seoul-manifest.json';
@@ -28,13 +29,13 @@ export async function fetchManifest(): Promise<Manifest> {
   }
 }
 
-export async function fetchDistrictsGeoJson(): Promise<unknown> {
+export async function fetchDistrictsGeoJson(): Promise<DistrictsGeoJson> {
   try {
     const res = await fetch(GEOJSON_URL, { cache: 'force-cache' });
     if (!res.ok) {
       throw new Error(`Failed to load districts geojson: ${res.status}`);
     }
-    return await res.json();
+    return (await res.json()) as DistrictsGeoJson;
   } catch (error) {
     captureLoadBinsError(error);
     throw error;

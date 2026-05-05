@@ -11,7 +11,7 @@ type GeoFeature = {
     | { type: 'MultiPolygon'; coordinates: Ring[][] };
 };
 
-type FeatureCollection = {
+export type DistrictsGeoJson = {
   type: 'FeatureCollection';
   features: ReadonlyArray<GeoFeature>;
 };
@@ -46,7 +46,7 @@ function pointInFeature(lng: number, lat: number, feature: GeoFeature): boolean 
 
 export function findDistrictForPoint(
   point: { lat: number; lng: number },
-  geojson: FeatureCollection,
+  geojson: DistrictsGeoJson,
 ): DistrictCode | null {
   for (const feature of geojson.features) {
     if (pointInFeature(point.lng, point.lat, feature)) {

@@ -66,6 +66,7 @@ type Props = {
   focusTarget?: LatLng | null;
   distanceMode?: DistanceMode;
   onMapClick?: (latlng: LatLng) => void;
+  onCenterChange?: (latlng: LatLng) => void;
   tapMode?: boolean;
   tileTheme?: TileTheme;
   favorites?: Set<string>;
@@ -99,6 +100,16 @@ function BearingController({ bearing }: { bearing: number | null }) {
 function MapClickHandler({ onClick }: { onClick: (ll: LatLng) => void }) {
   useMapEvents({
     click: (e) => onClick({ lat: e.latlng.lat, lng: e.latlng.lng }),
+  });
+  return null;
+}
+
+function MapMoveHandler({ onCenterChange }: { onCenterChange: (ll: LatLng) => void }) {
+  const map = useMapEvents({
+    moveend: () => {
+      const c = map.getCenter();
+      onCenterChange({ lat: c.lat, lng: c.lng });
+    },
   });
   return null;
 }
@@ -187,6 +198,7 @@ export function Map({
   focusTarget,
   distanceMode = 'euclidean',
   onMapClick,
+  onCenterChange,
   tapMode = false,
   tileTheme = 'dark',
   favorites,
@@ -299,6 +311,7 @@ export function Map({
       <PanToUser target={focusTarget} />
       <BearingController bearing={mapBearing ?? 0} />
       {onMapClick && <MapClickHandler onClick={onMapClick} />}
+      {onCenterChange && <MapMoveHandler onCenterChange={onCenterChange} />}
     </MapContainer>
     </div>
   );

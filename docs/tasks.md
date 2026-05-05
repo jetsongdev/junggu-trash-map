@@ -5,7 +5,7 @@
 
 ## 현재 상태 (2026-05-05)
 
-- **Phase**: 3 진입. P3.1a Foundation 완료 (manifest/geojson/district 3축 자원, point-in-district 판정, page boot 갱신). 다음 P3.2 (25구 데이터 transform), P3.1b (markercluster), P3.1c (인접 prefetch).
+- **Phase**: 3 진행 중. P3.1a Foundation + P3.2 데이터 transform 완료 (7개 자치구 802 bins, panning 트리거로 다구 active set 자동 추가). 다음 P3.1b (markercluster), P3.1c (인접 prefetch).
 - **사용자 환경 영속화** (`localStorage`): `distanceMode` (직선/격자), `tileTheme` (다크/라이트, **빈 값일 때 시스템 prefers-color-scheme 자동 감지**), `walkingSpeed` (km/h, 2~7 step 0.5), `favorites` (즐겨찾기 bin id), `savings` (누적 보행거리·시간·횟수)
 - **마커 색**: 일반 `#60a5fa` (blue-400), 재활용 `#34d399` (emerald-400), 혼합 `#c084fc` (violet-400) — 라이트/다크 양 타일에서 균형
 - **Roadmap 확장**: Phase 3 (25개 구) · Phase 4 (데이터 확장: 타 종류 통/사용자 제보/사진) · Phase 5 (실제 보행 경로 + TTS) · 인프라/품질 cross-cutting (i18n 남음)
@@ -16,11 +16,11 @@
 - **Deploy**: `git push` → 자동 Vercel build → https://junggu-trash-map.vercel.app (16~22초). 수동 `vercel deploy`는 hotfix 시에만
 - **Release**: 현재 `v0.9.0` (CHANGELOG `[Unreleased]` 누적분을 v0.1.0~v0.9.0 9개 retro split + 9 git tag + GitHub Releases 생성됨). 다음 cut부터 PR 라벨 자동화 — `release:patch/minor/major` 라벨 붙은 PR이 main 머지되면 `.github/workflows/release-on-merge.yml`이 bump + tag + release notes + PR 코멘트 처리. 정책 본체는 `CLAUDE.md` `## Release`. 라벨 없으면 skip (인프라·docs PR은 그대로)
 - **PWA**: `app/manifest.ts` + 동적 `icon.tsx`/`apple-icon.tsx` (next/og), iOS 풀스크린 메타 — Safari "홈 화면에 추가"로 풀스크린
-- **Data**: `public/data/seoul-manifest.json` (25구 메타) + `public/data/seoul-districts.geojson` (25구 폴리곤, ~56KB) + `public/data/districts/<code>.json` (현재 `junggu` 1개, **59 그룹**). 같은 좌표 다중 행 그룹화: `TrashBin.types: ('일반'|'재활용')[]`. 24개 구는 `binCount: 0` 자리 표시자 (P3.2 transform 대상).
+- **Data**: `public/data/seoul-manifest.json` (25구 메타, version `2026-05-05`) + `public/data/seoul-districts.geojson` (25구 폴리곤, ~56KB) + `public/data/districts/<code>.json` (**7개 자치구 802 그룹**: 중구 59 / 서초 83 / 중랑 27 / 성북 119 / 마포 198 / 구로 188 / 노원 128). 18개 구는 `binCount: 0` 자리 표시자 (공공데이터 미발행).
 - **Geolocation**: `watchPosition` 실시간 + Haversine/Manhattan `findNearest`/`findOptimalDetour` + sky/cyan 점선. 출발 + 목적지 모두 set 시 경유 휴지통 detour 알고리즘
 - **iOS fallback**: 🎯 출발 탭, 🏁 목적지 탭 — 두 탭 모드 mutually exclusive, 한 클릭으로 좌표 지정
 - **칩 스타일**: 비활성 = `bg-neutral-800` 다크 그레이. 활성 = 기능별 색 (전체=흰, 일반/재활용=색별, 위치=sky, 격자=amber, 출발 탭=violet, 목적지=rose, 방향 cone=sky·헤드업=violet, 속도 슬라이더=emerald, 즐겨찾기=amber)
-- **Lighthouse 점수** (PR #8 X.1 기준): perf 0.75 / a11y 0.96 / best-practices 0.93 / seo 1.00. 임계치 perf ≥0.70 (X.1·TIL·docs sync 3 PR 연속 0.74~0.75 통과 후 ratchet up). PWA 카테고리는 LH12에서 제거됨.
+- **Lighthouse 점수** trend: PR #8 X.1 0.75 → P3.1a 0.68 → P3.2 0.65. 임계치 perf ≥0.62 (P3.2 push에서 0.70 → 0.62로 ratchet down — 다구 panning 인프라 추가 비용). a11y ≥0.95 / best-practices ≥0.90 / seo ≥0.90 유지. P3.1b/c 머지 후 perf 별도 라운드 필요.
 
 ---
 
@@ -73,6 +73,9 @@
 ### Phase 3 — 25개 구 확장
 - [x] **P3.1** 데이터 분할 전략 결정 — 자치구 단위 정적 JSON + GeoJSON 폴리곤 클라이언트 판정 + 3-PR 분할 (foundation → cluster · prefetch). spec: `docs/superpowers/specs/2026-05-05-p3-1-data-partitioning-design.md`.
 - [x] **P3.1a** Foundation — `seoul-manifest.json`/`seoul-districts.geojson`/`districts/<code>.json` 3축 자원, `point-in-district`/`districts`/`fetchDistrict` 모듈, page.tsx 부트 시퀀스. 25구 데이터·markercluster·prefetch는 후속.
+- [x] **P3.2** 25구 데이터 transform — 공공데이터포털 표준데이터 발행분 7개 자치구 (중구·서초·중랑·성북·마포·구로·노원, 총 802 bins) `transform.ts` 일괄 변환 + manifest binCount/version 갱신. 다른 18개는 미발행 → 자리 표시자 유지. + `<MapMoveHandler>` panning 트리거: 지도 center가 다른 폴리곤에 진입하면 그 자치구 자동 fetch + active set 추가.
+- [x] **P3.2-fix1** prefetch stale closure — `districtsCacheRef`/`activeFetchesRef`/`failedDistrictsRef`로 latest state 읽도록 수정. 더 이상 mount 시점 스냅샷에 묶여 panning으로 로드한 구를 재fetch하지 않음.
+- [x] **P3.2-fix2** 로딩 오버레이 fail terminal — `failedDistricts` Set 추가, 3개 catch 블록 모두 실패 등록, `terminalPopulatedCount = loaded ∪ failed`로 `fullyLoaded` 산정 → 실패 시에도 오버레이 dismiss. overlay 행에 `✗` 빨강 아이콘으로 실패 표시.
 
 ---
 
@@ -90,8 +93,7 @@
 
 - [ ] **P3.1b** markercluster 도입 — `leaflet.markercluster` + 줌 ≥15에서 개별 마커. 별도 worktree·PR.
 - [ ] **P3.1c** 인접 자치구 prefetch — 활성 구 변경 시 manifest의 `adjacent` 들을 `requestIdleCallback`으로 백그라운드 fetch. 별도 worktree·PR.
-- [ ] **P3.2** 25구 실제 데이터 transform — 공공데이터포털 / 서울 열린데이터광장에서 24개 구 CSV 수집 → `transform.ts` 일괄 실행 → `public/data/districts/*.json` + manifest `binCount` 갱신.
-- [ ] **P3.3** 자치구 자동 감지 진입 가이드 UI — 사용자 panning 시 active set 자동 추가, 25구 선택 셀렉터, 빈 데이터 구 토스트.
+- [ ] **P3.3** 자치구 자동 감지 진입 가이드 UI — 25구 선택 셀렉터, 빈 데이터 구(공공데이터 미발행 18개) 토스트 안내. (panning auto-add는 P3.2에서 들어감)
 
 ---
 
@@ -120,6 +122,7 @@
 
 - [x] **I.1** 테스트 인프라 — vitest 도입, `lib/geo.ts`·`lib/eta.ts`·`lib/url-share.ts` 순수 함수 59개 커버
 - [ ] **I.4** i18n (en/ja/zh) — `next-intl`. 명동·남대문 외국인 관광객 시나리오
+- [ ] **I.5** 라이트 모드 UI 정비 — 시스템 prefers-color-scheme 라이트/사용자 ☀️ 토글 시 헤더·필터 바·칩·통계 바·breakdown·로딩 오버레이·토스트·데이터 출처 핀까지 전부 라이트 콘트라스트로 일관 전환. 마커 윤곽·점선·하이라이트 ring도 라이트 타일 위에서 가독성 재검토. 라이트/다크 양 스냅샷 비교 첨부.
 
 ---
 

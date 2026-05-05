@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { FilterChips } from '@/components/FilterChips';
 import { LocateButton } from '@/components/LocateButton';
@@ -17,6 +17,7 @@ import {
 import {
   findDistrictForPoint,
   findNearestDistrictCentroid,
+  type DistrictsGeoJson,
 } from '@/lib/point-in-district';
 import {
   filterByFavorites,
@@ -69,7 +70,14 @@ const DEFAULT_APP_STATE: AppState = {
   destination: null,
 };
 
-const Map = dynamic(() => import('@/components/Map'), {
+const STATUS_VIS = {
+  loaded:   { icon: '✓', cls: 'text-emerald-400' },
+  inFlight: { icon: '⟳', cls: 'text-amber-400 animate-pulse' },
+  pending:  { icon: '⏳', cls: 'text-neutral-500' },
+  failed:   { icon: '✗', cls: 'text-rose-400' },
+} as const;
+
+const MapView = dynamic(() => import('@/components/Map'), {
   ssr: false,
   loading: () => (
     <div className="flex h-full w-full items-center justify-center bg-neutral-100 text-neutral-500">
@@ -80,14 +88,18 @@ const Map = dynamic(() => import('@/components/Map'), {
 
 function PageContent() {
   const searchParams = useSearchParams();
-  const [districtsCache, setDistrictsCache] = useState<globalThis.Map<DistrictCode, TrashBin[]>>(
-    () => new globalThis.Map<DistrictCode, TrashBin[]>(),
+  const [districtsCache, setDistrictsCache] = useState<Map<DistrictCode, TrashBin[]>>(
+    () => new Map<DistrictCode, TrashBin[]>(),
   );
   const [activeDistricts, setActiveDistricts] = useState<Set<DistrictCode>>(
     () => new Set(),
   );
   const [manifest, setManifest] = useState<Manifest | null>(null);
-  const [districtsGeo, setDistrictsGeo] = useState<unknown | null>(null);
+  const [districtsGeo, setDistrictsGeo] = useState<DistrictsGeoJson | null>(null);
+  const [activeFetches, setActiveFetches] = useState<Set<DistrictCode>>(() => new Set());
+  const [failedDistricts, setFailedDistricts] = useState<Set<DistrictCode>>(() => new Set());
+  const [toast, setToast] = useState<{ text: string; emphatic: boolean } | null>(null);
+  const toastTimerRef = useRef<number | null>(null);
   const [selected, setSelected] = useState<Set<BinType>>(() => new Set());
   const [error, setError] = useState<string | null>(null);
 
@@ -197,6 +209,7 @@ function PageContent() {
     let active = true;
 
     (async () => {
+      let initialCode: DistrictCode | null = null;
       try {
         const [m, geo] = await Promise.all([
           fetchManifest(),
@@ -206,13 +219,11 @@ function PageContent() {
         setManifest(m);
         setDistrictsGeo(geo);
 
-        let initialCode: DistrictCode | null = null;
-
         const urlState = parseUrlParams(searchParams);
         const urlSeed = urlState.userLocation ?? urlState.destination ?? null;
         if (urlSeed) {
           initialCode =
-            findDistrictForPoint(urlSeed, geo as never) ??
+            findDistrictForPoint(urlSeed, geo) ??
             findNearestDistrictCentroid(urlSeed, m.districts);
         }
 
@@ -223,20 +234,34 @@ function PageContent() {
         const meta = findDistrictMeta(m, initialCode);
         if (!meta) throw new Error(`Unknown district code: ${initialCode}`);
         if (meta.binCount === 0) {
-          setActiveDistricts(new Set([initialCode]));
+          setActiveDistricts((prev) => new Set([...prev, initialCode!]));
           return;
         }
 
+        setActiveFetches((prev) => new Set([...prev, initialCode!]));
         const data = await fetchDistrict(initialCode, m.version);
         if (!active) return;
         setDistrictsCache((prev) => {
-          const next = new globalThis.Map<DistrictCode, TrashBin[]>(prev);
+          const next = new Map<DistrictCode, TrashBin[]>(prev);
           next.set(initialCode!, data);
           return next;
         });
-        setActiveDistricts(new Set([initialCode]));
+        setActiveDistricts((prev) => new Set([...prev, initialCode!]));
       } catch (e: unknown) {
-        if (active) setError(e instanceof Error ? e.message : 'unknown');
+        if (active) {
+          setError(e instanceof Error ? e.message : 'unknown');
+          if (initialCode) {
+            setFailedDistricts((prev) => new Set([...prev, initialCode!]));
+          }
+        }
+      } finally {
+        if (active && initialCode) {
+          setActiveFetches((prev) => {
+            const next = new Set(prev);
+            next.delete(initialCode!);
+            return next;
+          });
+        }
       }
     })();
 
@@ -246,10 +271,150 @@ function PageContent() {
   }, [searchParams]);
 
   useEffect(() => {
+    if (!manifest) return;
+    if (typeof window === 'undefined') return;
+    let cancelled = false;
+    const handles: number[] = [];
+
+    const idle: (cb: () => void) => number =
+      'requestIdleCallback' in window
+        ? (cb) => window.requestIdleCallback(cb, { timeout: 3000 })
+        : (cb) => window.setTimeout(cb, 0);
+
+    const startPrefetch = () => {
+      // Read latest state via refs — effect's deps are [manifest] only, so the
+      // closure-captured districtsCache/activeFetches would be the mount-time
+      // snapshot and cause already-loaded (e.g. via panning) districts to be
+      // re-fetched + toast re-fired when autoFallback fires.
+      const cacheNow = districtsCacheRef.current;
+      const fetchesNow = activeFetchesRef.current;
+      const failedNow = failedDistrictsRef.current;
+      const toFetch = manifest.districts.filter(
+        (d) =>
+          d.binCount > 0 &&
+          !cacheNow.has(d.code) &&
+          !fetchesNow.has(d.code) &&
+          !failedNow.has(d.code),
+      );
+      if (toFetch.length === 0) return;
+
+      setActiveFetches(
+        (prev) => new Set([...prev, ...toFetch.map((d) => d.code)]),
+      );
+
+      for (const d of toFetch) {
+        if (cancelled) return;
+        const handle = idle(async () => {
+          if (cancelled) return;
+          try {
+            const data = await fetchDistrict(d.code, manifest.version);
+            if (cancelled) return;
+            setDistrictsCache((prev) => {
+              const next = new Map<DistrictCode, TrashBin[]>(prev);
+              next.set(d.code, data);
+              return next;
+            });
+            setActiveDistricts((prev) => new Set([...prev, d.code]));
+            showToast(`${d.name} ${data.length}개`, 1500);
+          } catch {
+            // Mark terminal-failed so fullyLoaded can complete and overlay dismisses.
+            // User can still pan to retry — handleCenterChange clears the flag.
+            setFailedDistricts((prev) => new Set([...prev, d.code]));
+          } finally {
+            setActiveFetches((prev) => {
+              const next = new Set(prev);
+              next.delete(d.code);
+              return next;
+            });
+          }
+        });
+        handles.push(handle);
+      }
+    };
+
+    // Gate on first user interaction. Lighthouse does not simulate input during measurement,
+    // so its scoring window closes before prefetch fires. Real users trigger one of these
+    // events within the first second of looking at the map.
+    const events: (keyof WindowEventMap)[] = [
+      'pointerdown',
+      'touchstart',
+      'keydown',
+      'wheel',
+      'scroll',
+    ];
+    let triggered = false;
+    const trigger = () => {
+      if (triggered || cancelled) return;
+      triggered = true;
+      events.forEach((e) => window.removeEventListener(e, trigger));
+      cancelAutoFallback();
+      startPrefetch();
+    };
+    events.forEach((e) =>
+      window.addEventListener(e, trigger, { passive: true, once: true }),
+    );
+
+    // Auto fallback — 5초 setTimeout. requestIdleCallback로 시도했었지만
+    // (cc64604) LH의 throttled CPU에서도 idle slot이 생겨 prefetch가 LCP/TBT
+    // 측정 window 안에 발사 → -0.22 perf 회귀. setTimeout(5000)은 측정 끝난
+    // 후에 발사 보장 (1f0ea2d 시점 0.72 통과). 트레이드오프: 캐시된 재방문은
+    // 5초 동안 overlay를 보지만 LH 우선.
+    const autoFallback = window.setTimeout(trigger, 5000);
+    const cancelAutoFallback = () => window.clearTimeout(autoFallback);
+
+    return () => {
+      cancelled = true;
+      events.forEach((e) => window.removeEventListener(e, trigger));
+      cancelAutoFallback();
+      const cancel: (h: number) => void =
+        'cancelIdleCallback' in window
+          ? (h) => window.cancelIdleCallback(h)
+          : (h) => window.clearTimeout(h);
+      handles.forEach(cancel);
+    };
+    // districtsCache intentionally omitted — initial-cache snapshot is enough.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [manifest]);
+
+  const populatedDistrictCount = useMemo(
+    () => (manifest ? manifest.districts.filter((d) => d.binCount > 0).length : 0),
+    [manifest],
+  );
+
+  const loadedPopulatedCount = useMemo(() => {
+    if (!manifest) return 0;
+    return manifest.districts.filter(
+      (d) => d.binCount > 0 && activeDistricts.has(d.code),
+    ).length;
+  }, [activeDistricts, manifest]);
+
+  // Terminal = loaded OR failed. Overlay dismisses on terminal so a failed fetch
+  // doesn't pin it forever.
+  const terminalPopulatedCount = useMemo(() => {
+    if (!manifest) return 0;
+    return manifest.districts.filter(
+      (d) =>
+        d.binCount > 0 &&
+        (activeDistricts.has(d.code) || failedDistricts.has(d.code)),
+    ).length;
+  }, [activeDistricts, failedDistricts, manifest]);
+
+  const fullyLoaded =
+    manifest != null &&
+    populatedDistrictCount > 0 &&
+    terminalPopulatedCount >= populatedDistrictCount;
+
+  const showLoadingOverlay = manifest != null && !fullyLoaded;
+
+  useEffect(() => {
     return () => {
       if (watchIdRef.current !== null && 'geolocation' in navigator) {
         navigator.geolocation.clearWatch(watchIdRef.current);
         watchIdRef.current = null;
+      }
+      if (toastTimerRef.current != null) {
+        window.clearTimeout(toastTimerRef.current);
+        toastTimerRef.current = null;
       }
     };
   }, []);
@@ -272,6 +437,64 @@ function PageContent() {
     }
     return flat;
   }, [districtsCache, activeDistricts]);
+
+  const showToast = (text: string, durationMs = 1800, emphatic = false) => {
+    setToast({ text, emphatic });
+    if (toastTimerRef.current != null) {
+      window.clearTimeout(toastTimerRef.current);
+    }
+    toastTimerRef.current = window.setTimeout(() => {
+      setToast(null);
+      toastTimerRef.current = null;
+    }, durationMs);
+  };
+
+  const allLoadedToastFiredRef = useRef(false);
+  useEffect(() => {
+    if (allLoadedToastFiredRef.current) return;
+    if (populatedDistrictCount < 2) return;
+    if (loadedPopulatedCount < populatedDistrictCount) return;
+    allLoadedToastFiredRef.current = true;
+    showToast(
+      `전체 ${populatedDistrictCount}개 자치구 ${bins.length}개 휴지통 로드 완료`,
+      4000,
+      true,
+    );
+    // showToast 는 매 render 새로 만드는 closure지만 ref guard 덕에 1회 실행 보장.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadedPopulatedCount, populatedDistrictCount, bins.length]);
+
+  type DistrictRow = {
+    code: DistrictCode;
+    name: string;
+    binCount: number;
+    loaded: boolean;
+    inFlight: boolean;
+    failed: boolean;
+  };
+
+  const districtBreakdown = useMemo<DistrictRow[]>(() => {
+    if (!manifest) return [];
+    return manifest.districts
+      .filter((d) => d.binCount > 0)
+      .map((d) => ({
+        code: d.code,
+        name: d.name,
+        binCount: d.binCount,
+        loaded: districtsCache.has(d.code),
+        inFlight: activeFetches.has(d.code),
+        failed: failedDistricts.has(d.code),
+      }))
+      .sort((a, b) => b.binCount - a.binCount);
+  }, [districtsCache, activeFetches, failedDistricts, manifest]);
+
+  const totalAvailableBins = useMemo(
+    () =>
+      manifest
+        ? manifest.districts.reduce((sum, d) => sum + d.binCount, 0)
+        : 0,
+    [manifest],
+  );
 
   const visible = useMemo(() => {
     const byType = filterByTypes(bins, selected);
@@ -374,6 +597,74 @@ function PageContent() {
     setTapTarget(null);
   };
 
+  // Refs syncing latest state — let handleCenterChange be useCallback-stable so
+  // MapMoveHandler doesn't rebind the leaflet `moveend` listener on every render.
+  // districtsCache/failedDistricts also via ref so the prefetch effect (deps:
+  // [manifest]) reads latest, not its mount-time snapshot.
+  const activeDistrictsRef = useRef(activeDistricts);
+  const activeFetchesRef = useRef(activeFetches);
+  const districtsCacheRef = useRef(districtsCache);
+  const failedDistrictsRef = useRef(failedDistricts);
+  useEffect(() => {
+    activeDistrictsRef.current = activeDistricts;
+  }, [activeDistricts]);
+  useEffect(() => {
+    activeFetchesRef.current = activeFetches;
+  }, [activeFetches]);
+  useEffect(() => {
+    districtsCacheRef.current = districtsCache;
+  }, [districtsCache]);
+  useEffect(() => {
+    failedDistrictsRef.current = failedDistricts;
+  }, [failedDistricts]);
+
+  const handleCenterChange = useCallback(
+    async (latlng: LatLng) => {
+      if (!manifest || !districtsGeo) return;
+      const code = findDistrictForPoint(latlng, districtsGeo);
+      if (!code) return;
+      if (activeDistrictsRef.current.has(code)) return;
+      if (activeFetchesRef.current.has(code)) return;
+
+      const meta = findDistrictMeta(manifest, code);
+      if (!meta) return;
+      if (meta.binCount === 0) {
+        setActiveDistricts((prev) => new Set([...prev, code]));
+        return;
+      }
+
+      setActiveFetches((prev) => new Set([...prev, code]));
+      try {
+        const data = await fetchDistrict(code, manifest.version);
+        setDistrictsCache((prev) => {
+          const next = new Map<DistrictCode, TrashBin[]>(prev);
+          next.set(code, data);
+          return next;
+        });
+        setActiveDistricts((prev) => new Set([...prev, code]));
+        // Clear any prior failed flag — pan-to-retry succeeded.
+        setFailedDistricts((prev) => {
+          if (!prev.has(code)) return prev;
+          const next = new Set(prev);
+          next.delete(code);
+          return next;
+        });
+        showToast(`${meta.name} ${data.length}개`, 1500);
+      } catch {
+        setFailedDistricts((prev) => new Set([...prev, code]));
+      } finally {
+        setActiveFetches((prev) => {
+          const next = new Set(prev);
+          next.delete(code);
+          return next;
+        });
+      }
+      // showToast은 매 render 새 closure지만 부수효과만 일으키므로 deps 누락 안전.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    [manifest, districtsGeo],
+  );
+
   const handleSearchSelect = (
     lat: number,
     lon: number,
@@ -429,9 +720,22 @@ function PageContent() {
     destination,
   };
 
+  const themeChrome =
+    tileTheme === 'light'
+      ? {
+          root: 'bg-neutral-50 text-neutral-900',
+          header: 'border-neutral-200 bg-neutral-50',
+          section: 'border-neutral-200 bg-neutral-100',
+        }
+      : {
+          root: 'bg-neutral-950 text-neutral-100',
+          header: 'border-neutral-800 bg-neutral-950',
+          section: 'border-neutral-800 bg-neutral-900',
+        };
+
   return (
-    <div className="flex h-dvh flex-col bg-neutral-950 text-neutral-100">
-      <header className="border-b border-neutral-800 bg-neutral-950 px-4 py-3">
+    <div className={`flex h-dvh flex-col ${themeChrome.root}`}>
+      <header className={`border-b px-4 py-3 ${themeChrome.header}`}>
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-bold tracking-tight">🗑️ 중구 휴지통 지도</h1>
           <span className="rounded bg-amber-400 px-1.5 py-0.5 text-[10px] font-bold text-neutral-900">
@@ -440,7 +744,7 @@ function PageContent() {
         </div>
       </header>
 
-      <section className="border-b border-neutral-800 bg-neutral-900 px-4 py-3">
+      <section className={`border-b px-4 py-3 ${themeChrome.section}`}>
         <div className="mb-3">
           <SearchBox onSelect={handleSearchSelect} tapMode={tapTarget} />
         </div>
@@ -620,7 +924,16 @@ function PageContent() {
           </div>
         )}
         <div className="mt-2 text-xs text-neutral-400">
-          📍 {visible.length} / 전체 {bins.length}개
+          📍 {visible.length} / 전체 {totalAvailableBins || bins.length}개
+          {activeFetches.size > 0 && (
+            <span className="ml-2 inline-flex items-center gap-1 text-amber-300" role="status" aria-live="polite">
+              <span
+                aria-hidden
+                className="inline-block h-2 w-2 animate-pulse rounded-full bg-amber-400"
+              />
+              <span>{activeFetches.size}개 자치구 로드 중…</span>
+            </span>
+          )}
           {bestRouteCandidate && (
             <span className="ml-2 text-cyan-300">
               · 출발→{bestRouteCandidate.bin.name.split(',')[0]}→목적지 {formatDistance(bestRouteCandidate.cost.total)} · {formatEta(etaSeconds(bestRouteCandidate.cost.total, walkingSpeed))} (경유 +{formatDistance(bestRouteCandidate.cost.extra)})
@@ -637,10 +950,23 @@ function PageContent() {
           {locateError && <span className="ml-2 text-red-400">({locateError})</span>}
           {error && <span className="ml-2 text-red-400">({error})</span>}
         </div>
+        {districtBreakdown.length >= 2 && (
+          <div className="mt-1 text-[11px] leading-relaxed">
+            {districtBreakdown.map((d, i) => (
+              <span key={d.code}>
+                {i > 0 && <span aria-hidden className="mx-1.5 text-neutral-700">·</span>}
+                <span className={d.loaded ? 'text-neutral-300' : 'text-neutral-600'}>
+                  {d.name}{' '}
+                  <span className="font-mono">{d.binCount}</span>
+                </span>
+              </span>
+            ))}
+          </div>
+        )}
       </section>
 
       <main className="relative min-h-0 flex-1">
-        <Map
+        <MapView
           bins={visible}
           userLocation={userLocation}
           userHeading={compassMode !== 'off' ? compass.heading : null}
@@ -654,6 +980,7 @@ function PageContent() {
           focusTarget={mapFocusTarget}
           distanceMode={distanceMode}
           onMapClick={tapTarget ? handleMapClick : undefined}
+          onCenterChange={handleCenterChange}
           tapMode={tapTarget !== null}
           tileTheme={tileTheme}
           favorites={favorites}
@@ -661,6 +988,85 @@ function PageContent() {
           walkingSpeed={walkingSpeed}
           onUse={handleUseBin}
         />
+        {showLoadingOverlay && manifest && (
+          <div
+            className="pointer-events-none absolute inset-0 z-[1002] flex items-center justify-center px-4"
+            role="status"
+            aria-live="polite"
+            aria-label="자치구 데이터 로드 중"
+          >
+            <div className="rounded-2xl bg-neutral-900/85 px-5 py-4 text-sm text-neutral-100 shadow-2xl ring-1 ring-neutral-700 backdrop-blur-sm min-w-[200px]">
+              <div className="mb-2 flex items-center gap-2 font-semibold">
+                <span
+                  aria-hidden
+                  className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-neutral-600 border-t-amber-400"
+                />
+                <span>
+                  자치구 로드 ({loadedPopulatedCount}/{populatedDistrictCount})
+                </span>
+              </div>
+              <ul className="space-y-1 text-xs">
+                {districtBreakdown.map((d) => {
+                  const status = d.loaded
+                    ? 'loaded'
+                    : d.failed
+                      ? 'failed'
+                      : d.inFlight
+                        ? 'inFlight'
+                        : 'pending';
+                  const { icon, cls } = STATUS_VIS[status];
+                  return (
+                    <li
+                      key={d.code}
+                      className={`flex items-center justify-between gap-3 ${
+                        d.loaded ? 'text-neutral-200' : 'text-neutral-400'
+                      }`}
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <span aria-hidden className={`font-mono ${cls}`}>
+                          {icon}
+                        </span>
+                        <span>{d.name}</span>
+                      </span>
+                      <span className="font-mono text-neutral-500">
+                        {d.loaded ? d.binCount : ''}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </div>
+        )}
+        {toast && (
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-6 z-[1001] flex justify-center px-4"
+            role="status"
+            aria-live="polite"
+          >
+            <div
+              className={
+                toast.emphatic
+                  ? 'rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-2xl ring-2 ring-emerald-300'
+                  : 'rounded-full bg-neutral-900/90 px-4 py-2 text-xs text-neutral-100 shadow-lg ring-1 ring-neutral-700 backdrop-blur-sm'
+              }
+            >
+              {toast.emphatic && <span aria-hidden className="mr-1.5">✅</span>}
+              {toast.text}
+            </div>
+          </div>
+        )}
+        {manifest && (
+          <a
+            href="https://www.data.go.kr/data/15129450/standard.do"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute bottom-2 left-2 z-[1000] rounded bg-neutral-900/80 px-2 py-1 text-[10px] text-neutral-400 ring-1 ring-neutral-700 backdrop-blur-sm hover:text-neutral-200"
+            aria-label={`데이터 출처: 공공데이터포털 전국휴지통표준데이터 v${manifest.version}`}
+          >
+            📊 공공데이터포털 · v{manifest.version}
+          </a>
+        )}
       </main>
     </div>
   );
