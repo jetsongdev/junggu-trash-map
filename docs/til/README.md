@@ -17,6 +17,8 @@
 | 2026-05-04 | [leaflet-rotate marker double-rotation](./2026-05-04-leaflet-rotate-marker-double-rotation.md) | 플러그인이 markerPane 직립 처리 — counter-rotate 직접 걸지 말 것 |
 | 2026-05-05 | [Next 16 resource hints via ReactDOM API](./2026-05-05-nextjs-resource-hints-reactdom-api.md) | Metadata API는 preconnect/dns-prefetch 직접 지원 X — `ReactDOM.preconnect()` / `prefetchDNS()` 사용 |
 | 2026-05-05 | [Sentry bundle lazy import](./2026-05-05-sentry-bundle-lazy-import.md) | top-level Sentry import는 메인 번들 포함 유발 — dynamic import로 lazy chunk화 |
+| 2026-05-05 | [LH prefetch interaction gating](./2026-05-05-lh-prefetch-interaction-gating.md) | requestIdleCallback prefetch는 LH window 안에서 발사돼 perf -0.20 — 첫 사용자 인터랙션에 묶어 측정 window 회피 |
+| 2026-05-05 | [deployment_status workflow ref](./2026-05-05-github-deployment-status-workflow-ref.md) | 트리거별 워크플로 source 다름 — `deployment_status`는 deployed SHA, head ref도 main도 아님. 머지 전 dry-run 가능 |
 
 ## 작성 컨벤션
 
