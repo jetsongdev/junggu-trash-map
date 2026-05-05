@@ -9,6 +9,8 @@
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-05-05
+
 ### Changed
 - 라이트 모드에서 그동안 다크 톤 그대로였던 필터 칩, 내 위치/직선/즐겨찾기/방향/공유 칩, 검색 입력·드롭다운, 통계 텍스트, 자치구 breakdown, 로딩 오버레이, toast(비강조), 데이터 출처 핀이 모두 라이트 콘트라스트로 정비되었습니다. 시스템 라이트 또는 ☀️ 토글로 라이트로 전환하면 헤더부터 지도 위 위젯까지 한 번에 일관 톤을 유지합니다.
 - 라이트 타일 위에서 가까운 통 Top-3 점선이 너무 옅어 보이던 문제를 해결했습니다. 라이트 모드는 한 단계 진한 sky 스케일(rank1 sky-600 / rank2 sky-500 / rank3 sky-400)을 쓰고, 다크 모드는 기존 lighter 스케일을 유지해 양쪽 다 가독성이 좋습니다.
@@ -192,7 +194,8 @@
 - `~/.claude/skills/snapshot/` — 글로벌 스냅샷 스킬 (프레임워크 무관, config 기반)
 - `CLAUDE.md` — 세션 진입 가이드 (작업 큐 / 시각 히스토리 / CHANGELOG 포인터)
 
-[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.11.0...HEAD
+[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.12.0...HEAD
+[0.12.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.8.0...v0.9.0
