@@ -126,7 +126,10 @@ jobs:
           MAX=20
           TOTAL=$(printf '%s\n' "$FMT" | wc -l | tr -d ' ')
           if [ "$TOTAL" -gt "$MAX" ]; then
-            BODY=$(printf '%s\n' "$FMT" | head -n "$MAX")
+            # head는 N행 읽고 stdin을 닫아 printf에 SIGPIPE → set -o pipefail에서
+            # 스크립트 중단됨 (CHANGELOG가 20행 넘는 SHA에서 hit). awk는 입력 끝까지
+            # 읽고 NR<=m만 출력해 pipe를 끝까지 흘림.
+            BODY=$(printf '%s\n' "$FMT" | awk -v m="$MAX" 'NR<=m')
             BODY="${BODY}"$'\n'"<i>…and $((TOTAL - MAX)) more lines</i>"
           else
             BODY="$FMT"
