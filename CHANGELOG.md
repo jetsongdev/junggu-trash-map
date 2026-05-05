@@ -9,6 +9,9 @@
 
 ## [Unreleased]
 
+### Infrastructure
+- `telegram-preview-notify` 워크플로에 `workflow_dispatch` trigger 추가 — GitHub이 `deployment_status` 이벤트를 drop한 케이스에서 Actions UI의 "Run workflow"로 SHA만 입력해 같은 알림을 수동 발사 가능. dispatch 시 SHA의 최신 deployment를 lookup해 normalize하므로 메시지 형식·라우팅·해시태그 모두 자동 trigger와 동일.
+
 ## [0.9.0] - 2026-05-05
 
 ### Infrastructure
