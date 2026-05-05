@@ -30,6 +30,7 @@
 | 22 | 2026-05-04 | ☀️📏 라이트 + 직선 — Top-3 시각화 + 통계 바 | [22-light-euclidean](./22-light-euclidean/) |
 | 23 | 2026-05-04 | ☀️📐 라이트 + 격자 — Manhattan 거리 (143m, +32m) | [23-light-manhattan](./23-light-manhattan/) |
 | 24 | 2026-05-04 | 🌑📐 다크 + 격자 — CartoDB Dark Matter + L자 점선 | [24-dark-manhattan](./24-dark-manhattan/) |
+| 25 | 2026-05-04 | ★ 즐겨찾기 — popup 별 토글 + 칩 필터 (P2.14) | [25-favorites](./25-favorites/) |
 
 ## 새 스냅샷 찍는 법
 

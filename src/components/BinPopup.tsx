@@ -3,9 +3,11 @@ import { TYPE_STYLE, styleFor } from '@/lib/types';
 
 type Props = {
   bin: TrashBin;
+  isFavorite?: boolean;
+  onToggleFavorite?: (binId: string) => void;
 };
 
-export function BinPopup({ bin }: Props) {
+export function BinPopup({ bin, isFavorite = false, onToggleFavorite }: Props) {
   const headStyle = styleFor(bin.types);
   return (
     <div className="min-w-[220px] text-sm leading-relaxed">
@@ -17,7 +19,20 @@ export function BinPopup({ bin }: Props) {
         >
           {headStyle.emoji}
         </span>
-        <strong className="text-base text-neutral-900">{bin.name}</strong>
+        <strong className="flex-1 text-base text-neutral-900">{bin.name}</strong>
+        {onToggleFavorite && (
+          <button
+            type="button"
+            onClick={() => onToggleFavorite(bin.id)}
+            aria-pressed={isFavorite}
+            aria-label={isFavorite ? '즐겨찾기 해제' : '즐겨찾기 추가'}
+            className={`rounded-full px-2 py-1 text-lg leading-none transition ${
+              isFavorite ? 'text-amber-500' : 'text-neutral-300 hover:text-amber-400'
+            }`}
+          >
+            {isFavorite ? '★' : '☆'}
+          </button>
+        )}
       </div>
       <div className="flex flex-wrap gap-1">
         {bin.types.map((t) => (

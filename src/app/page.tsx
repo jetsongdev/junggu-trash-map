@@ -10,6 +10,12 @@ import { ShareButton } from '@/components/ShareButton';
 import type { TileTheme } from '@/components/Map';
 import { fetchBins, filterByTypes } from '@/lib/data';
 import {
+  filterByFavorites,
+  loadFavorites,
+  saveFavorites,
+  toggleFavorite,
+} from '@/lib/favorites';
+import {
   findTopDetours,
   findTopNearest,
   formatDistance,
@@ -73,6 +79,8 @@ function PageContent() {
   const [walkingSpeed, setWalkingSpeed] = useState<number>(DEFAULT_KMH);
   const [speedSliderOpen, setSpeedSliderOpen] = useState(false);
   const [compassMode, setCompassMode] = useState<'off' | 'cone' | 'head-up'>('off');
+  const [favorites, setFavorites] = useState<Set<string>>(() => new Set());
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
   const watchIdRef = useRef<number | null>(null);
   const prefsHydratedRef = useRef(false);
 
@@ -144,10 +152,17 @@ function PageContent() {
       setMapFocusTarget(urlState.destination ?? urlState.userLocation ?? null);
     }
 
+    setFavorites(loadFavorites());
+
     queueMicrotask(() => {
       prefsHydratedRef.current = true;
     });
   }, [searchParams]);
+
+  useEffect(() => {
+    if (!prefsHydratedRef.current) return;
+    saveFavorites(favorites);
+  }, [favorites]);
 
   useEffect(() => {
     let active = true;
@@ -182,7 +197,15 @@ function PageContent() {
     window.localStorage.setItem('walkingSpeed', formatKmh(walkingSpeed));
   }, [walkingSpeed]);
 
-  const visible = useMemo(() => filterByTypes(bins, selected), [bins, selected]);
+  const visible = useMemo(() => {
+    const byType = filterByTypes(bins, selected);
+    return favoritesOnly ? filterByFavorites(byType, favorites) : byType;
+  }, [bins, selected, favoritesOnly, favorites]);
+
+  const handleToggleFavorite = (binId: string) => {
+    vibrate(HAPTIC.SELECT);
+    setFavorites((prev) => toggleFavorite(prev, binId));
+  };
 
   const routeCandidates = useMemo(() => {
     if (!userLocation || !destination) return null;
@@ -339,6 +362,28 @@ function PageContent() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <FilterChips selected={selected} onToggle={toggle} onClear={clearTypes} />
+          <button
+            type="button"
+            onClick={() => {
+              vibrate(HAPTIC.TAP);
+              setFavoritesOnly((prev) => !prev);
+            }}
+            disabled={!favoritesOnly && favorites.size === 0}
+            aria-pressed={favoritesOnly}
+            aria-label={
+              favorites.size === 0
+                ? '즐겨찾기 없음 (마커 팝업의 ☆ 클릭)'
+                : favoritesOnly
+                  ? '즐겨찾기 필터 끄기'
+                  : `즐겨찾기 ${favorites.size}개만 보기`
+            }
+            className={`${chipBase} ${
+              favoritesOnly ? 'bg-amber-500 text-white shadow' : inactiveChip
+            } ${!favoritesOnly && favorites.size === 0 ? 'opacity-40 cursor-not-allowed' : ''}`}
+          >
+            <span aria-hidden>{favoritesOnly ? '★' : '☆'}</span>
+            <span>즐겨찾기{favorites.size > 0 ? ` ${favorites.size}` : ''}</span>
+          </button>
           <LocateButton
             active={!!userLocation}
             pending={locatePending}
@@ -524,6 +569,8 @@ function PageContent() {
           onMapClick={tapTarget ? handleMapClick : undefined}
           tapMode={tapTarget !== null}
           tileTheme={tileTheme}
+          favorites={favorites}
+          onToggleFavorite={handleToggleFavorite}
         />
       </main>
     </div>
