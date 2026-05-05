@@ -336,21 +336,13 @@ function PageContent() {
       window.addEventListener(e, trigger, { passive: true, once: true }),
     );
 
-    // Auto fallback — requestIdleCallback로 브라우저 idle이 잡히는 즉시 발사.
-    // 캐시된 재방문: idle은 ~100ms 안에 fire → 사용자가 "stuck overlay" 거의
-    // 못 보고 데이터 즉시 합류.
-    // 첫 방문(cold): idle은 boot 직후 fire → prefetch 1~2초 안에 시작.
-    // LH(throttled CPU): idle 안 와서 5초 timeout fallback → 기존 안전 동작.
-    const autoFallback: number = window.requestIdleCallback
-      ? window.requestIdleCallback(trigger, { timeout: 5000 })
-      : window.setTimeout(trigger, 5000);
-    const cancelAutoFallback = () => {
-      if (window.cancelIdleCallback) {
-        window.cancelIdleCallback(autoFallback);
-      } else {
-        window.clearTimeout(autoFallback);
-      }
-    };
+    // Auto fallback — 5초 setTimeout. requestIdleCallback로 시도했었지만
+    // (cc64604) LH의 throttled CPU에서도 idle slot이 생겨 prefetch가 LCP/TBT
+    // 측정 window 안에 발사 → -0.22 perf 회귀. setTimeout(5000)은 측정 끝난
+    // 후에 발사 보장 (1f0ea2d 시점 0.72 통과). 트레이드오프: 캐시된 재방문은
+    // 5초 동안 overlay를 보지만 LH 우선.
+    const autoFallback = window.setTimeout(trigger, 5000);
+    const cancelAutoFallback = () => window.clearTimeout(autoFallback);
 
     return () => {
       cancelled = true;
