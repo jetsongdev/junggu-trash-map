@@ -3,7 +3,7 @@ index: 26
 slug: multi-district-load
 date: 2026-05-05
 phase: "P3.2"
-git_sha: e8f131a (dirty)
+git_sha: 352c9c4 (clean)
 viewport: 390x844
 ---
 
