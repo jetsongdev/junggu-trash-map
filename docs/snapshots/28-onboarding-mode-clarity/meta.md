@@ -3,7 +3,7 @@ index: 28
 slug: onboarding-mode-clarity
 date: 2026-05-05
 phase: "P2.17"
-git_sha: eed65ab (clean, pre-commit)
+git_sha: 85135f7 (clean)
 viewport: 390x844
 ---
 
