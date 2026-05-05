@@ -3,7 +3,7 @@ index: 29
 slug: markercluster
 date: 2026-05-05
 phase: "P3.1b"
-git_sha: ad6cb46 (dirty)
+git_sha: c190877 (clean)
 viewport: 390x844
 ---
 
