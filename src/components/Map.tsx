@@ -15,11 +15,14 @@ import { BinMarker } from './BinMarker';
 import { DestinationMarker } from './DestinationMarker';
 import { UserMarker } from './UserMarker';
 import {
+  findOptimalDetour,
+  findNearest,
   pathPositions,
   routePositions,
   type DistanceMode,
   type LatLng,
 } from '@/lib/geo';
+import { etaSeconds } from '@/lib/eta';
 import type { TrashBin } from '@/lib/types';
 
 type RotatedMap = ReturnType<typeof useMap> & {
@@ -67,6 +70,8 @@ type Props = {
   tileTheme?: TileTheme;
   favorites?: Set<string>;
   onToggleFavorite?: (binId: string) => void;
+  walkingSpeed?: number;
+  onUse?: (binId: string, extraMeters: number, extraSeconds: number) => void;
 };
 
 const JUNGGU_CENTER: [number, number] = [37.5635, 126.987];
@@ -186,6 +191,8 @@ export function Map({
   tileTheme = 'dark',
   favorites,
   onToggleFavorite,
+  walkingSpeed = 4,
+  onUse,
 }: Props) {
   const preset = TILE_PRESETS[tileTheme];
   const primaryHighlight = highlights[0] ?? null;
@@ -195,6 +202,23 @@ export function Map({
     highlights.map((bin, index) => [bin.id, (index + 1) as 1 | 2 | 3]),
   );
   const hasCandidates = highlights.length > 0;
+
+  const handleUse = (bin: TrashBin) => {
+    if (!onUse || !userLocation) return;
+
+    if (destination) {
+      const route = findOptimalDetour([bin], userLocation, destination, distanceMode);
+      if (!route) return;
+      const extraMeters = route.cost.extra;
+      onUse(bin.id, extraMeters, etaSeconds(extraMeters, walkingSpeed));
+      return;
+    }
+
+    const nearest = findNearest([bin], userLocation, distanceMode);
+    if (!nearest) return;
+    onUse(bin.id, nearest.meters, etaSeconds(nearest.meters, walkingSpeed));
+  };
+
   return (
     <div
       className={[
@@ -229,6 +253,7 @@ export function Map({
             dimmed={hasCandidates && !rank}
             isFavorite={favorites?.has(bin.id) ?? false}
             onToggleFavorite={onToggleFavorite}
+            onUse={onUse && userLocation ? () => handleUse(bin) : undefined}
           />
         );
       })}

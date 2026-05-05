@@ -16,6 +16,13 @@ import {
   toggleFavorite,
 } from '@/lib/favorites';
 import {
+  addUse,
+  formatSavingsLine,
+  loadSavings,
+  saveSavings as persistSavings,
+  type Savings,
+} from '@/lib/savings';
+import {
   findTopDetours,
   findTopNearest,
   formatDistance,
@@ -81,6 +88,11 @@ function PageContent() {
   const [compassMode, setCompassMode] = useState<'off' | 'cone' | 'head-up'>('off');
   const [favorites, setFavorites] = useState<Set<string>>(() => new Set());
   const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [savings, setSavings] = useState<Savings>({
+    totalMeters: 0,
+    totalSeconds: 0,
+    uses: 0,
+  });
   const watchIdRef = useRef<number | null>(null);
   const prefsHydratedRef = useRef(false);
 
@@ -153,6 +165,7 @@ function PageContent() {
     }
 
     setFavorites(loadFavorites());
+    setSavings(loadSavings());
 
     queueMicrotask(() => {
       prefsHydratedRef.current = true;
@@ -205,6 +218,14 @@ function PageContent() {
   const handleToggleFavorite = (binId: string) => {
     vibrate(HAPTIC.SELECT);
     setFavorites((prev) => toggleFavorite(prev, binId));
+  };
+
+  const handleUseBin = (_binId: string, meters: number, seconds: number) => {
+    setSavings((prev) => {
+      const next = addUse(prev, meters, seconds);
+      persistSavings(next);
+      return next;
+    });
   };
 
   const routeCandidates = useMemo(() => {
@@ -547,6 +568,9 @@ function PageContent() {
               · 가까운 통 {formatDistance(bestNearestCandidate.meters)} · {formatEta(etaSeconds(bestNearestCandidate.meters, walkingSpeed))} ({bestNearestCandidate.bin.name.split(',')[0]})
             </span>
           )}
+          {savings.uses > 0 && (
+            <span className="ml-2 text-emerald-300">{formatSavingsLine(savings)}</span>
+          )}
           {locateError && <span className="ml-2 text-red-400">({locateError})</span>}
           {error && <span className="ml-2 text-red-400">({error})</span>}
         </div>
@@ -571,6 +595,8 @@ function PageContent() {
           tileTheme={tileTheme}
           favorites={favorites}
           onToggleFavorite={handleToggleFavorite}
+          walkingSpeed={walkingSpeed}
+          onUse={handleUseBin}
         />
       </main>
     </div>
