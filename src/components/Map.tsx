@@ -131,10 +131,19 @@ function HighlightRing({ bin }: { bin: TrashBin }) {
   );
 }
 
-const DISTANCE_LINE_STYLE: Record<1 | 2 | 3, { color: string; weight: number; opacity: number }> = {
-  1: { color: '#0ea5e9', weight: 3, opacity: 0.85 },
-  2: { color: '#7dd3fc', weight: 2, opacity: 0.6 },
-  3: { color: '#bae6fd', weight: 1.5, opacity: 0.4 },
+// Light tile uses darker sky scale so rank 2/3 don't wash out on white-ish bg.
+// Dark tile keeps the original lighter scale that pops on CartoDB Dark Matter.
+const DISTANCE_LINE_STYLE: Record<TileTheme, Record<1 | 2 | 3, { color: string; weight: number; opacity: number }>> = {
+  dark: {
+    1: { color: '#0ea5e9', weight: 3, opacity: 0.85 },
+    2: { color: '#7dd3fc', weight: 2, opacity: 0.6 },
+    3: { color: '#bae6fd', weight: 1.5, opacity: 0.4 },
+  },
+  light: {
+    1: { color: '#0284c7', weight: 3, opacity: 0.85 },
+    2: { color: '#0ea5e9', weight: 2, opacity: 0.7 },
+    3: { color: '#38bdf8', weight: 1.5, opacity: 0.6 },
+  },
 };
 
 function DistanceLine({
@@ -142,13 +151,15 @@ function DistanceLine({
   target,
   mode,
   rank = 1,
+  tileTheme,
 }: {
   origin: LatLng;
   target: LatLng;
   mode: DistanceMode;
   rank?: 1 | 2 | 3;
+  tileTheme: TileTheme;
 }) {
-  const style = DISTANCE_LINE_STYLE[rank];
+  const style = DISTANCE_LINE_STYLE[tileTheme][rank];
   return (
     <Polyline
       positions={pathPositions(origin, target, mode)}
@@ -277,6 +288,7 @@ export function Map({
             origin={userLocation!}
             target={{ lat: bin.lat, lng: bin.lng }}
             mode={distanceMode}
+            tileTheme={tileTheme}
             rank={(i + 1) as 1 | 2 | 3}
           />
         ))}
@@ -295,6 +307,7 @@ export function Map({
             origin={userLocation!}
             target={{ lat: bin.lat, lng: bin.lng }}
             mode={distanceMode}
+            tileTheme={tileTheme}
             rank={(i + 2) as 2 | 3}
           />
         ))}
