@@ -31,6 +31,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" className="h-full antialiased">
+      <head>
+        <link rel="preconnect" href="https://tile.openstreetmap.org" crossOrigin="" />
+        <link rel="preconnect" href="https://a.basemaps.cartocdn.com" crossOrigin="" />
+        <link rel="preconnect" href="https://b.basemaps.cartocdn.com" crossOrigin="" />
+        <link rel="preconnect" href="https://c.basemaps.cartocdn.com" crossOrigin="" />
+        <link rel="preconnect" href="https://d.basemaps.cartocdn.com" crossOrigin="" />
+        <link rel="dns-prefetch" href="https://nominatim.openstreetmap.org" />
+      </head>
       <body className="min-h-full">
         {children}
         <Analytics />

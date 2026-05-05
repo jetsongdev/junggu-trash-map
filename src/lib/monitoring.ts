@@ -1,5 +1,3 @@
-import * as Sentry from '@sentry/nextjs';
-
 type GeolocationErrorCode = 1 | 2 | 3;
 
 const GEOLOCATION_MESSAGES: Record<GeolocationErrorCode, string> = {
@@ -8,27 +6,31 @@ const GEOLOCATION_MESSAGES: Record<GeolocationErrorCode, string> = {
   3: 'Geolocation timeout',
 };
 
-export function captureGeolocationError(error: GeolocationPositionError): void {
+function shouldReport(): boolean {
+  return (
+    process.env.NODE_ENV === 'production' &&
+    Boolean(process.env.NEXT_PUBLIC_SENTRY_DSN)
+  );
+}
+
+export async function captureGeolocationError(
+  error: GeolocationPositionError,
+): Promise<void> {
+  if (!shouldReport()) return;
+  const Sentry = await import('@sentry/nextjs');
   const code = error.code as GeolocationErrorCode;
   const message = GEOLOCATION_MESSAGES[code] ?? 'Geolocation error';
-
   Sentry.captureMessage(message, {
     level: 'warning',
-    tags: {
-      area: 'geolocation',
-    },
-    extra: {
-      code: error.code,
-      message: error.message,
-    },
+    tags: { area: 'geolocation' },
+    extra: { code: error.code, message: error.message },
   });
 }
 
-export function captureLoadBinsError(error: unknown): void {
+export async function captureLoadBinsError(error: unknown): Promise<void> {
+  if (!shouldReport()) return;
+  const Sentry = await import('@sentry/nextjs');
   Sentry.captureException(error, {
-    tags: {
-      area: 'data',
-      operation: 'fetchBins',
-    },
+    tags: { area: 'data', operation: 'fetchBins' },
   });
 }

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 vi.mock('@sentry/nextjs', () => ({
   captureException: vi.fn(),
@@ -8,13 +8,19 @@ vi.mock('@sentry/nextjs', () => ({
 import * as Sentry from '@sentry/nextjs';
 import { captureGeolocationError, captureLoadBinsError } from '../monitoring';
 
+beforeAll(() => {
+  // monitoring no-ops outside production+DSN; flip both for tests
+  vi.stubEnv('NODE_ENV', 'production');
+  vi.stubEnv('NEXT_PUBLIC_SENTRY_DSN', 'https://test@example.ingest/0');
+});
+
 describe('captureGeolocationError', () => {
   afterEach(() => {
     vi.clearAllMocks();
   });
 
-  it('captures permission denied as a message with code context', () => {
-    captureGeolocationError({
+  it('captures permission denied as a message with code context', async () => {
+    await captureGeolocationError({
       code: 1,
       message: 'permission denied',
       PERMISSION_DENIED: 1,
@@ -34,8 +40,8 @@ describe('captureGeolocationError', () => {
     );
   });
 
-  it('captures timeout as a message with timeout type', () => {
-    captureGeolocationError({
+  it('captures timeout as a message with timeout type', async () => {
+    await captureGeolocationError({
       code: 3,
       message: 'timed out',
       PERMISSION_DENIED: 1,
@@ -51,8 +57,8 @@ describe('captureGeolocationError', () => {
     );
   });
 
-  it('captures unavailable position as a message', () => {
-    captureGeolocationError({
+  it('captures unavailable position as a message', async () => {
+    await captureGeolocationError({
       code: 2,
       message: 'unavailable',
       PERMISSION_DENIED: 1,
@@ -74,10 +80,10 @@ describe('captureLoadBinsError', () => {
     vi.clearAllMocks();
   });
 
-  it('captures fetchBins errors as exceptions with context', () => {
+  it('captures fetchBins errors as exceptions with context', async () => {
     const error = new Error('boom');
 
-    captureLoadBinsError(error);
+    await captureLoadBinsError(error);
 
     expect(Sentry.captureException).toHaveBeenCalledWith(
       error,
