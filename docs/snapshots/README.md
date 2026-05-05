@@ -32,6 +32,7 @@
 | 24 | 2026-05-04 | 🌑📐 다크 + 격자 — CartoDB Dark Matter + L자 점선 | [24-dark-manhattan](./24-dark-manhattan/) |
 | 25 | 2026-05-04 | ★ 즐겨찾기 — popup 별 토글 + 칩 필터 (P2.14) | [25-favorites](./25-favorites/) |
 | 26 | 2026-05-05 | 🗺 다구 로드 — 7개 자치구 802 bins + breakdown (P3.1a + P3.2) | [26-multi-district-load](./26-multi-district-load/) |
+| 27 | 2026-05-05 | ✓ 자치구별 status 오버레이 + theme chrome 정비 (P3.2 후반) | [27-per-district-status](./27-per-district-status/) |
 
 ## 새 스냅샷 찍는 법
 
