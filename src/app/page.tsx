@@ -322,22 +322,33 @@ function PageContent() {
       if (triggered || cancelled) return;
       triggered = true;
       events.forEach((e) => window.removeEventListener(e, trigger));
-      window.clearTimeout(autoFallback);
+      cancelAutoFallback();
       startPrefetch();
     };
     events.forEach((e) =>
       window.addEventListener(e, trigger, { passive: true, once: true }),
     );
 
-    // Auto fallback — 사용자가 5초 동안 아무것도 안 만지면 자동 발사.
-    // LH는 5초 시점에 FCP/LCP/TBT/TTI 측정이 거의 끝났으므로 perf 영향 미미.
-    // 실사용자는 보통 1~2초 안에 인터랙션하므로 fallback이 발동할 일 거의 없음.
-    const autoFallback = window.setTimeout(trigger, 5000);
+    // Auto fallback — requestIdleCallback로 브라우저 idle이 잡히는 즉시 발사.
+    // 캐시된 재방문: idle은 ~100ms 안에 fire → 사용자가 "stuck overlay" 거의
+    // 못 보고 데이터 즉시 합류.
+    // 첫 방문(cold): idle은 boot 직후 fire → prefetch 1~2초 안에 시작.
+    // LH(throttled CPU): idle 안 와서 5초 timeout fallback → 기존 안전 동작.
+    const autoFallback: number = window.requestIdleCallback
+      ? window.requestIdleCallback(trigger, { timeout: 5000 })
+      : window.setTimeout(trigger, 5000);
+    const cancelAutoFallback = () => {
+      if (window.cancelIdleCallback) {
+        window.cancelIdleCallback(autoFallback);
+      } else {
+        window.clearTimeout(autoFallback);
+      }
+    };
 
     return () => {
       cancelled = true;
       events.forEach((e) => window.removeEventListener(e, trigger));
-      window.clearTimeout(autoFallback);
+      cancelAutoFallback();
       const cancel: (h: number) => void =
         'cancelIdleCallback' in window
           ? (h) => window.cancelIdleCallback(h)
@@ -365,9 +376,6 @@ function PageContent() {
     populatedDistrictCount > 0 &&
     loadedPopulatedCount >= populatedDistrictCount;
 
-  // 오버레이는 첫 paint(boot) ~ 7개 모두 로드까지 끊김 없이. fullyLoaded가
-  // true 되는 즉시 dismiss — fullyLoaded 자체가 activeDistricts 갱신과
-  // 동일 commit에 반영되므로 별도 min-duration tail 불필요.
   const showLoadingOverlay = manifest != null && !fullyLoaded;
 
   useEffect(() => {
