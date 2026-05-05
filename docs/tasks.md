@@ -90,6 +90,8 @@
 
 - [ ] **P3.1b** markercluster 도입 — `leaflet.markercluster` + 줌 ≥15에서 개별 마커. 별도 worktree·PR.
 - [ ] **P3.1c** 인접 자치구 prefetch — 활성 구 변경 시 manifest의 `adjacent` 들을 `requestIdleCallback`으로 백그라운드 fetch. 별도 worktree·PR.
+- [ ] **P3.2-fix1** prefetch stale closure — `useEffect[manifest]`의 `startPrefetch`가 mount 시점 `districtsCache`/`activeFetches` 스냅샷에 묶여 있어, 5초 autoFallback 또는 첫 인터랙션 시점에 이미 panning으로 로드된 구를 다시 fetch + 토스트 재발사. ref 또는 deps 갱신으로 latest state 읽도록.
+- [ ] **P3.2-fix2** 로딩 오버레이 fail terminal — district fetch가 404/네트워크 에러로 실패하면 catch에서 silent로 삼키고 `activeFetches`/`activeDistricts` 어디에도 안 남아 `fullyLoaded` 영구 false → 오버레이가 영영 안 사라짐. 실패 카운트나 timeout-기반 dismiss로 terminal 상태 보장.
 - [ ] **P3.3** 자치구 자동 감지 진입 가이드 UI — 25구 선택 셀렉터, 빈 데이터 구(공공데이터 미발행 18개) 토스트 안내. (panning auto-add는 P3.2에서 들어감)
 
 ---
