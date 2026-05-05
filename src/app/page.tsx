@@ -268,13 +268,21 @@ function PageContent() {
         : (cb) => window.setTimeout(cb, 0);
 
     const startPrefetch = () => {
-      for (const d of manifest.districts) {
+      const toFetch = manifest.districts.filter(
+        (d) => d.binCount > 0 && !districtsCache.has(d.code),
+      );
+      if (toFetch.length === 0) return;
+
+      // 동기적으로 전체 prefetch 대상을 activeFetches에 add — 오버레이가 즉시 보임.
+      // 개별 settle마다 remove하여 활성 카운트가 점진적으로 줄어듦.
+      setActiveFetches(
+        (prev) => new globalThis.Set([...prev, ...toFetch.map((d) => d.code)]),
+      );
+
+      for (const d of toFetch) {
         if (cancelled) return;
-        if (d.binCount === 0) continue;
-        if (districtsCache.has(d.code)) continue;
         const handle = idle(async () => {
           if (cancelled) return;
-          setActiveFetches((prev) => new globalThis.Set([...prev, d.code]));
           try {
             const data = await fetchDistrict(d.code, manifest.version);
             if (cancelled) return;
