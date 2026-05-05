@@ -323,15 +323,22 @@ function PageContent() {
       if (triggered || cancelled) return;
       triggered = true;
       events.forEach((e) => window.removeEventListener(e, trigger));
+      window.clearTimeout(autoFallback);
       startPrefetch();
     };
     events.forEach((e) =>
       window.addEventListener(e, trigger, { passive: true, once: true }),
     );
 
+    // Auto fallback — 사용자가 5초 동안 아무것도 안 만지면 자동 발사.
+    // LH는 5초 시점에 FCP/LCP/TBT/TTI 측정이 거의 끝났으므로 perf 영향 미미.
+    // 실사용자는 보통 1~2초 안에 인터랙션하므로 fallback이 발동할 일 거의 없음.
+    const autoFallback = window.setTimeout(trigger, 5000);
+
     return () => {
       cancelled = true;
       events.forEach((e) => window.removeEventListener(e, trigger));
+      window.clearTimeout(autoFallback);
       const cancel: (h: number) => void =
         'cancelIdleCallback' in window
           ? (h) => window.cancelIdleCallback(h)
