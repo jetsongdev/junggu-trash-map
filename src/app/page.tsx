@@ -89,6 +89,7 @@ function PageContent() {
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [districtsGeo, setDistrictsGeo] = useState<unknown | null>(null);
   const [activeFetches, setActiveFetches] = useState<Set<DistrictCode>>(() => new Set());
+  const [overlayDismissAt, setOverlayDismissAt] = useState<number | null>(null);
   const [toast, setToast] = useState<{ text: string; emphatic: boolean } | null>(null);
   const toastTimerRef = useRef<number | null>(null);
   const [selected, setSelected] = useState<Set<BinType>>(() => new Set());
@@ -340,6 +341,27 @@ function PageContent() {
     // districtsCache intentionally omitted — initial-cache snapshot is enough.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [manifest]);
+
+  // 오버레이 최소 표시 시간 — disk cache 환경에서 fetch가 ms 단위 resolve돼
+  // React가 add/remove를 한 paint에 배치해 invisible 되는 걸 방지.
+  useEffect(() => {
+    if (activeFetches.size === 0) return;
+    setOverlayDismissAt((prev) => prev ?? Date.now() + 500);
+  }, [activeFetches]);
+
+  useEffect(() => {
+    if (overlayDismissAt == null) return;
+    if (activeFetches.size > 0) return;
+    const remaining = overlayDismissAt - Date.now();
+    if (remaining <= 0) {
+      setOverlayDismissAt(null);
+      return;
+    }
+    const t = window.setTimeout(() => setOverlayDismissAt(null), remaining);
+    return () => window.clearTimeout(t);
+  }, [activeFetches, overlayDismissAt]);
+
+  const showLoadingOverlay = activeFetches.size > 0 || overlayDismissAt != null;
 
   useEffect(() => {
     return () => {
@@ -872,12 +894,12 @@ function PageContent() {
           walkingSpeed={walkingSpeed}
           onUse={handleUseBin}
         />
-        {activeFetches.size > 0 && manifest && (
+        {showLoadingOverlay && manifest && (
           <div
             className="pointer-events-none absolute inset-0 z-[1002] flex items-center justify-center px-4"
             role="status"
             aria-live="polite"
-            aria-label={`${activeFetches.size}개 자치구 데이터 로드 중`}
+            aria-label="자치구 데이터 로드 중"
           >
             <div className="flex items-center gap-3 rounded-2xl bg-neutral-900/85 px-5 py-4 text-sm text-neutral-100 shadow-2xl ring-1 ring-neutral-700 backdrop-blur-sm">
               <span
@@ -887,9 +909,11 @@ function PageContent() {
               <span className="flex flex-col">
                 <span className="font-semibold">자치구 데이터 로드 중</span>
                 <span className="text-xs text-neutral-400">
-                  {[...activeFetches]
-                    .map((c) => findDistrictMeta(manifest, c)?.name ?? c)
-                    .join(' · ')}
+                  {activeFetches.size > 0
+                    ? [...activeFetches]
+                        .map((c) => findDistrictMeta(manifest, c)?.name ?? c)
+                        .join(' · ')
+                    : '마무리 중…'}
                 </span>
               </span>
             </div>
