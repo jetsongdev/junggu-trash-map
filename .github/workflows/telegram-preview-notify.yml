@@ -1,0 +1,33 @@
+name: Telegram preview notify
+
+on:
+  deployment_status:
+
+jobs:
+  notify:
+    if: |
+      github.event.deployment_status.state == 'success' &&
+      github.event.deployment.environment != 'Production' &&
+      github.event.deployment_status.target_url != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send preview URL to Telegram
+        env:
+          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+          PREVIEW_URL: ${{ github.event.deployment_status.target_url }}
+          REF: ${{ github.event.deployment.ref }}
+          SHA: ${{ github.event.deployment.sha }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ -z "$TG_BOT_TOKEN" ] || [ -z "$TG_CHAT_ID" ]; then
+            echo "::warning::TG_BOT_TOKEN or TG_CHAT_ID secret missing — skipping"
+            exit 0
+          fi
+          SHORT_SHA=$(echo "$SHA" | cut -c1-7)
+          TEXT=$(printf '🚀 Preview ready: %s\nbranch: %s @ %s\nrepo: %s' "$PREVIEW_URL" "$REF" "$SHORT_SHA" "$REPO")
+          curl -fsS -X POST "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TG_CHAT_ID}" \
+            --data-urlencode "text=${TEXT}" \
+            --data-urlencode "disable_web_page_preview=true" > /dev/null
+          echo "✓ sent to Telegram chat ${TG_CHAT_ID}"
