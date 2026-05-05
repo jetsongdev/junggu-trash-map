@@ -19,10 +19,14 @@
 - 휴지통 팝업의 ☆ 버튼을 누르면 즐겨찾기로 표시됩니다. 칩 row의 ★ 즐겨찾기 필터를 켜면 즐겨찾기한 휴지통만 지도에 보이고, 같은 동선을 반복하는 사용자(출퇴근·산책 루틴)가 익숙한 통을 빠르게 찾을 수 있습니다. 즐겨찾기는 브라우저에 저장됩니다.
 - 보행 속도를 슬라이더로 2~7 km/h 사이 0.5 단위로 자유롭게 조정할 수 있습니다. 칩을 누르면 슬라이더가 펼쳐지며, 속도에 따라 🐢/🚶/🏃 이모지가 자동으로 바뀝니다. URL 공유와 환경설정에 그대로 저장됩니다 (이전 'slow'/'normal'/'fast' 링크는 자동으로 3/4/5 km/h로 변환).
 
+### Performance
+- 첫 화면 로딩 시 OSM·CartoDB 타일 서버 5곳에 미리 연결을 시작하고(`ReactDOM.preconnect()`), Nominatim 검색 도메인은 DNS만 미리 풀어둡니다(`prefetchDNS`) — 첫 타일 도착이 100~300ms 빨라집니다.
+- Sentry SDK를 메인 번들에서 분리해 lazy chunk로 전환했습니다. capture 함수가 호출될 때만 다운로드되고, 초기화는 `requestIdleCallback`으로 첫 페인트 이후로 미뤄집니다 — 메인 번들 ~90KB 감소, TBT 단축.
+
 ### Infrastructure
-- `lib/geo.ts` · `lib/eta.ts` · `lib/url-share.ts` 순수 함수 59개 vitest 단위 테스트 추가 (`bun run test`). 이후 P2.9 슬라이더와 I.2 모니터링 분량 합쳐 85개로 확장.
-- Add Lighthouse CI GitHub Actions workflow for PR performance/a11y gating.
-- Sentry 클라이언트/서버 에러 모니터링 통합 (`@sentry/nextjs@10.51`, production-only init). geolocation 실패·`fetchBins` 에러·uncaught 브라우저 에러 자동 수집. `NEXT_PUBLIC_SENTRY_DSN` 미설정 시 안전한 no-op.
+- `lib/geo.ts` · `lib/eta.ts` · `lib/url-share.ts` · `lib/favorites.ts` · `lib/savings.ts` · `lib/monitoring.ts` 순수 함수 105개 vitest 단위 테스트 (`bun run test`).
+- Add Lighthouse CI GitHub Actions workflow for PR performance/a11y gating. 최소 점수 perf ≥ 0.65 / a11y ≥ 0.95 / best-practices ≥ 0.90 / seo ≥ 0.90 (PWA 카테고리는 LH12에서 제거).
+- Sentry 클라이언트/서버 에러 모니터링 통합 (`@sentry/nextjs@10.51`, production-only + DSN 게이트 + dynamic import). geolocation 실패·`fetchBins` 에러·uncaught 브라우저 에러 자동 수집. `NEXT_PUBLIC_SENTRY_DSN` 미설정 시 안전한 no-op.
 - 프로젝트 스킬 3종 추가 (`.claude/skills/trash-*`): `trash-feature-merge-flow` (P*.* 머지 9단계 자동화), `trash-codex-integrate` (Codex sandbox 산출물 정리), `trash-lighthouse-pr-watch` (PR 게이트 모니터링·머지). 다음 세션부터 자동 트리거.
 
 ### Changed
