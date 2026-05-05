@@ -89,7 +89,6 @@ function PageContent() {
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [districtsGeo, setDistrictsGeo] = useState<unknown | null>(null);
   const [activeFetches, setActiveFetches] = useState<Set<DistrictCode>>(() => new Set());
-  const [overlayDismissAt, setOverlayDismissAt] = useState<number | null>(null);
   const [toast, setToast] = useState<{ text: string; emphatic: boolean } | null>(null);
   const toastTimerRef = useRef<number | null>(null);
   const [selected, setSelected] = useState<Set<BinType>>(() => new Set());
@@ -349,25 +348,6 @@ function PageContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [manifest]);
 
-  // 오버레이 최소 표시 시간 — disk cache 환경에서 fetch가 ms 단위 resolve돼
-  // React가 add/remove를 한 paint에 배치해 invisible 되는 걸 방지.
-  useEffect(() => {
-    if (activeFetches.size === 0) return;
-    setOverlayDismissAt((prev) => prev ?? Date.now() + 500);
-  }, [activeFetches]);
-
-  useEffect(() => {
-    if (overlayDismissAt == null) return;
-    if (activeFetches.size > 0) return;
-    const remaining = overlayDismissAt - Date.now();
-    if (remaining <= 0) {
-      setOverlayDismissAt(null);
-      return;
-    }
-    const t = window.setTimeout(() => setOverlayDismissAt(null), remaining);
-    return () => window.clearTimeout(t);
-  }, [activeFetches, overlayDismissAt]);
-
   const populatedDistrictCount = useMemo(
     () => (manifest ? manifest.districts.filter((d) => d.binCount > 0).length : 0),
     [manifest],
@@ -385,10 +365,10 @@ function PageContent() {
     populatedDistrictCount > 0 &&
     loadedPopulatedCount >= populatedDistrictCount;
 
-  // 오버레이는 첫 paint(boot) 시작 ~ 7개 모두 로드까지 끊김 없이.
-  // dismissAt은 마지막에 fullyLoaded 됐을 때 min-duration tail로 연결.
-  const showLoadingOverlay =
-    manifest != null && (!fullyLoaded || activeFetches.size > 0 || overlayDismissAt != null);
+  // 오버레이는 첫 paint(boot) ~ 7개 모두 로드까지 끊김 없이. fullyLoaded가
+  // true 되는 즉시 dismiss — fullyLoaded 자체가 activeDistricts 갱신과
+  // 동일 commit에 반영되므로 별도 min-duration tail 불필요.
+  const showLoadingOverlay = manifest != null && !fullyLoaded;
 
   useEffect(() => {
     return () => {
