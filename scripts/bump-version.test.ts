@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { nextVersion, transformChangelog } from './bump-version';
+import { nextVersion, transformChangelog, extractReleaseNotes } from './bump-version';
 
 describe('nextVersion', () => {
   it('patch bump', () => {
@@ -97,6 +97,15 @@ describe('transformChangelog', () => {
     expect(() => transformChangelog(empty, '0.10.0', '0.9.0', '2026-05-06')).toThrow(/empty/);
   });
 
+  it('roundtrips through extractReleaseNotes for the new version', () => {
+    const out = transformChangelog(fixture, '0.10.0', '0.9.0', '2026-05-06');
+    const notes = extractReleaseNotes(out, '0.10.0');
+    expect(notes).toContain('### Added\n- new feature shipped to users');
+    expect(notes).toContain('### Performance\n- 30% faster boot');
+    expect(notes).not.toContain('## [0.9.0]');
+    expect(notes).not.toContain('## [Unreleased]');
+  });
+
   it('throws when previous-version compare link is missing', () => {
     const broken = fixture.replace(
       '[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.9.0...HEAD',
@@ -105,5 +114,70 @@ describe('transformChangelog', () => {
     expect(() => transformChangelog(broken, '0.10.0', '0.9.0', '2026-05-06')).toThrow(
       /Cannot find \[Unreleased\] compare link/,
     );
+  });
+});
+
+describe('extractReleaseNotes', () => {
+  const multi = `# Changelog
+
+## [Unreleased]
+
+## [0.10.0] - 2026-05-10
+
+### Added
+- ten
+
+## [0.1.0] - 2026-04-29
+
+### Added
+- one
+
+[Unreleased]: x
+[0.10.0]: y
+[0.1.0]: z
+`;
+
+  it('extracts the requested version section body only', () => {
+    const out = extractReleaseNotes(multi, '0.10.0');
+    expect(out).toContain('### Added\n- ten');
+    expect(out).not.toContain('## [0.1.0]');
+    expect(out).not.toContain('- one');
+  });
+
+  it('does not collide on numeric prefix (0.1.0 vs 0.10.0)', () => {
+    const out = extractReleaseNotes(multi, '0.1.0');
+    expect(out).toContain('### Added\n- one');
+    expect(out).not.toContain('- ten');
+  });
+
+  it('throws when version section missing', () => {
+    expect(() => extractReleaseNotes(multi, '9.9.9')).toThrow(/Cannot find version section/);
+  });
+
+  it('throws when version section empty', () => {
+    const empty = `# Changelog
+
+## [Unreleased]
+
+## [0.10.0] - 2026-05-10
+
+## [0.9.0] - 2026-05-05
+
+### Added
+- old
+`;
+    expect(() => extractReleaseNotes(empty, '0.10.0')).toThrow(/no content/);
+  });
+
+  it('handles last-section (no following ## header)', () => {
+    const last = `# Changelog
+
+## [0.1.0] - 2026-04-29
+
+### Added
+- final
+`;
+    const out = extractReleaseNotes(last, '0.1.0');
+    expect(out.trim()).toBe('### Added\n- final');
   });
 });

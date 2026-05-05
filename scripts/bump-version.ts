@@ -18,6 +18,20 @@ export function nextVersion(current: string, kind: BumpKind): string {
   return `${maj}.${min}.${pat + 1}`;
 }
 
+export function extractReleaseNotes(source: string, version: string): string {
+  const escaped = version.replace(/\./g, '\\.');
+  const headerRe = new RegExp(`^## \\[${escaped}\\][^\\n]*\\n`, 'm');
+  const m = headerRe.exec(source);
+  if (!m) throw new Error(`Cannot find version section [${version}]`);
+  const startIdx = m.index + m[0].length;
+  const rest = source.slice(startIdx);
+  const nextHeader = /\n## \[/.exec(rest);
+  const body = nextHeader ? rest.slice(0, nextHeader.index) : rest;
+  const trimmed = body.trim();
+  if (!trimmed) throw new Error(`Version section [${version}] has no content`);
+  return trimmed + '\n';
+}
+
 export function transformChangelog(
   source: string,
   newVersion: string,
@@ -76,7 +90,12 @@ if (isMain) {
   writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
   writeFileSync(changelogPath, updated);
 
+  const notes = extractReleaseNotes(updated, newVer);
+  const notesPath = resolve(root, 'release_notes.md');
+  writeFileSync(notesPath, notes);
+
   console.log(`Bumped ${prevVersion} → ${newVer}`);
+  console.log(`Wrote release_notes.md (${notes.split('\n').length - 1} lines)`);
 
   if (process.env.GITHUB_OUTPUT) {
     appendFileSync(process.env.GITHUB_OUTPUT, `version=${newVer}\n`);
