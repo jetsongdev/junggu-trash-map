@@ -8,7 +8,16 @@ import { LocateButton } from '@/components/LocateButton';
 import { SearchBox } from '@/components/SearchBox';
 import { ShareButton } from '@/components/ShareButton';
 import type { TileTheme } from '@/components/Map';
-import { fetchBins, filterByTypes } from '@/lib/data';
+import { fetchDistrict, filterByTypes } from '@/lib/data';
+import {
+  fetchDistrictsGeoJson,
+  fetchManifest,
+  findDistrictMeta,
+} from '@/lib/districts';
+import {
+  findDistrictForPoint,
+  findNearestDistrictCentroid,
+} from '@/lib/point-in-district';
 import {
   filterByFavorites,
   loadFavorites,
@@ -43,7 +52,7 @@ import {
 import { HAPTIC, vibrate } from '@/lib/haptic';
 import { captureGeolocationError } from '@/lib/monitoring';
 import { useDeviceHeading } from '@/lib/orientation';
-import type { BinType, TrashBin } from '@/lib/types';
+import type { BinType, DistrictCode, Manifest, TrashBin } from '@/lib/types';
 import {
   parseUrlParams,
   type AppState,
@@ -71,7 +80,14 @@ const Map = dynamic(() => import('@/components/Map'), {
 
 function PageContent() {
   const searchParams = useSearchParams();
-  const [bins, setBins] = useState<TrashBin[]>([]);
+  const [districtsCache, setDistrictsCache] = useState<globalThis.Map<DistrictCode, TrashBin[]>>(
+    () => new globalThis.Map<DistrictCode, TrashBin[]>(),
+  );
+  const [activeDistricts, setActiveDistricts] = useState<Set<DistrictCode>>(
+    () => new Set(),
+  );
+  const [manifest, setManifest] = useState<Manifest | null>(null);
+  const [districtsGeo, setDistrictsGeo] = useState<unknown | null>(null);
   const [selected, setSelected] = useState<Set<BinType>>(() => new Set());
   const [error, setError] = useState<string | null>(null);
 
@@ -179,17 +195,55 @@ function PageContent() {
 
   useEffect(() => {
     let active = true;
-    fetchBins()
-      .then((data) => {
-        if (active) setBins(data);
-      })
-      .catch((e: unknown) => {
+
+    (async () => {
+      try {
+        const [m, geo] = await Promise.all([
+          fetchManifest(),
+          fetchDistrictsGeoJson(),
+        ]);
+        if (!active) return;
+        setManifest(m);
+        setDistrictsGeo(geo);
+
+        let initialCode: DistrictCode | null = null;
+
+        const urlState = parseUrlParams(searchParams);
+        const urlSeed = urlState.userLocation ?? urlState.destination ?? null;
+        if (urlSeed) {
+          initialCode =
+            findDistrictForPoint(urlSeed, geo as never) ??
+            findNearestDistrictCentroid(urlSeed, m.districts);
+        }
+
+        if (!initialCode) {
+          initialCode = findDistrictMeta(m, 'junggu')?.code ?? m.districts[0].code;
+        }
+
+        const meta = findDistrictMeta(m, initialCode);
+        if (!meta) throw new Error(`Unknown district code: ${initialCode}`);
+        if (meta.binCount === 0) {
+          setActiveDistricts(new Set([initialCode]));
+          return;
+        }
+
+        const data = await fetchDistrict(initialCode, m.version);
+        if (!active) return;
+        setDistrictsCache((prev) => {
+          const next = new globalThis.Map<DistrictCode, TrashBin[]>(prev);
+          next.set(initialCode!, data);
+          return next;
+        });
+        setActiveDistricts(new Set([initialCode]));
+      } catch (e: unknown) {
         if (active) setError(e instanceof Error ? e.message : 'unknown');
-      });
+      }
+    })();
+
     return () => {
       active = false;
     };
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     return () => {
@@ -209,6 +263,15 @@ function PageContent() {
     if (!prefsHydratedRef.current) return;
     window.localStorage.setItem('walkingSpeed', formatKmh(walkingSpeed));
   }, [walkingSpeed]);
+
+  const bins = useMemo<TrashBin[]>(() => {
+    const flat: TrashBin[] = [];
+    for (const code of activeDistricts) {
+      const d = districtsCache.get(code);
+      if (d) flat.push(...d);
+    }
+    return flat;
+  }, [districtsCache, activeDistricts]);
 
   const visible = useMemo(() => {
     const byType = filterByTypes(bins, selected);
