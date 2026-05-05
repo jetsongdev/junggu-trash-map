@@ -16,46 +16,57 @@
 - 통계 바 아래에 발행 자치구 7개 모두를 마커수 내림차순으로 항상 보여줍니다 (`마포구 198 · 구로구 188 · …`). 아직 로드 안 된 구는 더 흐린 색으로, 로드 완료된 구는 정상 색으로 — 진행 상황을 한눈에 파악 가능. 통계 바 "전체 N개"도 첫 페인트부터 manifest 합계(현재 802개)로 고정.
 - 자치구 데이터가 합류할 때마다 지도 하단 가운데에 토스트로 "○○구 N개"가 잠깐(1.5초) 떴다가 사라집니다. 7개 모두 들어오면 "✅ 전체 7개 자치구 802개 휴지통 로드 완료" 토스트가 emerald 강조 스타일로 4초 동안 표시 — 일반 토스트 대비 큰 글씨·진한 배경·ring으로 시선 강조.
 - 지도 좌측 하단에 데이터 출처 + 버전(`📊 공공데이터포털 · v2026-05-05`)이 표시되고 클릭하면 공공데이터포털 「전국휴지통표준데이터」 페이지가 새 탭으로 열립니다.
-- 주소·랜드마크 검색 박스로 출발/목적지를 빠르게 지정할 수 있습니다.
-- 휴지통 팝업의 `✓ 사용` 버튼으로 분리수거를 위해 추가로 걸은 거리·시간·횟수를 브라우저에 누적 저장하고 통계 바에서 바로 확인할 수 있습니다.
-- 지원되는 기기에서는 마커·검색 결과·필터/모드 칩을 탭할 때 강도별 햅틱 진동(가벼운 토글 6ms, 선택 12ms, 좌표 확정 18ms 3단계)으로 선택감을 줍니다.
-- 현재 필터, 지도 테마, 거리 모드, 보행 속도, 출발지·목적지를 URL로 공유하고 같은 상태로 바로 다시 열 수 있습니다.
-- 가까운 휴지통과 경로 경유 후보를 상위 3개까지 rank별 크기로 읽기 전용 시각화하고, 각 후보에 굵기가 다른 점선으로 연결해 1~3순위를 한눈에 비교할 수 있습니다. 후보가 아닌 마커는 흐릿하게 처리해 후보만 도드라지게 표시합니다.
-- 🧭 방향 칩으로 휴대폰 나침반을 켜면 사용자 위치 마커에 60° 부채꼴 cone이 실시간으로 회전해 "지금 보는 방향"을 즉시 파악할 수 있습니다 (iOS는 권한 prompt 1회, 거부 시 칩 비활성). 칩을 한 번 더 누르면 "헤드업" 모드로 전환되어 지도 자체가 사용자 시선 방향으로 따라 회전하며, 이때도 cone은 화면 위쪽을 가리켜 시선 메타포가 일관됩니다.
-- 휴지통 팝업의 ☆ 버튼을 누르면 즐겨찾기로 표시됩니다. 칩 row의 ★ 즐겨찾기 필터를 켜면 즐겨찾기한 휴지통만 지도에 보이고, 같은 동선을 반복하는 사용자(출퇴근·산책 루틴)가 익숙한 통을 빠르게 찾을 수 있습니다. 즐겨찾기는 브라우저에 저장됩니다.
-- 보행 속도를 슬라이더로 2~7 km/h 사이 0.5 단위로 자유롭게 조정할 수 있습니다. 칩을 누르면 슬라이더가 펼쳐지며, 속도에 따라 🐢/🚶/🏃 이모지가 자동으로 바뀝니다. URL 공유와 환경설정에 그대로 저장됩니다 (이전 'slow'/'normal'/'fast' 링크는 자동으로 3/4/5 km/h로 변환).
+
+### Changed
+- 페이지 헤더·필터 바 배경도 라이트/다크 테마(시스템 또는 사용자 토글)에 맞춰 같이 전환됩니다 — 시스템 라이트인데 앱만 항상 다크로 보이던 회귀 수정.
 
 ### Fixed
 - 자치구 prefetch가 panning으로 이미 본 구를 5초 뒤 다시 받아오며 토스트가 한 번 더 뜨던 문제 — prefetch가 이제 latest state를 읽어 이미 로드된 구를 건너뜁니다 (P3.2-fix1).
 - 자치구 데이터 fetch가 404/네트워크 오류로 실패하면 로딩 오버레이가 영영 사라지지 않던 문제 — 실패한 자치구도 terminal로 집계해 오버레이가 dismiss되고, 오버레이 행에 `✗`(rose) 아이콘으로 실패 자치구를 표시합니다. panning으로 재시도해 성공하면 자동으로 풀립니다 (P3.2-fix2).
+
+## [0.9.0] - 2026-05-05
+
+### Infrastructure
+- P3.1a 데이터 분할 foundation — `seoul-manifest.json`/`seoul-districts.geojson`/`districts/<code>.json` 3축 정적 자원, 클라이언트 point-in-polygon 자치구 판정. 현재는 중구만 데이터 보유, 24개 구는 자리 표시자. 25구 데이터 적재(P3.2)와 markercluster(P3.1b)·인접 prefetch(P3.1c)는 후속.
+
+## [0.8.0] - 2026-05-05
+
+### Added
+- 휴지통 팝업의 `✓ 사용` 버튼으로 분리수거를 위해 추가로 걸은 거리·시간·횟수를 브라우저에 누적 저장하고 통계 바에서 바로 확인할 수 있습니다.
 
 ### Performance
 - 첫 화면 로딩 시 OSM·CartoDB 타일 서버 5곳에 미리 연결을 시작하고(`ReactDOM.preconnect()`), Nominatim 검색 도메인은 DNS만 미리 풀어둡니다(`prefetchDNS`) — 첫 타일 도착이 100~300ms 빨라집니다.
 - Sentry SDK를 메인 번들에서 분리해 lazy chunk로 전환했습니다. capture 함수가 호출될 때만 다운로드되고, 초기화는 `requestIdleCallback`으로 첫 페인트 이후로 미뤄집니다 — 메인 번들 ~90KB 감소, TBT 단축.
 
 ### Infrastructure
-- P3.1a 데이터 분할 foundation — `seoul-manifest.json`/`seoul-districts.geojson`/`districts/<code>.json` 3축 정적 자원, 클라이언트 point-in-polygon 자치구 판정.
-- P3.2 7개 자치구 데이터 적재 + `<MapMoveHandler>` panning 트리거 — 지도 center가 다른 자치구 폴리곤에 진입하면 해당 자치구 JSON을 자동 fetch + active set 추가. 데이터 미발행 구(`binCount: 0`)는 fetch skip, active만 등록. 후속: markercluster(P3.1b)·인접 prefetch(P3.1c).
-- Lighthouse perf 임계치 0.70 → 0.62 ratchet down — P3.1a/P3.2의 다구 panning 인프라 추가로 X.1 baseline 0.75 대비 -0.10 회귀 측정. 측정값 0.65 - 0.03 마진 = 0.62. P3.1b/c 머지 후 perf 별도 라운드 진행 시 다시 ratchet up 예정.
 - `lib/geo.ts` · `lib/eta.ts` · `lib/url-share.ts` · `lib/favorites.ts` · `lib/savings.ts` · `lib/monitoring.ts` 순수 함수 105개 vitest 단위 테스트 (`bun run test`).
 - Add Lighthouse CI GitHub Actions workflow for PR performance/a11y gating. 최소 점수 perf ≥ 0.65 / a11y ≥ 0.95 / best-practices ≥ 0.90 / seo ≥ 0.90 (PWA 카테고리는 LH12에서 제거).
 - Sentry 클라이언트/서버 에러 모니터링 통합 (`@sentry/nextjs@10.51`, production-only + DSN 게이트 + dynamic import). geolocation 실패·`fetchBins` 에러·uncaught 브라우저 에러 자동 수집. `NEXT_PUBLIC_SENTRY_DSN` 미설정 시 안전한 no-op.
 - 프로젝트 스킬 3종 추가 (`.claude/skills/trash-*`): `trash-feature-merge-flow` (P*.* 머지 9단계 자동화), `trash-codex-integrate` (Codex sandbox 산출물 정리), `trash-lighthouse-pr-watch` (PR 게이트 모니터링·머지). 다음 세션부터 자동 트리거.
 
+## [0.7.0] - 2026-05-05
+
+### Added
+- 🧭 방향 칩으로 휴대폰 나침반을 켜면 사용자 위치 마커에 60° 부채꼴 cone이 실시간으로 회전해 "지금 보는 방향"을 즉시 파악할 수 있습니다 (iOS는 권한 prompt 1회, 거부 시 칩 비활성). 칩을 한 번 더 누르면 "헤드업" 모드로 전환되어 지도 자체가 사용자 시선 방향으로 따라 회전하며, 이때도 cone은 화면 위쪽을 가리켜 시선 메타포가 일관됩니다.
+- 휴지통 팝업의 ☆ 버튼을 누르면 즐겨찾기로 표시됩니다. 칩 row의 ★ 즐겨찾기 필터를 켜면 즐겨찾기한 휴지통만 지도에 보이고, 같은 동선을 반복하는 사용자(출퇴근·산책 루틴)가 익숙한 통을 빠르게 찾을 수 있습니다. 즐겨찾기는 브라우저에 저장됩니다.
+- 보행 속도를 슬라이더로 2~7 km/h 사이 0.5 단위로 자유롭게 조정할 수 있습니다. 칩을 누르면 슬라이더가 펼쳐지며, 속도에 따라 🐢/🚶/🏃 이모지가 자동으로 바뀝니다. URL 공유와 환경설정에 그대로 저장됩니다 (이전 'slow'/'normal'/'fast' 링크는 자동으로 3/4/5 km/h로 변환).
+
+## [0.6.0] - 2026-05-04
+
+### Added
+- 주소·랜드마크 검색 박스로 출발/목적지를 빠르게 지정할 수 있습니다.
+- 지원되는 기기에서는 마커·검색 결과·필터/모드 칩을 탭할 때 강도별 햅틱 진동(가벼운 토글 6ms, 선택 12ms, 좌표 확정 18ms 3단계)으로 선택감을 줍니다.
+- 현재 필터, 지도 테마, 거리 모드, 보행 속도, 출발지·목적지를 URL로 공유하고 같은 상태로 바로 다시 열 수 있습니다.
+- 가까운 휴지통과 경로 경유 후보를 상위 3개까지 rank별 크기로 읽기 전용 시각화하고, 각 후보에 굵기가 다른 점선으로 연결해 1~3순위를 한눈에 비교할 수 있습니다. 후보가 아닌 마커는 흐릿하게 처리해 후보만 도드라지게 표시합니다.
+
 ### Changed
 - 휴지통 마커 색상을 라이트/다크 타일 모두에서 더 균형 있게 보이도록 파랑·초록·보라 톤으로 미세 조정했습니다.
 - 저장된 타일 테마가 없는 첫 방문에서는 시스템 다크 모드 설정을 따라 기본 지도를 자동 선택합니다.
-- 페이지 헤더·필터 바 배경도 라이트/다크 테마(시스템 또는 사용자 토글)에 맞춰 같이 전환됩니다 — 시스템 라이트인데 앱만 항상 다크로 보이던 회귀 수정.
 
 ### Fixed
 - 저장된 사용자 환경설정(거리 모드/타일 테마/보행 속도)이 있을 때 첫 페이지 로드 시 발생하던 hydration mismatch 경고 제거 — 첫 페인트는 기본값으로 그린 뒤 마운트 후 localStorage 값을 적용하도록 변경.
 
-### Infrastructure — Tier 2 검증 환경
-- GitHub private repo `jetsongdev/junggu-trash-map` 생성 + 첫 push
-- Vercel 프로젝트 link + Production deploy → https://junggu-trash-map.vercel.app
-- **GitHub auto-deploy 연결** — `git push`만으로 production/preview 자동 배포 (16~22초 빌드)
-- **Vercel Analytics + Speed Insights 설치** — RUM(Real User Monitoring), Core Web Vitals 자동 수집
-- iPad/모바일에서 HTTPS로 접속해 실제 GPS 권한·watchPosition 동작 검증 가능
+## [0.5.0] - 2026-05-02
 
 ### Added — Phase 2.8: ETA + 보행 속도 3단계
 - `lib/eta.ts` — `WalkingSpeed = 'slow'|'normal'|'fast'`, `WALKING_SPEEDS` (3/4/5 km/h), `etaSeconds`, `formatEta` (초/분 자동)
@@ -72,12 +83,16 @@
 - distanceMode 따라 자동 (직선/격자)
 - `lib/geo.ts`: `routePositions`, `detourCost`, `findOptimalDetour` 추가
 
+## [0.4.0] - 2026-05-02
+
 ### Added — Phase 2.2: PWA 설치 가능
 - `app/manifest.ts` — Next.js MetadataRoute.Manifest, `display: standalone`, theme/background `#0a0a0a`
 - `app/icon.tsx` (192×192) + `app/apple-icon.tsx` (180×180) — `next/og` `ImageResponse`로 빌드 시점 PNG 동적 생성
 - `layout.tsx` metadata: `appleWebApp` (status bar style black-translucent, title), `applicationName`, `formatDetection: { telephone: false }`
 - iPad Safari → 공유 → "홈 화면에 추가" → 풀스크린 PWA 동작
 - Android Chrome 자동 install banner
+
+## [0.3.0] - 2026-05-02
 
 ### Added — Phase 2.4++: 라이트/다크 타일 토글
 - 새 칩 **🌑 다크 ↔ ☀️ 라이트** — CartoDB Dark Matter ↔ OpenStreetMap Standard
@@ -101,6 +116,8 @@
 - `localStorage['distanceMode']` 영속화 — 다음 방문 시 마지막 선택 복원
 - 같은 좌표·같은 마커: 직선 121m → 격자 154m (보행자 거리 근사)
 
+## [0.2.0] - 2026-05-02
+
 ### Added — Phase 2.1+: 탭으로 위치 지정 (iOS Safari fallback)
 - 새 칩 **🎯 지도 탭** — 모드 토글 후 지도 한 번 클릭으로 사용자 위치 설정 (cursor `crosshair`, 클릭 후 모드 자동 종료)
 - GPS 권한 거부 / 신호 없음 / 타임아웃 별 에러 메시지 분기, 각 분기에서 탭 모드 우회 안내 포함
@@ -114,6 +131,15 @@
 - 거리 라벨 in 통계 바 ("가까운 통 121m (이름)") — m/km 자동 전환
 - `lib/geo.ts` — Haversine + Manhattan + `distanceMeters` 디스패처 + `findNearest(mode)` + `pathPositions(mode)` (UI 토글은 추후)
 - 권한 거부 / 브라우저 미지원 시 칩에 에러 메시지
+
+### Infrastructure — Tier 2 검증 환경
+- GitHub private repo `jetsongdev/junggu-trash-map` 생성 + 첫 push
+- Vercel 프로젝트 link + Production deploy → https://junggu-trash-map.vercel.app
+- **GitHub auto-deploy 연결** — `git push`만으로 production/preview 자동 배포 (16~22초 빌드)
+- **Vercel Analytics + Speed Insights 설치** — RUM(Real User Monitoring), Core Web Vitals 자동 수집
+- iPad/모바일에서 HTTPS로 접속해 실제 GPS 권한·watchPosition 동작 검증 가능
+
+## [0.1.0] - 2026-04-29
 
 ### Added — Phase 0: PoC 부트스트랩
 - Next.js 16 + Bun + Tailwind v4 + Leaflet 기반 중구 휴지통 지도 PWA 프로토타입
@@ -148,4 +174,13 @@
 - `~/.claude/skills/snapshot/` — 글로벌 스냅샷 스킬 (프레임워크 무관, config 기반)
 - `CLAUDE.md` — 세션 진입 가이드 (작업 큐 / 시각 히스토리 / CHANGELOG 포인터)
 
-[Unreleased]: https://github.com/USER/REPO/compare/HEAD
+[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.8.0...v0.9.0
+[0.8.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.7.0...v0.8.0
+[0.7.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.6.0...v0.7.0
+[0.6.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.5.0...v0.6.0
+[0.5.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.4.0...v0.5.0
+[0.4.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/jetsongdev/junggu-trash-map/releases/tag/v0.1.0

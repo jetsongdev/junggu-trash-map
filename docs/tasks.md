@@ -14,6 +14,7 @@
 - **Dev**: `bun run dev` → http://localhost:3000 (점유 시 자동 3001)
 - **Build**: `bun run build` 통과
 - **Deploy**: `git push` → 자동 Vercel build → https://junggu-trash-map.vercel.app (16~22초). 수동 `vercel deploy`는 hotfix 시에만
+- **Release**: 현재 `v0.9.0` (CHANGELOG `[Unreleased]` 누적분을 v0.1.0~v0.9.0 9개 retro split + 9 git tag + GitHub Releases 생성됨). 다음 cut부터 PR 라벨 자동화 — `release:patch/minor/major` 라벨 붙은 PR이 main 머지되면 `.github/workflows/release-on-merge.yml`이 bump + tag + release notes + PR 코멘트 처리. 정책 본체는 `CLAUDE.md` `## Release`. 라벨 없으면 skip (인프라·docs PR은 그대로)
 - **PWA**: `app/manifest.ts` + 동적 `icon.tsx`/`apple-icon.tsx` (next/og), iOS 풀스크린 메타 — Safari "홈 화면에 추가"로 풀스크린
 - **Data**: `public/data/seoul-manifest.json` (25구 메타, version `2026-05-05`) + `public/data/seoul-districts.geojson` (25구 폴리곤, ~56KB) + `public/data/districts/<code>.json` (**7개 자치구 802 그룹**: 중구 59 / 서초 83 / 중랑 27 / 성북 119 / 마포 198 / 구로 188 / 노원 128). 18개 구는 `binCount: 0` 자리 표시자 (공공데이터 미발행).
 - **Geolocation**: `watchPosition` 실시간 + Haversine/Manhattan `findNearest`/`findOptimalDetour` + sky/cyan 점선. 출발 + 목적지 모두 set 시 경유 휴지통 detour 알고리즘

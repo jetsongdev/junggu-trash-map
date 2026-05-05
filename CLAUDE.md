@@ -56,4 +56,32 @@ Skip for: comments-only edits, internal renames, dev-tool tweaks invisible to us
 
 Group by Keep a Changelog category: `Added` / `Changed` / `Deprecated` / `Removed` / `Fixed` / `Security` (+ `Performance` and `Infrastructure` as project-specific groupings allowed). One bullet = one user-visible change. Phrase from the user/reviewer perspective, not from the implementation side.
 
-When the user asks for a release / version cut, move `[Unreleased]` content under a new `## [X.Y.Z] - YYYY-MM-DD` heading, leave `[Unreleased]` empty, and update the compare link footnote.
+## Release (자동 cut)
+
+버전 cut은 PR 라벨로 자동. 사람이 직접 `[Unreleased]`를 옮기거나 `package.json`을 bump하지 않는다 — 라벨 붙은 PR이 main으로 머지되면 `.github/workflows/release-on-merge.yml` 이 처리한다.
+
+라벨 → bump 매핑:
+- `release:patch` — bug fix·미세 조정 (0.9.0 → 0.9.1)
+- `release:minor` — 새 기능·사용자 가시 변화 (0.9.0 → 0.10.0). **기본값**, 새 P*.* 머지 시 거의 항상 이쪽
+- `release:major` — 호환성 깨는 변화 (0.9.0 → 1.0.0). 1.0 가기 전엔 거의 안 씀
+
+라벨이 없으면 워크플로 skip — telegram routing·lighthouse 임계 조정·docs-only 같은 인프라 PR은 자연스럽게 우회된다.
+
+PR 만들 때 라벨 붙이기:
+```bash
+gh pr edit <num> --add-label release:minor
+```
+
+자동으로 일어나는 일 (라벨 머지 시):
+1. `package.json` 버전 bump
+2. `CHANGELOG.md` `[Unreleased]` → `[X.Y.Z] - YYYY-MM-DD` + 새 빈 `[Unreleased]` + compare link 갱신
+3. main에 `chore(release): vX.Y.Z [skip ci]` 직접 push
+4. annotated tag `vX.Y.Z` push
+5. GitHub Release 생성 (해당 버전 CHANGELOG 섹션이 release notes)
+6. 머지된 PR에 release 링크 코멘트
+
+**전제 조건**: `[Unreleased]` 가 비어있지 않아야 함 — 비었는데 라벨이 붙으면 워크플로 fail (의도적; release 의미 없음). 따라서 PR 작성 시 CHANGELOG `[Unreleased]` 갱신은 필수.
+
+partial-fail 복구: workflow_dispatch escape hatch 있음 — Actions 탭 → "Release on merge" → "Run workflow" → kind 선택. 라벨 단계 우회하고 직접 bump.
+
+bump 로직은 `scripts/bump-version.ts` 순수 함수(`nextVersion` / `transformChangelog` / `extractReleaseNotes`) + vitest 17개로 회귀 방어. 변경 시 같이 갱신.

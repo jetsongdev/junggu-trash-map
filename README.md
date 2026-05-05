@@ -12,6 +12,7 @@
 - **Repo**: https://github.com/jetsongdev/junggu-trash-map (private)
 - **Vercel 대시보드**: https://vercel.com/jetsongdev/junggu-trash-map
 - **자동 배포**: `git push` → 16~22초 빌드 → alias 자동 갱신
+- **자동 릴리스**: PR에 `release:patch/minor/major` 라벨 붙여 main으로 머지 → 자동 bump + tag + GitHub Release. 정책은 `CLAUDE.md` `## Release` 참고. 라벨 없으면 skip
 - **Observability**: `@vercel/analytics` + `@vercel/speed-insights` 마운트, dashboard에 RUM/Core Web Vitals 자동 누적
 - **Telegram 알림**: GitHub Actions `deployment_status` → 단일 그룹 + 토픽 분기(Preview/Production/Errors) 자동 발사. 셋업 가이드는 [공유 gist](https://gist.github.com/jetsongdev/bd80cb02e5e3fb9a26b892cc5fef2dcc)
 - **Lighthouse CI**: PR마다 perf/a11y/best-practices/seo 자동 측정. 임계 perf ≥0.62 (P3.x 다구 panning 인프라 회귀 수용 후 P3.1b/c 머지 시 ratchet up 예정)
