@@ -12,6 +12,7 @@
 - **Repo**: https://github.com/jetsongdev/junggu-trash-map (private)
 - **Vercel 대시보드**: https://vercel.com/jetsongdev/junggu-trash-map
 - **자동 배포**: `git push` → 16~22초 빌드 → alias 자동 갱신
+- **자동 릴리스**: PR에 `release:patch/minor/major` 라벨 붙여 main으로 머지 → 자동 bump + tag + GitHub Release. 정책은 `CLAUDE.md` `## Release` 참고. 라벨 없으면 skip
 - **Observability**: `@vercel/analytics` + `@vercel/speed-insights` 마운트, dashboard에 RUM/Core Web Vitals 자동 누적
 
 iPad/모바일에서 GPS까지 검증하려면 production URL로 접속 (HTTPS 필수). LAN(`http://192.168.x.x:3001`) 직접 접근은 Safari가 Geolocation 권한 prompt 거부 — 그땐 앱의 **🎯 지도 탭** 모드로 우회.
