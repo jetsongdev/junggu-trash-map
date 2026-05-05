@@ -89,6 +89,8 @@ function PageContent() {
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [districtsGeo, setDistrictsGeo] = useState<unknown | null>(null);
   const [loadingDistrict, setLoadingDistrict] = useState<DistrictCode | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const toastTimerRef = useRef<number | null>(null);
   const [selected, setSelected] = useState<Set<BinType>>(() => new Set());
   const [error, setError] = useState<string | null>(null);
 
@@ -276,6 +278,7 @@ function PageContent() {
               return next;
             });
             setActiveDistricts((prev) => new globalThis.Set([...prev, d.code]));
+            showToast(`${d.name} ${data.length}개`, 1500);
           } catch {
             // silent — user can pan to retry
           }
@@ -324,6 +327,10 @@ function PageContent() {
         navigator.geolocation.clearWatch(watchIdRef.current);
         watchIdRef.current = null;
       }
+      if (toastTimerRef.current != null) {
+        window.clearTimeout(toastTimerRef.current);
+        toastTimerRef.current = null;
+      }
     };
   }, []);
 
@@ -345,6 +352,39 @@ function PageContent() {
     }
     return flat;
   }, [districtsCache, activeDistricts]);
+
+  const showToast = (text: string, durationMs = 1800) => {
+    setToast(text);
+    if (toastTimerRef.current != null) {
+      window.clearTimeout(toastTimerRef.current);
+    }
+    toastTimerRef.current = window.setTimeout(() => {
+      setToast(null);
+      toastTimerRef.current = null;
+    }, durationMs);
+  };
+
+  const populatedDistrictCount = useMemo(
+    () => (manifest ? manifest.districts.filter((d) => d.binCount > 0).length : 0),
+    [manifest],
+  );
+
+  const allLoadedToastFiredRef = useRef(false);
+  useEffect(() => {
+    if (!manifest) return;
+    if (populatedDistrictCount < 2) return;
+    if (allLoadedToastFiredRef.current) return;
+    const loadedPopulated = [...activeDistricts].filter((code) => {
+      const meta = findDistrictMeta(manifest, code);
+      return meta != null && meta.binCount > 0;
+    }).length;
+    if (loadedPopulated >= populatedDistrictCount) {
+      allLoadedToastFiredRef.current = true;
+      showToast(`전체 ${populatedDistrictCount}개 자치구 ${bins.length}개 휴지통 로드 완료`, 3000);
+    }
+    // showToast intentionally omitted — closure is stable for this lifecycle
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeDistricts, manifest, populatedDistrictCount, bins.length]);
 
   const districtBreakdown = useMemo(() => {
     if (!manifest) return [] as { code: DistrictCode; name: string; loaded: number }[];
@@ -481,6 +521,7 @@ function PageContent() {
         return next;
       });
       setActiveDistricts((prev) => new globalThis.Set([...prev, code]));
+      showToast(`${meta.name} ${data.length}개`, 1500);
     } catch {
       // silent — user can pan back, fetch will retry on next moveend
     } finally {
@@ -798,6 +839,17 @@ function PageContent() {
           walkingSpeed={walkingSpeed}
           onUse={handleUseBin}
         />
+        {toast && (
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-6 z-[1001] flex justify-center px-4"
+            role="status"
+            aria-live="polite"
+          >
+            <div className="rounded-full bg-neutral-900/90 px-4 py-2 text-xs text-neutral-100 shadow-lg ring-1 ring-neutral-700 backdrop-blur-sm">
+              {toast}
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
