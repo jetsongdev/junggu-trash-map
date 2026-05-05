@@ -4,7 +4,7 @@ title: "★ 즐겨찾기 — popup 별 토글 + 칩 필터 (1/59)"
 index: 25
 date: 2026-05-04
 phase: P2.14
-git_sha: PENDING
+git_sha: c48d1004e2b600e1cda1bd3bed652d724e79451b
 viewport: 390x844
 ---
 
