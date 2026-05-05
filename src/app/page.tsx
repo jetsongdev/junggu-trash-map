@@ -89,7 +89,7 @@ function PageContent() {
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [districtsGeo, setDistrictsGeo] = useState<unknown | null>(null);
   const [loadingDistrict, setLoadingDistrict] = useState<DistrictCode | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ text: string; emphatic: boolean } | null>(null);
   const toastTimerRef = useRef<number | null>(null);
   const [selected, setSelected] = useState<Set<BinType>>(() => new Set());
   const [error, setError] = useState<string | null>(null);
@@ -353,8 +353,8 @@ function PageContent() {
     return flat;
   }, [districtsCache, activeDistricts]);
 
-  const showToast = (text: string, durationMs = 1800) => {
-    setToast(text);
+  const showToast = (text: string, durationMs = 1800, emphatic = false) => {
+    setToast({ text, emphatic });
     if (toastTimerRef.current != null) {
       window.clearTimeout(toastTimerRef.current);
     }
@@ -380,23 +380,32 @@ function PageContent() {
     }).length;
     if (loadedPopulated >= populatedDistrictCount) {
       allLoadedToastFiredRef.current = true;
-      showToast(`전체 ${populatedDistrictCount}개 자치구 ${bins.length}개 휴지통 로드 완료`, 3000);
+      showToast(`전체 ${populatedDistrictCount}개 자치구 ${bins.length}개 휴지통 로드 완료`, 4000, true);
     }
     // showToast intentionally omitted — closure is stable for this lifecycle
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeDistricts, manifest, populatedDistrictCount, bins.length]);
 
   const districtBreakdown = useMemo(() => {
-    if (!manifest) return [] as { code: DistrictCode; name: string; loaded: number }[];
-    return [...activeDistricts]
-      .map((code) => {
-        const meta = findDistrictMeta(manifest, code);
-        const loaded = districtsCache.get(code)?.length ?? 0;
-        return { code, name: meta?.name ?? code, loaded };
-      })
-      .filter((d) => d.loaded > 0)
-      .sort((a, b) => b.loaded - a.loaded);
-  }, [activeDistricts, districtsCache, manifest]);
+    if (!manifest) return [] as { code: DistrictCode; name: string; binCount: number; loaded: boolean }[];
+    return manifest.districts
+      .filter((d) => d.binCount > 0)
+      .map((d) => ({
+        code: d.code,
+        name: d.name,
+        binCount: d.binCount,
+        loaded: districtsCache.has(d.code),
+      }))
+      .sort((a, b) => b.binCount - a.binCount);
+  }, [districtsCache, manifest]);
+
+  const totalAvailableBins = useMemo(
+    () =>
+      manifest
+        ? manifest.districts.reduce((sum, d) => sum + d.binCount, 0)
+        : 0,
+    [manifest],
+  );
 
   const visible = useMemo(() => {
     const byType = filterByTypes(bins, selected);
@@ -775,7 +784,7 @@ function PageContent() {
           </div>
         )}
         <div className="mt-2 text-xs text-neutral-400">
-          📍 {visible.length} / 전체 {bins.length}개
+          📍 {visible.length} / 전체 {totalAvailableBins || bins.length}개
           {loadingDistrict && manifest && (
             <span className="ml-2 inline-flex items-center gap-1 text-amber-300" role="status" aria-live="polite">
               <span
@@ -804,12 +813,14 @@ function PageContent() {
           {error && <span className="ml-2 text-red-400">({error})</span>}
         </div>
         {districtBreakdown.length >= 2 && (
-          <div className="mt-1 text-[11px] leading-relaxed text-neutral-500">
+          <div className="mt-1 text-[11px] leading-relaxed">
             {districtBreakdown.map((d, i) => (
               <span key={d.code}>
                 {i > 0 && <span aria-hidden className="mx-1.5 text-neutral-700">·</span>}
-                <span className="text-neutral-400">{d.name}</span>{' '}
-                <span className="font-mono text-neutral-300">{d.loaded}</span>
+                <span className={d.loaded ? 'text-neutral-300' : 'text-neutral-600'}>
+                  {d.name}{' '}
+                  <span className="font-mono">{d.binCount}</span>
+                </span>
               </span>
             ))}
           </div>
@@ -845,8 +856,15 @@ function PageContent() {
             role="status"
             aria-live="polite"
           >
-            <div className="rounded-full bg-neutral-900/90 px-4 py-2 text-xs text-neutral-100 shadow-lg ring-1 ring-neutral-700 backdrop-blur-sm">
-              {toast}
+            <div
+              className={
+                toast.emphatic
+                  ? 'rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-2xl ring-2 ring-emerald-300'
+                  : 'rounded-full bg-neutral-900/90 px-4 py-2 text-xs text-neutral-100 shadow-lg ring-1 ring-neutral-700 backdrop-blur-sm'
+              }
+            >
+              {toast.emphatic && <span aria-hidden className="mr-1.5">✅</span>}
+              {toast.text}
             </div>
           </div>
         )}
