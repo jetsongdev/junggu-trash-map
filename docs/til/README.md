@@ -15,6 +15,8 @@
 | 2026-05-04 | [Lighthouse CI config traps](./2026-05-04-lighthouse-ci-config-traps.md) | preset: mobile은 무효 값, PWA 카테고리 LH12에서 제거, 임계치는 측정값에서 ratchet up |
 | 2026-05-04 | [leaflet-rotate window.L bootstrap](./2026-05-04-leaflet-rotate-window-l-bootstrap.md) | UMD 글로벌 의존 — window.L 셋업 모듈 분리해 먼저 import |
 | 2026-05-04 | [leaflet-rotate marker double-rotation](./2026-05-04-leaflet-rotate-marker-double-rotation.md) | 플러그인이 markerPane 직립 처리 — counter-rotate 직접 걸지 말 것 |
+| 2026-05-05 | [Next 16 resource hints via ReactDOM API](./2026-05-05-nextjs-resource-hints-reactdom-api.md) | Metadata API는 preconnect/dns-prefetch 직접 지원 X — `ReactDOM.preconnect()` / `prefetchDNS()` 사용 |
+| 2026-05-05 | [Sentry bundle lazy import](./2026-05-05-sentry-bundle-lazy-import.md) | top-level Sentry import는 메인 번들 포함 유발 — dynamic import로 lazy chunk화 |
 
 ## 작성 컨벤션
 

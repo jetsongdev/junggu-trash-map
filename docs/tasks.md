@@ -169,6 +169,8 @@
 - **GitHub Actions 첫 워크플로우는 chicken-and-egg**: 워크플로우는 default branch(main)에 있어야 PR 트리거 인식. `pull_request: branches:`는 PR의 base를 필터함(head 아님). 첫 도입 시 `workflow_dispatch:` escape hatch를 함께 박을 것. [TIL](./til/2026-05-04-github-actions-first-workflow-bootstrap.md).
 - **Lighthouse CI 첫 baseline**: `preset: "mobile"`은 무효 값(default라 빼야 함, 유효 값은 perf/experimental/desktop). PWA 카테고리는 LH 12부터 제거. 첫 임계치는 일반 가이드 점수가 아니라 **측정값 - 마진**에서 시작해 ratchet up. [TIL](./til/2026-05-04-lighthouse-ci-config-traps.md).
 - **Top-N 강조는 비후보 dimming이 효과적**: 강조 대상의 크기·진하기를 키우는 것보다, 비강조 대상을 죽이는 게 시각 노이즈 ratio 측면에서 압도적. 배경 마커 56개 vs 후보 3개 같이 N>>M 구도면 더더욱. [TIL](./til/2026-05-04-top3-readability-dim-non-candidates.md).
+- **Next 16 resource hints는 Metadata API 직통 아님**: `<head>`에 `rel=preconnect` / `dns-prefetch` 직접 추가하지 말고 Client Component에서 `ReactDOM.preconnect()` / `prefetchDNS()` 사용. 로컬 docs grep이 제일 빠르다. [TIL](./til/2026-05-05-nextjs-resource-hints-reactdom-api.md).
+- **Sentry 같은 외부 SDK는 top-level import 금지**: `unused-javascript` audit에 바로 걸린다. capture/init 시점이 명확하면 `await import()` + idle 지연으로 메인 번들에서 빼라. [TIL](./til/2026-05-05-sentry-bundle-lazy-import.md).
 
 ---
 
