@@ -9,6 +9,8 @@
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-05-05
+
 ### Added
 - 서울 7개 자치구 휴지통 데이터(중구·서초·중랑·성북·마포·구로·노원, 총 802개)가 한 지도에 들어왔습니다. 처음에는 내 위치(또는 기본 중구)의 자치구 마커만 보이고, 지도를 다른 자치구 영역으로 옮기면 그 자치구 데이터가 자동으로 추가 로드됩니다. 데이터를 아직 발행하지 않은 18개 구는 빈 영역으로 남습니다.
 - 자치구 데이터를 불러오는 동안 화면 중앙에 spinner + "자치구 로드 (N/7)" 오버레이가 첫 paint부터 7개 모두 로드 완료까지 끊김 없이 표시됩니다. 자치구별로 ✓(완료, emerald) / ⟳(진행 중, amber pulse) / ⏳(대기, neutral) 상태 아이콘이 한 줄씩 보이고 완료된 구는 마커 수가 우측에 함께 노출됩니다.
@@ -177,7 +179,8 @@
 - `~/.claude/skills/snapshot/` — 글로벌 스냅샷 스킬 (프레임워크 무관, config 기반)
 - `CLAUDE.md` — 세션 진입 가이드 (작업 큐 / 시각 히스토리 / CHANGELOG 포인터)
 
-[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.6.0...v0.7.0
