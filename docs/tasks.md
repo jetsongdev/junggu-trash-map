@@ -76,6 +76,7 @@
 - [x] **P3.2** 25구 데이터 transform — 공공데이터포털 표준데이터 발행분 7개 자치구 (중구·서초·중랑·성북·마포·구로·노원, 총 802 bins) `transform.ts` 일괄 변환 + manifest binCount/version 갱신. 다른 18개는 미발행 → 자리 표시자 유지. + `<MapMoveHandler>` panning 트리거: 지도 center가 다른 폴리곤에 진입하면 그 자치구 자동 fetch + active set 추가.
 - [x] **P3.2-fix1** prefetch stale closure — `districtsCacheRef`/`activeFetchesRef`/`failedDistrictsRef`로 latest state 읽도록 수정. 더 이상 mount 시점 스냅샷에 묶여 panning으로 로드한 구를 재fetch하지 않음.
 - [x] **P3.2-fix2** 로딩 오버레이 fail terminal — `failedDistricts` Set 추가, 3개 catch 블록 모두 실패 등록, `terminalPopulatedCount = loaded ∪ failed`로 `fullyLoaded` 산정 → 실패 시에도 오버레이 dismiss. overlay 행에 `✗` 빨강 아이콘으로 실패 표시.
+- [x] **P2.17** onboarding & 모드 명확화 — 첫 방문 1회 emphatic 토스트 (🎯+🏁 사용법 안내, localStorage `onboarded` 가드), 출발/목적지 칩에 1️⃣/2️⃣ 뱃지, tap mode 활성 시 하단 고정 banner ("지도에서 탭하거나 검색하세요"), 검색 드롭다운 열려있을 때 `handleMapClick` 가드로 빈 영역 오탭 방지 (UX U1+U2+U3)
 
 ---
 
@@ -84,6 +85,10 @@
 핵심 기능 다 들어가있고, 아래는 사용성·확장성 강화. 가벼운 → 무거운 순:
 
 - [ ] **P2.3** 클러스터링 — `leaflet.markercluster`. 마커 100+ 시 lag 방지. **25구 확장(Phase 3) 전엔 ø**
+- [ ] **P2.18** 통계바 정보 분리 — 에러는 빨간 토스트, 통계바는 성공 상태만 표시 (UX U4)
+- [ ] **P2.19** hidden feature 발견 경로 — origin+dest 동시 set 시 공유 버튼 힌트, ☆/헤드업/격자 첫 사용 시 안내 (UX U5+U8)
+- [ ] **P2.20** Top-N 거리선 시각 분리 — rank 1 굵은 실선, 2/3 점선·굵기 차이로 색맹·소화면 가독성 보강 (UX U6 거리선 + U10)
+- [ ] **P2.21** 보행 속도 슬라이더 초기 안내 — 슬라이더 첫 토글 시 "현재 4 km/h (통상 보행)" 힌트 (UX U9)
 
 ---
 
@@ -123,6 +128,7 @@
 - [x] **I.1** 테스트 인프라 — vitest 도입, `lib/geo.ts`·`lib/eta.ts`·`lib/url-share.ts` 순수 함수 59개 커버
 - [ ] **I.4** i18n (en/ja/zh) — `next-intl`. 명동·남대문 외국인 관광객 시나리오
 - [ ] **I.5** 라이트 모드 UI 정비 — 시스템 prefers-color-scheme 라이트/사용자 ☀️ 토글 시 헤더·필터 바·칩·통계 바·breakdown·로딩 오버레이·토스트·데이터 출처 핀까지 전부 라이트 콘트라스트로 일관 전환. 마커 윤곽·점선·하이라이트 ring도 라이트 타일 위에서 가독성 재검토. 라이트/다크 양 스냅샷 비교 첨부.
+- [ ] **I.6** a11y 라운드 — 색맹 친화 패턴(굵기/대시 보강은 P2.20에 포함), aria-label 점검, 키보드 탐색, 빈 자치구(미발행 18구) `aria-label` 명시
 
 ---
 

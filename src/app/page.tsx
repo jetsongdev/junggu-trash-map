@@ -109,6 +109,7 @@ function PageContent() {
   const [locatePending, setLocatePending] = useState(false);
   const [locateError, setLocateError] = useState<string | null>(null);
   const [tapTarget, setTapTarget] = useState<TapTarget>(null);
+  const [searchDropdownOpen, setSearchDropdownOpen] = useState(false);
   const [distanceMode, setDistanceMode] = useState<DistanceMode>('euclidean');
   const [tileTheme, setTileTheme] = useState<TileTheme>('dark');
   const [walkingSpeed, setWalkingSpeed] = useState<number>(DEFAULT_KMH);
@@ -464,6 +465,22 @@ function PageContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadedPopulatedCount, populatedDistrictCount, bins.length]);
 
+  const onboardingFiredRef = useRef(false);
+  useEffect(() => {
+    if (onboardingFiredRef.current) return;
+    if (!manifest) return;
+    if (typeof window === 'undefined') return;
+    onboardingFiredRef.current = true;
+    if (window.localStorage.getItem('onboarded') === 'true') return;
+    window.localStorage.setItem('onboarded', 'true');
+    showToast(
+      '🎯 출발과 🏁 목적지를 정하면 경유 휴지통을 알려드려요',
+      6000,
+      true,
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [manifest]);
+
   type DistrictRow = {
     code: DistrictCode;
     name: string;
@@ -586,6 +603,9 @@ function PageContent() {
   };
 
   const handleMapClick = (latlng: LatLng) => {
+    // 검색 드롭다운이 열려 있으면 사용자가 결과를 누르려는 중. 맵 빈 영역 클릭으로
+    // origin/destination이 잘못 잡히는 걸 막는다.
+    if (searchDropdownOpen) return;
     if (tapTarget === 'origin') {
       stopWatch();
       setUserLocation(latlng);
@@ -702,10 +722,10 @@ function PageContent() {
   };
 
   const destButtonLabel = destination
-    ? '🏁 목적지 해제'
+    ? '2️⃣ 🏁 목적지 해제'
     : tapTarget === 'destination'
-      ? '🏁 목적지 탭하세요'
-      : '🏁 목적지';
+      ? '2️⃣ 🏁 목적지 탭하세요'
+      : '2️⃣ 🏁 목적지';
 
   const inactiveChip =
     'bg-neutral-800 text-neutral-200 ring-1 ring-neutral-700 hover:bg-neutral-700';
@@ -746,7 +766,11 @@ function PageContent() {
 
       <section className={`border-b px-4 py-3 ${themeChrome.section}`}>
         <div className="mb-3">
-          <SearchBox onSelect={handleSearchSelect} tapMode={tapTarget} />
+          <SearchBox
+            onSelect={handleSearchSelect}
+            tapMode={tapTarget}
+            onDropdownChange={setSearchDropdownOpen}
+          />
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <FilterChips selected={selected} onToggle={toggle} onClear={clearTypes} />
@@ -805,7 +829,7 @@ function PageContent() {
                 : inactiveChip
             }`}
           >
-            <span aria-hidden>🎯</span>
+            <span aria-hidden>1️⃣ 🎯</span>
             <span>{tapTarget === 'origin' ? '출발 탭하세요' : '출발 탭'}</span>
           </button>
           <button
@@ -1035,6 +1059,25 @@ function PageContent() {
                   );
                 })}
               </ul>
+            </div>
+          </div>
+        )}
+        {tapTarget && (
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-20 z-[1001] flex justify-center px-4"
+            role="status"
+            aria-live="polite"
+          >
+            <div
+              className={`rounded-full px-5 py-3 text-sm font-semibold text-white shadow-2xl ring-2 ${
+                tapTarget === 'origin'
+                  ? 'bg-violet-600 ring-violet-300'
+                  : 'bg-rose-600 ring-rose-300'
+              }`}
+            >
+              {tapTarget === 'origin'
+                ? '🎯 지도에서 출발 위치를 탭하거나 검색하세요'
+                : '🏁 지도에서 목적지를 탭하거나 검색하세요'}
             </div>
           </div>
         )}
