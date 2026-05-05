@@ -24,6 +24,9 @@
 - 자치구 prefetch가 panning으로 이미 본 구를 5초 뒤 다시 받아오며 토스트가 한 번 더 뜨던 문제 — prefetch가 이제 latest state를 읽어 이미 로드된 구를 건너뜁니다 (P3.2-fix1).
 - 자치구 데이터 fetch가 404/네트워크 오류로 실패하면 로딩 오버레이가 영영 사라지지 않던 문제 — 실패한 자치구도 terminal로 집계해 오버레이가 dismiss되고, 오버레이 행에 `✗`(rose) 아이콘으로 실패 자치구를 표시합니다. panning으로 재시도해 성공하면 자동으로 풀립니다 (P3.2-fix2).
 
+### Infrastructure
+- `telegram-preview-notify` 워크플로에 `workflow_dispatch` trigger 추가 — GitHub이 `deployment_status` 이벤트를 drop한 케이스에서 Actions UI의 "Run workflow"로 SHA만 입력해 같은 알림을 수동 발사 가능. dispatch 시 SHA의 최신 deployment를 lookup해 normalize하므로 메시지 형식·라우팅·해시태그 모두 자동 trigger와 동일.
+
 ## [0.9.0] - 2026-05-05
 
 ### Infrastructure

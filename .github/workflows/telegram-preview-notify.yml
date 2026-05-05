@@ -2,6 +2,14 @@ name: Telegram deploy notify
 
 on:
   deployment_status:
+  # GitHub이 deployment_status 이벤트를 가끔 drop함 — 그런 경우 Actions UI에서
+  # 수동 dispatch로 같은 알림을 발사. SHA만 받고 가장 최신 deployment를 lookup.
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: 'Commit SHA (full or 7+ chars). 그 SHA의 최신 deployment 사용'
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -11,17 +19,76 @@ permissions:
 jobs:
   notify:
     if: |
+      github.event_name == 'workflow_dispatch' ||
       github.event.deployment_status.state == 'success' ||
       github.event.deployment_status.state == 'failure' ||
       github.event.deployment_status.state == 'error'
     runs-on: ubuntu-latest
     steps:
+      - name: Resolve deployment context
+        id: ctx
+        env:
+          GH_TOKEN:     ${{ secrets.GITHUB_TOKEN }}
+          REPO:         ${{ github.repository }}
+          EVENT_NAME:   ${{ github.event_name }}
+          INPUT_SHA:    ${{ inputs.sha }}
+          EVENT_SHA:    ${{ github.event.deployment.sha }}
+          EVENT_REF:    ${{ github.event.deployment.ref }}
+          EVENT_ENV:    ${{ github.event.deployment.environment }}
+          EVENT_STATE:  ${{ github.event.deployment_status.state }}
+          EVENT_TARGET: ${{ github.event.deployment_status.target_url }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            if ! echo "$INPUT_SHA" | grep -qE '^[0-9a-f]{7,40}$'; then
+              echo "::error::Invalid SHA: $INPUT_SHA"; exit 1
+            fi
+            DEPS=$(gh api "/repos/$REPO/deployments?sha=$INPUT_SHA" 2>/dev/null || echo "[]")
+            DEP_ID=$(echo "$DEPS" | jq -r '.[0].id // empty')
+            if [ -z "$DEP_ID" ]; then
+              echo "::error::No deployment found for SHA $INPUT_SHA"; exit 1
+            fi
+            SHA=$(echo "$DEPS"  | jq -r '.[0].sha')
+            REF=$(echo "$DEPS"  | jq -r '.[0].ref // empty')
+            ENV=$(echo "$DEPS"  | jq -r '.[0].environment // "Preview"')
+            ST=$(gh api "/repos/$REPO/deployments/$DEP_ID/statuses" 2>/dev/null || echo "[]")
+            # 가장 최신 status(.[0])만 사용. terminal(success/failure/error)이
+            # 아니면 abort. 옛 terminal status를 끌어와 발사하면 redeploy/재시도
+            # 도중 stale 알림이 나갈 수 있음. statuses는 GitHub API가 created_at
+            # desc로 반환 → .[0]이 진짜 latest.
+            LATEST=$(echo "$ST" | jq -c '.[0] // empty')
+            if [ -z "$LATEST" ]; then
+              echo "::error::Deployment $DEP_ID has no statuses yet — wait for terminal."
+              exit 1
+            fi
+            STATE=$(echo "$LATEST" | jq -r '.state')
+            case "$STATE" in
+              success|failure|error) ;;
+              *)
+                echo "::error::Deployment $DEP_ID latest status is non-terminal: '$STATE'. 빌딩 또는 재시도 중일 수 있음 — wait for terminal."
+                exit 1
+                ;;
+            esac
+            TARGET=$(echo "$LATEST" | jq -r '.target_url // ""')
+          else
+            SHA="$EVENT_SHA"
+            REF="$EVENT_REF"
+            ENV="$EVENT_ENV"
+            STATE="$EVENT_STATE"
+            TARGET="$EVENT_TARGET"
+          fi
+          echo "sha=$SHA"             >> "$GITHUB_OUTPUT"
+          echo "ref=$REF"             >> "$GITHUB_OUTPUT"
+          echo "environment=$ENV"     >> "$GITHUB_OUTPUT"
+          echo "state=$STATE"         >> "$GITHUB_OUTPUT"
+          echo "target_url=$TARGET"   >> "$GITHUB_OUTPUT"
+
       - name: Look up PR for deployed SHA
         id: pr
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
-          SHA: ${{ github.event.deployment.sha }}
+          SHA: ${{ steps.ctx.outputs.sha }}
         run: |
           set -euo pipefail
           PR_JSON=$(gh api "/repos/$REPO/commits/$SHA/pulls" 2>/dev/null || echo "[]")
@@ -37,7 +104,7 @@ jobs:
       - name: Checkout repo at deployed SHA
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.deployment.sha }}
+          ref: ${{ steps.ctx.outputs.sha }}
           fetch-depth: 1
 
       - name: Extract & format CHANGELOG [Unreleased]
@@ -59,7 +126,10 @@ jobs:
           MAX=20
           TOTAL=$(printf '%s\n' "$FMT" | wc -l | tr -d ' ')
           if [ "$TOTAL" -gt "$MAX" ]; then
-            BODY=$(printf '%s\n' "$FMT" | head -n "$MAX")
+            # head는 N행 읽고 stdin을 닫아 printf에 SIGPIPE → set -o pipefail에서
+            # 스크립트 중단됨 (CHANGELOG가 20행 넘는 SHA에서 hit). awk는 입력 끝까지
+            # 읽고 NR<=m만 출력해 pipe를 끝까지 흘림.
+            BODY=$(printf '%s\n' "$FMT" | awk -v m="$MAX" 'NR<=m')
             BODY="${BODY}"$'\n'"<i>…and $((TOTAL - MAX)) more lines</i>"
           else
             BODY="$FMT"
@@ -78,11 +148,11 @@ jobs:
           TG_TOPIC_PREVIEW: ${{ vars.TG_TOPIC_PREVIEW }}
           TG_TOPIC_PROD:    ${{ vars.TG_TOPIC_PROD }}
           TG_TOPIC_ERROR:   ${{ vars.TG_TOPIC_ERROR }}
-          DEPLOY_URL:       ${{ github.event.deployment_status.target_url }}
-          ENVIRONMENT:      ${{ github.event.deployment.environment }}
-          STATE:            ${{ github.event.deployment_status.state }}
-          REF:              ${{ github.event.deployment.ref }}
-          SHA:              ${{ github.event.deployment.sha }}
+          DEPLOY_URL:       ${{ steps.ctx.outputs.target_url }}
+          ENVIRONMENT:      ${{ steps.ctx.outputs.environment }}
+          STATE:            ${{ steps.ctx.outputs.state }}
+          REF:              ${{ steps.ctx.outputs.ref }}
+          SHA:              ${{ steps.ctx.outputs.sha }}
           REPO:             ${{ github.repository }}
           PR_NUMBER:        ${{ steps.pr.outputs.number }}
           PR_URL:           ${{ steps.pr.outputs.url }}
