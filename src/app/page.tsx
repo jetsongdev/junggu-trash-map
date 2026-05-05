@@ -368,7 +368,27 @@ function PageContent() {
     return () => window.clearTimeout(t);
   }, [activeFetches, overlayDismissAt]);
 
-  const showLoadingOverlay = activeFetches.size > 0 || overlayDismissAt != null;
+  const populatedDistrictCount = useMemo(
+    () => (manifest ? manifest.districts.filter((d) => d.binCount > 0).length : 0),
+    [manifest],
+  );
+
+  const loadedPopulatedCount = useMemo(() => {
+    if (!manifest) return 0;
+    return [...activeDistricts].filter(
+      (c) => (findDistrictMeta(manifest, c)?.binCount ?? 0) > 0,
+    ).length;
+  }, [activeDistricts, manifest]);
+
+  const fullyLoaded =
+    manifest != null &&
+    populatedDistrictCount > 0 &&
+    loadedPopulatedCount >= populatedDistrictCount;
+
+  // 오버레이는 첫 paint(boot) 시작 ~ 7개 모두 로드까지 끊김 없이.
+  // dismissAt은 마지막에 fullyLoaded 됐을 때 min-duration tail로 연결.
+  const showLoadingOverlay =
+    manifest != null && (!fullyLoaded || activeFetches.size > 0 || overlayDismissAt != null);
 
   useEffect(() => {
     return () => {
@@ -412,11 +432,6 @@ function PageContent() {
       toastTimerRef.current = null;
     }, durationMs);
   };
-
-  const populatedDistrictCount = useMemo(
-    () => (manifest ? manifest.districts.filter((d) => d.binCount > 0).length : 0),
-    [manifest],
-  );
 
   const allLoadedToastFiredRef = useRef(false);
   useEffect(() => {
@@ -920,7 +935,9 @@ function PageContent() {
                     ? [...activeFetches]
                         .map((c) => findDistrictMeta(manifest, c)?.name ?? c)
                         .join(' · ')
-                    : '마무리 중…'}
+                    : !fullyLoaded
+                      ? `${populatedDistrictCount - loadedPopulatedCount}개 자치구 추가 로드 대기…`
+                      : '마무리 중…'}
                 </span>
               </span>
             </div>
