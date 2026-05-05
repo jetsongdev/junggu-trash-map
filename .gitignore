@@ -44,3 +44,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# release automation 부산물 (bump-version.ts가 작성, 워크플로 안에서만 의미)
+release_notes.md

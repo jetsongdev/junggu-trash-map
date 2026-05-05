@@ -1,0 +1,109 @@
+name: Release on merge
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      kind:
+        description: 'Bump kind (manual escape hatch — 라벨 자동 cut이 partial-fail했을 때 수동 재실행)'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: release-on-merge
+  cancel-in-progress: false
+
+jobs:
+  detect:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      kind: ${{ steps.choose.outputs.kind }}
+    steps:
+      - name: Choose bump kind (label or manual dispatch)
+        id: choose
+        env:
+          EVENT: ${{ github.event_name }}
+          DISPATCH_KIND: ${{ inputs.kind }}
+          LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+        run: |
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            kind="$DISPATCH_KIND"
+            echo "Manual dispatch — kind: $kind"
+          else
+            kind=""
+            for l in $(echo "$LABELS" | jq -r '.[]' 2>/dev/null || true); do
+              case "$l" in
+                release:major) kind="major" ;;
+                release:minor) kind="minor" ;;
+                release:patch) kind="patch" ;;
+              esac
+            done
+            if [ -z "$kind" ]; then
+              echo "No release label — skipping bump."
+            else
+              echo "Release label kind: $kind"
+            fi
+          fi
+          echo "kind=$kind" >> "$GITHUB_OUTPUT"
+
+  release:
+    needs: detect
+    if: needs.detect.outputs.kind != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.8
+
+      - name: Bump version + transform CHANGELOG + write release_notes.md
+        id: bump
+        run: bun run scripts/bump-version.ts ${{ needs.detect.outputs.kind }}
+
+      - name: Commit + push + tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json CHANGELOG.md
+          git commit -m "chore(release): v${{ steps.bump.outputs.version }} [skip ci]"
+          git tag -a "v${{ steps.bump.outputs.version }}" \
+            -m "v${{ steps.bump.outputs.version }} (auto, ${{ needs.detect.outputs.kind }} bump from v${{ steps.bump.outputs.prev_version }})"
+          git push origin main
+          git push origin "v${{ steps.bump.outputs.version }}"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v${{ steps.bump.outputs.version }}" \
+            --title "v${{ steps.bump.outputs.version }}" \
+            --notes-file release_notes.md
+
+      - name: Comment release link on merged PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+          VER: ${{ steps.bump.outputs.version }}
+        run: |
+          gh pr comment "$PR" --body "🚀 Released as **v$VER** → https://github.com/${{ github.repository }}/releases/tag/v$VER"
