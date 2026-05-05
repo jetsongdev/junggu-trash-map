@@ -5,6 +5,16 @@ on:
     types: [closed]
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      kind:
+        description: 'Bump kind (manual escape hatch — 라벨 자동 cut이 partial-fail했을 때 수동 재실행)'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
 
 permissions:
   contents: write
@@ -16,31 +26,38 @@ concurrency:
 
 jobs:
   detect:
-    if: github.event.pull_request.merged == true
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     timeout-minutes: 2
     outputs:
-      kind: ${{ steps.label.outputs.kind }}
+      kind: ${{ steps.choose.outputs.kind }}
     steps:
-      - name: Detect release label
-        id: label
+      - name: Choose bump kind (label or manual dispatch)
+        id: choose
         env:
+          EVENT: ${{ github.event_name }}
+          DISPATCH_KIND: ${{ inputs.kind }}
           LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
         run: |
-          kind=""
-          for l in $(echo "$LABELS" | jq -r '.[]'); do
-            case "$l" in
-              release:major) kind="major" ;;
-              release:minor) kind="minor" ;;
-              release:patch) kind="patch" ;;
-            esac
-          done
-          echo "kind=$kind" >> "$GITHUB_OUTPUT"
-          if [ -z "$kind" ]; then
-            echo "No release label — skipping bump."
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            kind="$DISPATCH_KIND"
+            echo "Manual dispatch — kind: $kind"
           else
-            echo "Release kind: $kind"
+            kind=""
+            for l in $(echo "$LABELS" | jq -r '.[]' 2>/dev/null || true); do
+              case "$l" in
+                release:major) kind="major" ;;
+                release:minor) kind="minor" ;;
+                release:patch) kind="patch" ;;
+              esac
+            done
+            if [ -z "$kind" ]; then
+              echo "No release label — skipping bump."
+            else
+              echo "Release label kind: $kind"
+            fi
           fi
+          echo "kind=$kind" >> "$GITHUB_OUTPUT"
 
   release:
     needs: detect
