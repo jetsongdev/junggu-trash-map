@@ -73,6 +73,7 @@ const STATUS_VIS = {
   loaded:   { icon: '✓', cls: 'text-emerald-400' },
   inFlight: { icon: '⟳', cls: 'text-amber-400 animate-pulse' },
   pending:  { icon: '⏳', cls: 'text-neutral-500' },
+  failed:   { icon: '✗', cls: 'text-rose-400' },
 } as const;
 
 const MapView = dynamic(() => import('@/components/Map'), {
@@ -95,6 +96,7 @@ function PageContent() {
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [districtsGeo, setDistrictsGeo] = useState<unknown | null>(null);
   const [activeFetches, setActiveFetches] = useState<Set<DistrictCode>>(() => new Set());
+  const [failedDistricts, setFailedDistricts] = useState<Set<DistrictCode>>(() => new Set());
   const [toast, setToast] = useState<{ text: string; emphatic: boolean } | null>(null);
   const toastTimerRef = useRef<number | null>(null);
   const [selected, setSelected] = useState<Set<BinType>>(() => new Set());
@@ -245,7 +247,12 @@ function PageContent() {
         });
         setActiveDistricts((prev) => new Set([...prev, initialCode!]));
       } catch (e: unknown) {
-        if (active) setError(e instanceof Error ? e.message : 'unknown');
+        if (active) {
+          setError(e instanceof Error ? e.message : 'unknown');
+          if (initialCode) {
+            setFailedDistricts((prev) => new Set([...prev, initialCode!]));
+          }
+        }
       } finally {
         if (active && initialCode) {
           setActiveFetches((prev) => {
@@ -274,11 +281,19 @@ function PageContent() {
         : (cb) => window.setTimeout(cb, 0);
 
     const startPrefetch = () => {
+      // Read latest state via refs — effect's deps are [manifest] only, so the
+      // closure-captured districtsCache/activeFetches would be the mount-time
+      // snapshot and cause already-loaded (e.g. via panning) districts to be
+      // re-fetched + toast re-fired when autoFallback fires.
+      const cacheNow = districtsCacheRef.current;
+      const fetchesNow = activeFetchesRef.current;
+      const failedNow = failedDistrictsRef.current;
       const toFetch = manifest.districts.filter(
         (d) =>
           d.binCount > 0 &&
-          !districtsCache.has(d.code) &&
-          !activeFetches.has(d.code),
+          !cacheNow.has(d.code) &&
+          !fetchesNow.has(d.code) &&
+          !failedNow.has(d.code),
       );
       if (toFetch.length === 0) return;
 
@@ -301,7 +316,9 @@ function PageContent() {
             setActiveDistricts((prev) => new Set([...prev, d.code]));
             showToast(`${d.name} ${data.length}개`, 1500);
           } catch {
-            // silent — user can pan to retry
+            // Mark terminal-failed so fullyLoaded can complete and overlay dismisses.
+            // User can still pan to retry — handleCenterChange clears the flag.
+            setFailedDistricts((prev) => new Set([...prev, d.code]));
           } finally {
             setActiveFetches((prev) => {
               const next = new Set(prev);
@@ -370,10 +387,21 @@ function PageContent() {
     ).length;
   }, [activeDistricts, manifest]);
 
+  // Terminal = loaded OR failed. Overlay dismisses on terminal so a failed fetch
+  // doesn't pin it forever.
+  const terminalPopulatedCount = useMemo(() => {
+    if (!manifest) return 0;
+    return manifest.districts.filter(
+      (d) =>
+        d.binCount > 0 &&
+        (activeDistricts.has(d.code) || failedDistricts.has(d.code)),
+    ).length;
+  }, [activeDistricts, failedDistricts, manifest]);
+
   const fullyLoaded =
     manifest != null &&
     populatedDistrictCount > 0 &&
-    loadedPopulatedCount >= populatedDistrictCount;
+    terminalPopulatedCount >= populatedDistrictCount;
 
   const showLoadingOverlay = manifest != null && !fullyLoaded;
 
@@ -441,6 +469,7 @@ function PageContent() {
     binCount: number;
     loaded: boolean;
     inFlight: boolean;
+    failed: boolean;
   };
 
   const districtBreakdown = useMemo<DistrictRow[]>(() => {
@@ -453,9 +482,10 @@ function PageContent() {
         binCount: d.binCount,
         loaded: districtsCache.has(d.code),
         inFlight: activeFetches.has(d.code),
+        failed: failedDistricts.has(d.code),
       }))
       .sort((a, b) => b.binCount - a.binCount);
-  }, [districtsCache, activeFetches, manifest]);
+  }, [districtsCache, activeFetches, failedDistricts, manifest]);
 
   const totalAvailableBins = useMemo(
     () =>
@@ -568,14 +598,24 @@ function PageContent() {
 
   // Refs syncing latest state — let handleCenterChange be useCallback-stable so
   // MapMoveHandler doesn't rebind the leaflet `moveend` listener on every render.
+  // districtsCache/failedDistricts also via ref so the prefetch effect (deps:
+  // [manifest]) reads latest, not its mount-time snapshot.
   const activeDistrictsRef = useRef(activeDistricts);
   const activeFetchesRef = useRef(activeFetches);
+  const districtsCacheRef = useRef(districtsCache);
+  const failedDistrictsRef = useRef(failedDistricts);
   useEffect(() => {
     activeDistrictsRef.current = activeDistricts;
   }, [activeDistricts]);
   useEffect(() => {
     activeFetchesRef.current = activeFetches;
   }, [activeFetches]);
+  useEffect(() => {
+    districtsCacheRef.current = districtsCache;
+  }, [districtsCache]);
+  useEffect(() => {
+    failedDistrictsRef.current = failedDistricts;
+  }, [failedDistricts]);
 
   const handleCenterChange = useCallback(
     async (latlng: LatLng) => {
@@ -601,9 +641,16 @@ function PageContent() {
           return next;
         });
         setActiveDistricts((prev) => new Set([...prev, code]));
+        // Clear any prior failed flag — pan-to-retry succeeded.
+        setFailedDistricts((prev) => {
+          if (!prev.has(code)) return prev;
+          const next = new Set(prev);
+          next.delete(code);
+          return next;
+        });
         showToast(`${meta.name} ${data.length}개`, 1500);
       } catch {
-        // silent — fetch will retry on next moveend
+        setFailedDistricts((prev) => new Set([...prev, code]));
       } finally {
         setActiveFetches((prev) => {
           const next = new Set(prev);
@@ -959,7 +1006,13 @@ function PageContent() {
               </div>
               <ul className="space-y-1 text-xs">
                 {districtBreakdown.map((d) => {
-                  const status = d.loaded ? 'loaded' : d.inFlight ? 'inFlight' : 'pending';
+                  const status = d.loaded
+                    ? 'loaded'
+                    : d.failed
+                      ? 'failed'
+                      : d.inFlight
+                        ? 'inFlight'
+                        : 'pending';
                   const { icon, cls } = STATUS_VIS[status];
                   return (
                     <li
