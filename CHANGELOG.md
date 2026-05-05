@@ -24,6 +24,7 @@
 - Sentry SDK를 메인 번들에서 분리해 lazy chunk로 전환했습니다. capture 함수가 호출될 때만 다운로드되고, 초기화는 `requestIdleCallback`으로 첫 페인트 이후로 미뤄집니다 — 메인 번들 ~90KB 감소, TBT 단축.
 
 ### Infrastructure
+- P3.1a 데이터 분할 foundation — `seoul-manifest.json`/`seoul-districts.geojson`/`districts/<code>.json` 3축 정적 자원, 클라이언트 point-in-polygon 자치구 판정. 현재는 중구만 데이터 보유, 24개 구는 자리 표시자. 25구 데이터 적재(P3.2)와 markercluster(P3.1b)·인접 prefetch(P3.1c)는 후속.
 - `lib/geo.ts` · `lib/eta.ts` · `lib/url-share.ts` · `lib/favorites.ts` · `lib/savings.ts` · `lib/monitoring.ts` 순수 함수 105개 vitest 단위 테스트 (`bun run test`).
 - Add Lighthouse CI GitHub Actions workflow for PR performance/a11y gating. 최소 점수 perf ≥ 0.65 / a11y ≥ 0.95 / best-practices ≥ 0.90 / seo ≥ 0.90 (PWA 카테고리는 LH12에서 제거).
 - Sentry 클라이언트/서버 에러 모니터링 통합 (`@sentry/nextjs@10.51`, production-only + DSN 게이트 + dynamic import). geolocation 실패·`fetchBins` 에러·uncaught 브라우저 에러 자동 수집. `NEXT_PUBLIC_SENTRY_DSN` 미설정 시 안전한 no-op.

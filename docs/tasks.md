@@ -5,7 +5,7 @@
 
 ## 현재 상태 (2026-05-05)
 
-- **Phase**: 2 전체 완료 (P2.3 클러스터링은 25구 전 보류) + 인프라 I.1·I.2·I.3 완료 + X.1 게임화. 즐겨찾기·헤드업 모드·속도 슬라이더·perf 개선까지 들어감. Phase 3 진입 시점 (데이터 분할 전략 결정 P3.1).
+- **Phase**: 3 진입. P3.1a Foundation 완료 (manifest/geojson/district 3축 자원, point-in-district 판정, page boot 갱신). 다음 P3.2 (25구 데이터 transform), P3.1b (markercluster), P3.1c (인접 prefetch).
 - **사용자 환경 영속화** (`localStorage`): `distanceMode` (직선/격자), `tileTheme` (다크/라이트, **빈 값일 때 시스템 prefers-color-scheme 자동 감지**), `walkingSpeed` (km/h, 2~7 step 0.5), `favorites` (즐겨찾기 bin id), `savings` (누적 보행거리·시간·횟수)
 - **마커 색**: 일반 `#60a5fa` (blue-400), 재활용 `#34d399` (emerald-400), 혼합 `#c084fc` (violet-400) — 라이트/다크 양 타일에서 균형
 - **Roadmap 확장**: Phase 3 (25개 구) · Phase 4 (데이터 확장: 타 종류 통/사용자 제보/사진) · Phase 5 (실제 보행 경로 + TTS) · 인프라/품질 cross-cutting (i18n 남음)
@@ -15,7 +15,7 @@
 - **Build**: `bun run build` 통과
 - **Deploy**: `git push` → 자동 Vercel build → https://junggu-trash-map.vercel.app (16~22초). 수동 `vercel deploy`는 hotfix 시에만
 - **PWA**: `app/manifest.ts` + 동적 `icon.tsx`/`apple-icon.tsx` (next/og), iOS 풀스크린 메타 — Safari "홈 화면에 추가"로 풀스크린
-- **Data**: `public/data/junggu.json` — 표준데이터 변환 **59 그룹** (혼합 56 / 단일 3 모두 일반). 같은 좌표 다중 행 그룹화: `TrashBin.types: ('일반'|'재활용')[]`
+- **Data**: `public/data/seoul-manifest.json` (25구 메타) + `public/data/seoul-districts.geojson` (25구 폴리곤, ~56KB) + `public/data/districts/<code>.json` (현재 `junggu` 1개, **59 그룹**). 같은 좌표 다중 행 그룹화: `TrashBin.types: ('일반'|'재활용')[]`. 24개 구는 `binCount: 0` 자리 표시자 (P3.2 transform 대상).
 - **Geolocation**: `watchPosition` 실시간 + Haversine/Manhattan `findNearest`/`findOptimalDetour` + sky/cyan 점선. 출발 + 목적지 모두 set 시 경유 휴지통 detour 알고리즘
 - **iOS fallback**: 🎯 출발 탭, 🏁 목적지 탭 — 두 탭 모드 mutually exclusive, 한 클릭으로 좌표 지정
 - **칩 스타일**: 비활성 = `bg-neutral-800` 다크 그레이. 활성 = 기능별 색 (전체=흰, 일반/재활용=색별, 위치=sky, 격자=amber, 출발 탭=violet, 목적지=rose, 방향 cone=sky·헤드업=violet, 속도 슬라이더=emerald, 즐겨찾기=amber)
@@ -69,6 +69,10 @@
 - [x] **I.3** Lighthouse CI — PR마다 PWA/접근성/성능 점수 회귀 차단
 - [x] **P2.14** 즐겨찾기 — popup ☆/★ 토글로 휴지통 표시, 칩 필터로 즐겨찾기만 보기. localStorage `favorites` 영속화 (comma-separated id), `lib/favorites.ts` 순수 함수 + vitest 13개
 
+### Phase 3 — 25개 구 확장
+- [x] **P3.1** 데이터 분할 전략 결정 — 자치구 단위 정적 JSON + GeoJSON 폴리곤 클라이언트 판정 + 3-PR 분할 (foundation → cluster · prefetch). spec: `docs/superpowers/specs/2026-05-05-p3-1-data-partitioning-design.md`.
+- [x] **P3.1a** Foundation — `seoul-manifest.json`/`seoul-districts.geojson`/`districts/<code>.json` 3축 자원, `point-in-district`/`districts`/`fetchDistrict` 모듈, page.tsx 부트 시퀀스. 25구 데이터·markercluster·prefetch는 후속.
+
 ---
 
 ## 🔜 Open — Phase 2 잔여 (nice-to-have)
@@ -81,14 +85,12 @@
 
 ## 🌏 Open — Phase 3: 25개 구 확장
 
-데이터 1MB 넘으면 그때 결정. 그 전까진 자치구 1개.
+자치구별 정적 JSON + 클라이언트 point-in-polygon 판정으로 결정. spec: `docs/superpowers/specs/2026-05-05-p3-1-data-partitioning-design.md`. P3.1은 3-PR로 분할 (a foundation → b markercluster · c 인접 prefetch).
 
-- [ ] **P3.1** 데이터 분할 전략 결정 — 후보:
-  - (a) 자치구별 정적 JSON, 뷰포트 bbox로 lazy-load
-  - (b) Next API Route + 단일 JSON in-memory
-  - (c) Postgres + PostGIS, `ST_Within(viewport)` 쿼리
-- [ ] **P3.2** 결정한 전략으로 구현
-- [ ] **P3.3** 자치구 진입 가이드 UI (현재 위치 → 자동 자치구 감지)
+- [ ] **P3.1b** markercluster 도입 — `leaflet.markercluster` + 줌 ≥15에서 개별 마커. 별도 worktree·PR.
+- [ ] **P3.1c** 인접 자치구 prefetch — 활성 구 변경 시 manifest의 `adjacent` 들을 `requestIdleCallback`으로 백그라운드 fetch. 별도 worktree·PR.
+- [ ] **P3.2** 25구 실제 데이터 transform — 공공데이터포털 / 서울 열린데이터광장에서 24개 구 CSV 수집 → `transform.ts` 일괄 실행 → `public/data/districts/*.json` + manifest `binCount` 갱신.
+- [ ] **P3.3** 자치구 자동 감지 진입 가이드 UI — 사용자 panning 시 active set 자동 추가, 25구 선택 셀렉터, 빈 데이터 구 토스트.
 
 ---
 
@@ -172,6 +174,9 @@
 - **Top-N 강조는 비후보 dimming이 효과적**: 강조 대상의 크기·진하기를 키우는 것보다, 비강조 대상을 죽이는 게 시각 노이즈 ratio 측면에서 압도적. 배경 마커 56개 vs 후보 3개 같이 N>>M 구도면 더더욱. [TIL](./til/2026-05-04-top3-readability-dim-non-candidates.md).
 - **Next 16 resource hints는 Metadata API 직통 아님**: `<head>`에 `rel=preconnect` / `dns-prefetch` 직접 추가하지 말고 Client Component에서 `ReactDOM.preconnect()` / `prefetchDNS()` 사용. 로컬 docs grep이 제일 빠르다. [TIL](./til/2026-05-05-nextjs-resource-hints-reactdom-api.md).
 - **Sentry 같은 외부 SDK는 top-level import 금지**: `unused-javascript` audit에 바로 걸린다. capture/init 시점이 명확하면 `await import()` + idle 지연으로 메인 번들에서 빼라. [TIL](./til/2026-05-05-sentry-bundle-lazy-import.md).
+- **GeoJSON 좌표 순서는 `[lng, lat]`** (ISO 표준). Leaflet과 우리 코드의 `{lat, lng}`와 반대. point-in-polygon 헬퍼 안에서만 한 번 갈아끼고 외부 API는 절대 swap 금지. 한 번 헷갈리면 전 구가 '서울 밖' 판정으로 침묵 실패.
+- **자치구 영문 슬러그는 manifest가 SoT**: 행정안전부 표준 영문 표기는 일관 안 됨 (`Jung-gu` vs `Junggu` vs `Jung Gu`). `public/data/seoul-manifest.json`이 단일 진실. `*-gu` 접미사 없음, 모두 lowercase. 한 번 정해진 이상 URL/파일명에 영구 박혀 변경 불가.
+- **`Map` const는 dynamic component와 충돌**: page.tsx에서 `const Map = dynamic(...)` 가 있으면 같은 함수 안에서 `new Map()` 은 컴포넌트로 해석돼 "This expression is not constructable" 발생. 새 코드는 `globalThis.Map`/`globalThis.Set` 명시적 한정 사용 (Set은 충돌 없지만 일관성).
 
 ---
 

@@ -38,6 +38,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# git worktrees (superpowers convention)
+/.worktrees
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
