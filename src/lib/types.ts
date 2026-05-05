@@ -29,3 +29,19 @@ export function styleFor(types: BinType[]): { color: string; emoji: string } {
   if (types.length >= 2) return MIXED_STYLE;
   return TYPE_STYLE[types[0]];
 }
+
+export type DistrictCode = string;
+
+export type DistrictMeta = {
+  code: DistrictCode;
+  name: string;
+  binCount: number;
+  bbox: [number, number, number, number];
+  centroid: [number, number];
+  adjacent: DistrictCode[];
+};
+
+export type Manifest = {
+  version: string;
+  districts: DistrictMeta[];
+};
