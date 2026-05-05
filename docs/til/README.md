@@ -19,6 +19,8 @@
 | 2026-05-05 | [Sentry bundle lazy import](./2026-05-05-sentry-bundle-lazy-import.md) | top-level Sentry import는 메인 번들 포함 유발 — dynamic import로 lazy chunk화 |
 | 2026-05-05 | [LH prefetch interaction gating](./2026-05-05-lh-prefetch-interaction-gating.md) | requestIdleCallback prefetch는 LH window 안에서 발사돼 perf -0.20 — 첫 사용자 인터랙션에 묶어 측정 window 회피 |
 | 2026-05-05 | [deployment_status workflow ref](./2026-05-05-github-deployment-status-workflow-ref.md) | 트리거별 워크플로 source 다름 — `deployment_status`는 deployed SHA, head ref도 main도 아님. 머지 전 dry-run 가능 |
+| 2026-05-05 | [React setState 직접값 vs functional updater race](./2026-05-05-react-setstate-direct-vs-functional-race.md) | 비동기 path 두 개 이상이 같은 collection state를 갱신하면 직접값 setState는 다른 functional update를 덮어씀 — 한 쌍의 state는 항상 같은 패턴 |
+| 2026-05-05 | [Cached prefetch stuck overlay](./2026-05-05-cached-prefetch-stuck-overlay.md) | 시간 기반 setTimeout fallback은 캐시 환경 무시 — `requestIdleCallback(cb, { timeout })`이 캐시 친화 + LH 안전 동시 표현 |
 
 ## 작성 컨벤션
 
