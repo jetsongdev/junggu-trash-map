@@ -1,4 +1,4 @@
-name: Telegram preview notify
+name: Telegram deploy notify
 
 on:
   deployment_status:
@@ -12,7 +12,6 @@ jobs:
   notify:
     if: |
       github.event.deployment_status.state == 'success' &&
-      github.event.deployment.environment != 'Production' &&
       github.event.deployment_status.target_url != ''
     runs-on: ubuntu-latest
     steps:
@@ -73,21 +72,39 @@ jobs:
 
       - name: Send to Telegram
         env:
-          TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
-          TG_CHAT_ID:   ${{ secrets.TG_CHAT_ID }}
-          PREVIEW_URL:  ${{ github.event.deployment_status.target_url }}
-          REF:          ${{ github.event.deployment.ref }}
-          SHA:          ${{ github.event.deployment.sha }}
-          REPO:         ${{ github.repository }}
-          PR_NUMBER:    ${{ steps.pr.outputs.number }}
-          PR_URL:       ${{ steps.pr.outputs.url }}
-          PR_TITLE:     ${{ steps.pr.outputs.title }}
-          PR_HEAD_REF:  ${{ steps.pr.outputs.head_ref }}
-          CHANGELOG:    ${{ steps.cl.outputs.content }}
+          TG_BOT_TOKEN:      ${{ secrets.TG_BOT_TOKEN }}
+          TG_CHAT_ID:        ${{ secrets.TG_CHAT_ID }}
+          TG_CHAT_ID_PROD:   ${{ secrets.TG_CHAT_ID_PROD }}
+          DEPLOY_URL:        ${{ github.event.deployment_status.target_url }}
+          ENVIRONMENT:       ${{ github.event.deployment.environment }}
+          REF:               ${{ github.event.deployment.ref }}
+          SHA:               ${{ github.event.deployment.sha }}
+          REPO:              ${{ github.repository }}
+          PR_NUMBER:         ${{ steps.pr.outputs.number }}
+          PR_URL:            ${{ steps.pr.outputs.url }}
+          PR_TITLE:          ${{ steps.pr.outputs.title }}
+          PR_HEAD_REF:       ${{ steps.pr.outputs.head_ref }}
+          CHANGELOG:         ${{ steps.cl.outputs.content }}
         run: |
           set -euo pipefail
-          if [ -z "$TG_BOT_TOKEN" ] || [ -z "$TG_CHAT_ID" ]; then
-            echo "::warning::TG_BOT_TOKEN or TG_CHAT_ID secret missing"; exit 0
+          if [ -z "$TG_BOT_TOKEN" ]; then
+            echo "::warning::TG_BOT_TOKEN missing"; exit 0
+          fi
+
+          # environment → chat ID + 헤더 라벨/이모지/태그 분기
+          if [ "$ENVIRONMENT" = "Production" ]; then
+            CHAT_ID="$TG_CHAT_ID_PROD"
+            ENV_TAG="production"
+            ENV_EMOJI="🎯"
+            ENV_LABEL="Production deploy"
+          else
+            CHAT_ID="$TG_CHAT_ID"
+            ENV_TAG="preview"
+            ENV_EMOJI="🚀"
+            ENV_LABEL="Preview deploy"
+          fi
+          if [ -z "$CHAT_ID" ]; then
+            echo "::warning::TG_CHAT_ID for environment '$ENVIRONMENT' missing — skipping"; exit 0
           fi
 
           SHORT_SHA=$(echo "$SHA" | cut -c1-7)
@@ -101,7 +118,7 @@ jobs:
           fi
 
           # 해시태그
-          TAGS="#${PROJECT_TAG} #preview"
+          TAGS="#${PROJECT_TAG} #${ENV_TAG}"
           [ -n "$PR_NUMBER" ] && TAGS="$TAGS #PR${PR_NUMBER}"
 
           # HTML escape helper
@@ -112,7 +129,7 @@ jobs:
           REF_E=$(esc "$DISPLAY_REF")
 
           # 본문
-          MSG="$TAGS"$'\n\n'"🚀 <b>$PROJECT_E</b> — Preview deploy"
+          MSG="$TAGS"$'\n\n'"$ENV_EMOJI <b>$PROJECT_E</b> — $ENV_LABEL"
           if [ -n "$PR_TITLE_E" ]; then
             MSG="$MSG"$'\n'"└ <i>$PR_TITLE_E</i>"
           fi
@@ -125,8 +142,8 @@ jobs:
             MSG="$MSG"$'\n\n'"📋 <b>[Unreleased]</b>"$'\n'"$CHANGELOG"
           fi
 
-          # inline keyboard (한 줄에 3버튼)
-          ROW=$(jq -nc --arg u "$PREVIEW_URL" '[{text:"🌐 Open", url:$u}]')
+          # inline keyboard (한 줄에 최대 3버튼)
+          ROW=$(jq -nc --arg u "$DEPLOY_URL" '[{text:"🌐 Open", url:$u}]')
           ROW=$(echo "$ROW" | jq -c --arg c "https://github.com/$REPO/commit/$SHA" \
                 '. + [{text:"📝 Commit", url:$c}]')
           if [ -n "$PR_URL" ]; then
@@ -136,11 +153,11 @@ jobs:
           KBD=$(echo "$ROW" | jq -c '[.]')
 
           # 전송
-          jq -nc --arg c "$TG_CHAT_ID" --arg t "$MSG" --argjson k "$KBD" \
+          jq -nc --arg c "$CHAT_ID" --arg t "$MSG" --argjson k "$KBD" \
             '{chat_id:$c, text:$t, parse_mode:"HTML",
               disable_web_page_preview:true,
               reply_markup:{inline_keyboard:$k}}' \
           | curl -fsS -X POST "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage" \
               -H 'Content-Type: application/json' --data-binary @- > /dev/null
 
-          echo "✓ sent to Telegram chat $TG_CHAT_ID"
+          echo "✓ sent $ENV_LABEL to Telegram chat $CHAT_ID"
