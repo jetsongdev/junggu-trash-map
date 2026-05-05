@@ -52,8 +52,24 @@ jobs:
             REF=$(echo "$DEPS"  | jq -r '.[0].ref // empty')
             ENV=$(echo "$DEPS"  | jq -r '.[0].environment // "Preview"')
             ST=$(gh api "/repos/$REPO/deployments/$DEP_ID/statuses" 2>/dev/null || echo "[]")
-            STATE=$(echo "$ST"  | jq -r '.[0].state // "success"')
-            TARGET=$(echo "$ST" | jq -r '.[0].target_url // ""')
+            # 가장 최신 status(.[0])만 사용. terminal(success/failure/error)이
+            # 아니면 abort. 옛 terminal status를 끌어와 발사하면 redeploy/재시도
+            # 도중 stale 알림이 나갈 수 있음. statuses는 GitHub API가 created_at
+            # desc로 반환 → .[0]이 진짜 latest.
+            LATEST=$(echo "$ST" | jq -c '.[0] // empty')
+            if [ -z "$LATEST" ]; then
+              echo "::error::Deployment $DEP_ID has no statuses yet — wait for terminal."
+              exit 1
+            fi
+            STATE=$(echo "$LATEST" | jq -r '.state')
+            case "$STATE" in
+              success|failure|error) ;;
+              *)
+                echo "::error::Deployment $DEP_ID latest status is non-terminal: '$STATE'. 빌딩 또는 재시도 중일 수 있음 — wait for terminal."
+                exit 1
+                ;;
+            esac
+            TARGET=$(echo "$LATEST" | jq -r '.target_url // ""')
           else
             SHA="$EVENT_SHA"
             REF="$EVENT_REF"
