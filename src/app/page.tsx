@@ -17,6 +17,7 @@ import {
 import {
   findDistrictForPoint,
   findNearestDistrictCentroid,
+  type DistrictsGeoJson,
 } from '@/lib/point-in-district';
 import {
   filterByFavorites,
@@ -94,7 +95,7 @@ function PageContent() {
     () => new Set(),
   );
   const [manifest, setManifest] = useState<Manifest | null>(null);
-  const [districtsGeo, setDistrictsGeo] = useState<unknown | null>(null);
+  const [districtsGeo, setDistrictsGeo] = useState<DistrictsGeoJson | null>(null);
   const [activeFetches, setActiveFetches] = useState<Set<DistrictCode>>(() => new Set());
   const [failedDistricts, setFailedDistricts] = useState<Set<DistrictCode>>(() => new Set());
   const [toast, setToast] = useState<{ text: string; emphatic: boolean } | null>(null);
@@ -222,7 +223,7 @@ function PageContent() {
         const urlSeed = urlState.userLocation ?? urlState.destination ?? null;
         if (urlSeed) {
           initialCode =
-            findDistrictForPoint(urlSeed, geo as never) ??
+            findDistrictForPoint(urlSeed, geo) ??
             findNearestDistrictCentroid(urlSeed, m.districts);
         }
 
@@ -620,7 +621,7 @@ function PageContent() {
   const handleCenterChange = useCallback(
     async (latlng: LatLng) => {
       if (!manifest || !districtsGeo) return;
-      const code = findDistrictForPoint(latlng, districtsGeo as never);
+      const code = findDistrictForPoint(latlng, districtsGeo);
       if (!code) return;
       if (activeDistrictsRef.current.has(code)) return;
       if (activeFetchesRef.current.has(code)) return;
