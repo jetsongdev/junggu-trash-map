@@ -165,24 +165,24 @@ export function SearchBox({ onSelect, tapMode, onDropdownChange }: Props) {
               ? '목적지 주소·랜드마크 검색'
               : '주소·랜드마크 검색'
         }
-        className="min-h-[44px] w-full rounded-2xl border border-neutral-700 bg-neutral-900 px-4 pr-12 text-sm text-neutral-100 outline-none transition placeholder:text-neutral-500 focus:border-neutral-500 focus:bg-neutral-800"
+        className="min-h-[44px] w-full rounded-2xl border border-neutral-200 bg-white px-4 pr-12 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-500 focus:border-neutral-400 focus:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:placeholder:text-neutral-500 dark:focus:border-neutral-500 dark:focus:bg-neutral-800"
         autoComplete="off"
         spellCheck={false}
       />
-      <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs text-neutral-400">
+      <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-xs text-neutral-500 dark:text-neutral-400">
         {loading ? '검색중' : '검색'}
       </div>
 
       {showDropdown && (
-        <div className="absolute top-full z-[1000] mt-2 w-full overflow-hidden rounded-2xl border border-neutral-700 bg-neutral-900 shadow-2xl">
+        <div className="absolute top-full z-[1000] mt-2 w-full overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-700 dark:bg-neutral-900">
           {loading && (
-            <div className="px-4 py-3 text-sm text-neutral-300">검색 중…</div>
+            <div className="px-4 py-3 text-sm text-neutral-700 dark:text-neutral-300">검색 중…</div>
           )}
           {!loading && error && (
-            <div className="px-4 py-3 text-sm text-red-300">{error}</div>
+            <div className="px-4 py-3 text-sm text-red-600 dark:text-red-300">{error}</div>
           )}
           {!loading && showEmpty && (
-            <div className="px-4 py-3 text-sm text-neutral-400">
+            <div className="px-4 py-3 text-sm text-neutral-600 dark:text-neutral-400">
               검색 결과가 없습니다.
             </div>
           )}
@@ -193,9 +193,9 @@ export function SearchBox({ onSelect, tapMode, onDropdownChange }: Props) {
                 key={result.place_id}
                 type="button"
                 onClick={() => handleSelect(result)}
-                className="flex min-h-[44px] w-full items-start gap-3 border-t border-neutral-800 px-4 py-3 text-left text-sm text-neutral-100 first:border-t-0 hover:bg-neutral-800"
+                className="flex min-h-[44px] w-full items-start gap-3 border-t border-neutral-100 px-4 py-3 text-left text-sm text-neutral-900 first:border-t-0 hover:bg-neutral-100 dark:border-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-800"
               >
-                <span aria-hidden className="pt-0.5 text-neutral-400">
+                <span aria-hidden className="pt-0.5 text-neutral-500 dark:text-neutral-400">
                   📍
                 </span>
                 <span className="line-clamp-2">{result.display_name}</span>

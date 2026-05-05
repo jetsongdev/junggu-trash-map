@@ -26,7 +26,7 @@ export function LocateButton({ active, pending, onLocate, onClear }: Props) {
       className={`min-h-[44px] rounded-full px-4 text-sm font-medium transition flex items-center gap-1.5 ${
         active
           ? 'bg-sky-500 text-white shadow'
-          : 'bg-neutral-800 text-neutral-200 ring-1 ring-neutral-700 hover:bg-neutral-700 disabled:opacity-60'
+          : 'bg-neutral-100 text-neutral-700 ring-1 ring-neutral-200 hover:bg-neutral-200 disabled:opacity-60 dark:bg-neutral-800 dark:text-neutral-200 dark:ring-neutral-700 dark:hover:bg-neutral-700'
       }`}
     >
       <span aria-hidden>📍</span>

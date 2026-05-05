@@ -77,6 +77,8 @@
 - [x] **P3.2-fix1** prefetch stale closure — `districtsCacheRef`/`activeFetchesRef`/`failedDistrictsRef`로 latest state 읽도록 수정. 더 이상 mount 시점 스냅샷에 묶여 panning으로 로드한 구를 재fetch하지 않음.
 - [x] **P3.2-fix2** 로딩 오버레이 fail terminal — `failedDistricts` Set 추가, 3개 catch 블록 모두 실패 등록, `terminalPopulatedCount = loaded ∪ failed`로 `fullyLoaded` 산정 → 실패 시에도 오버레이 dismiss. overlay 행에 `✗` 빨강 아이콘으로 실패 표시.
 - [x] **P2.17** onboarding & 모드 명확화 — 첫 방문 1회 emphatic 토스트 (🎯+🏁 사용법 안내, localStorage `onboarded` 가드), 출발/목적지 칩에 1️⃣/2️⃣ 뱃지, tap mode 활성 시 하단 고정 banner ("지도에서 탭하거나 검색하세요"), 검색 드롭다운 열려있을 때 `handleMapClick` 가드로 빈 영역 오탭 방지 (UX U1+U2+U3)
+- [x] **P3.1c** 인접 자치구 prefetch — **obsoleted by P3.2 bulk prefetch**: 첫 user interaction 후 `requestIdleCallback`로 모든 populated 자치구를 일괄 fetch (page.tsx 274~378)가 strictly broader. 7개 자치구 중 junggu의 `adjacent`에 populated된 건 mapo 1개뿐 → adjacency-based는 사용자 가치 0. 25구가 다 채워지면 bulk가 too aggressive해질 때 재평가.
+- [x] **I.5** 라이트 모드 UI 정비 — Tailwind v4 `@custom-variant dark (.dark &)` 도입, root div에 `tileTheme === 'dark'` 시 `dark` 클래스 부착. inactiveChip / 헤더 / 섹션 / 속도 슬라이더 / 통계 텍스트 / breakdown / 로딩 오버레이 / toast 비강조 / 데이터 출처 핀 / SearchBox 입력+드롭다운 / LocateButton / FilterChips 12+ 표면을 양 테마 일관 콘트라스트로 분기. snapshot `29-light-mode-polish/` (light · dark · light-search 3장).
 
 ---
 
@@ -97,7 +99,6 @@
 자치구별 정적 JSON + 클라이언트 point-in-polygon 판정으로 결정. spec: `docs/superpowers/specs/2026-05-05-p3-1-data-partitioning-design.md`. P3.1은 3-PR로 분할 (a foundation → b markercluster · c 인접 prefetch).
 
 - [ ] **P3.1b** markercluster 도입 — `leaflet.markercluster` + 줌 ≥15에서 개별 마커. 별도 worktree·PR.
-- [ ] **P3.1c** 인접 자치구 prefetch — 활성 구 변경 시 manifest의 `adjacent` 들을 `requestIdleCallback`으로 백그라운드 fetch. 별도 worktree·PR.
 - [ ] **P3.3** 자치구 자동 감지 진입 가이드 UI — 25구 선택 셀렉터, 빈 데이터 구(공공데이터 미발행 18개) 토스트 안내. (panning auto-add는 P3.2에서 들어감)
 
 ---
@@ -127,7 +128,6 @@
 
 - [x] **I.1** 테스트 인프라 — vitest 도입, `lib/geo.ts`·`lib/eta.ts`·`lib/url-share.ts` 순수 함수 59개 커버
 - [ ] **I.4** i18n (en/ja/zh) — `next-intl`. 명동·남대문 외국인 관광객 시나리오
-- [ ] **I.5** 라이트 모드 UI 정비 — 시스템 prefers-color-scheme 라이트/사용자 ☀️ 토글 시 헤더·필터 바·칩·통계 바·breakdown·로딩 오버레이·토스트·데이터 출처 핀까지 전부 라이트 콘트라스트로 일관 전환. 마커 윤곽·점선·하이라이트 ring도 라이트 타일 위에서 가독성 재검토. 라이트/다크 양 스냅샷 비교 첨부.
 - [ ] **I.6** a11y 라운드 — 색맹 친화 패턴(굵기/대시 보강은 P2.20에 포함), aria-label 점검, 키보드 탐색, 빈 자치구(미발행 18구) `aria-label` 명시
 
 ---
