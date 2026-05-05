@@ -14,6 +14,7 @@ type Props = {
     mode: SelectMode,
   ) => void;
   tapMode: string | null;
+  onDropdownChange?: (open: boolean) => void;
 };
 
 type SearchApiError = {
@@ -27,7 +28,7 @@ function resolveMode(tapMode: string | null): SelectMode {
   return null;
 }
 
-export function SearchBox({ onSelect, tapMode }: Props) {
+export function SearchBox({ onSelect, tapMode, onDropdownChange }: Props) {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const skipNextFetchRef = useRef(false);
   const [query, setQuery] = useState('');
@@ -137,6 +138,10 @@ export function SearchBox({ onSelect, tapMode }: Props) {
 
   const showDropdown = open && query.trim().length > 0;
   const showEmpty = !loading && !error && results.length === 0;
+
+  useEffect(() => {
+    onDropdownChange?.(showDropdown);
+  }, [showDropdown, onDropdownChange]);
 
   return (
     <div ref={rootRef} className="relative w-full">
