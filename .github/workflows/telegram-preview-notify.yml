@@ -11,7 +11,40 @@ jobs:
       github.event.deployment_status.target_url != ''
     runs-on: ubuntu-latest
     steps:
-      - name: Send preview URL to Telegram
+      - name: Checkout repo at deployed SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.deployment.sha }}
+          fetch-depth: 1
+
+      - name: Look up PR for deployed SHA
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_INFO=$(gh api "/repos/${{ github.repository }}/commits/${{ github.event.deployment.sha }}/pulls" --jq '.[0] // empty | "\(.number)|\(.html_url)|\(.title)"' 2>/dev/null || echo "")
+          if [ -n "$PR_INFO" ]; then
+            IFS='|' read -r NUM URL TITLE <<< "$PR_INFO"
+            echo "number=$NUM" >> "$GITHUB_OUTPUT"
+            echo "url=$URL" >> "$GITHUB_OUTPUT"
+            echo "title=$TITLE" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Extract CHANGELOG [Unreleased]
+        id: cl
+        run: |
+          if [ -f CHANGELOG.md ]; then
+            UNREL=$(awk '/^## \[Unreleased\]/{flag=1; next} /^## \[/{flag=0} flag' CHANGELOG.md | sed '/./,$!d')
+            UNREL_TRIM=$(printf '%s' "$UNREL" | head -c 1500)
+            {
+              echo "content<<EOF_CL_OUTPUT"
+              printf '%s' "$UNREL_TRIM"
+              echo
+              echo "EOF_CL_OUTPUT"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Send to Telegram
         env:
           TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
           TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
@@ -19,15 +52,32 @@ jobs:
           REF: ${{ github.event.deployment.ref }}
           SHA: ${{ github.event.deployment.sha }}
           REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          PR_URL: ${{ steps.pr.outputs.url }}
+          PR_TITLE: ${{ steps.pr.outputs.title }}
+          CHANGELOG: ${{ steps.cl.outputs.content }}
         run: |
           if [ -z "$TG_BOT_TOKEN" ] || [ -z "$TG_CHAT_ID" ]; then
             echo "::warning::TG_BOT_TOKEN or TG_CHAT_ID secret missing — skipping"
             exit 0
           fi
           SHORT_SHA=$(echo "$SHA" | cut -c1-7)
-          TEXT=$(printf '🚀 Preview ready: %s\nbranch: %s @ %s\nrepo: %s' "$PREVIEW_URL" "$REF" "$SHORT_SHA" "$REPO")
+          # Project tag for Telegram hashtag filter (hyphen→underscore is required)
+          PROJECT_NAME=$(echo "$REPO" | cut -d/ -f2)
+          PROJECT_TAG=$(echo "$PROJECT_NAME" | tr '-' '_')
+
+          MSG="#${PROJECT_TAG} · 🚀 Preview deploy"
+          MSG="${MSG}"$'\n'"🔗 ${PREVIEW_URL}"
+          if [ -n "$PR_NUMBER" ]; then
+            MSG="${MSG}"$'\n\n'"📌 PR #${PR_NUMBER} — ${PR_TITLE}"$'\n'"   ${PR_URL}"
+          fi
+          MSG="${MSG}"$'\n\n'"🔀 ${REF} @ ${SHORT_SHA}"
+          if [ -n "$CHANGELOG" ]; then
+            MSG="${MSG}"$'\n\n'"📋 [Unreleased]"$'\n'"${CHANGELOG}"
+          fi
+
           curl -fsS -X POST "https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage" \
             --data-urlencode "chat_id=${TG_CHAT_ID}" \
-            --data-urlencode "text=${TEXT}" \
+            --data-urlencode "text=${MSG}" \
             --data-urlencode "disable_web_page_preview=true" > /dev/null
           echo "✓ sent to Telegram chat ${TG_CHAT_ID}"
