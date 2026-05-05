@@ -3,14 +3,14 @@
 > 이 파일은 Claude가 매 세션 시작 시 읽고 작업 우선순위를 판단하는 1차 소스.
 > 사람과 에이전트 모두 직접 편집 가능. 컨벤션은 파일 끝 「운영 규칙」 참고.
 
-## 현재 상태 (2026-05-04)
+## 현재 상태 (2026-05-05)
 
-- **Phase**: 2 핵심 마무리 + 인프라 I.1 완료 — Geolocation·필터·테마(시스템 자동)·PWA·경로·ETA·검색·햅틱·URL 공유·vitest(59개) 다 들어감. 잔여는 P2.9 (속도 슬라이더) / P2.13 (방향) / P2.14 (즐겨찾기). P2.3 클러스터링은 25구 전엔 보류
-- **사용자 환경 영속화** (`localStorage`): `distanceMode` (직선/격자), `tileTheme` (다크/라이트, **빈 값일 때 시스템 prefers-color-scheme 자동 감지**), `walkingSpeed` (3/4/5 km/h)
+- **Phase**: 2 전체 완료 (P2.3 클러스터링은 25구 전 보류) + 인프라 I.1·I.2·I.3 완료 + X.1 게임화. 즐겨찾기·헤드업 모드·속도 슬라이더·perf 개선까지 들어감. Phase 3 진입 시점 (데이터 분할 전략 결정 P3.1).
+- **사용자 환경 영속화** (`localStorage`): `distanceMode` (직선/격자), `tileTheme` (다크/라이트, **빈 값일 때 시스템 prefers-color-scheme 자동 감지**), `walkingSpeed` (km/h, 2~7 step 0.5), `favorites` (즐겨찾기 bin id), `savings` (누적 보행거리·시간·횟수)
 - **마커 색**: 일반 `#60a5fa` (blue-400), 재활용 `#34d399` (emerald-400), 혼합 `#c084fc` (violet-400) — 라이트/다크 양 타일에서 균형
-- **Roadmap 확장**: Phase 3 (25개 구) · Phase 4 (데이터 확장: 타 종류 통/사용자 제보/사진) · Phase 5 (실제 보행 경로 + TTS) · 인프라/품질 cross-cutting (테스트·Sentry·Lighthouse CI·i18n) 후보 등록됨
-- **Stack**: Next.js 16 (Turbopack) · Bun · TypeScript strict · Tailwind v4 · Leaflet + OSM/CartoDB · Vercel Analytics + Speed Insights
-- **Test**: `bun run test` (vitest 4.x) — `lib/geo.ts`·`lib/eta.ts`·`lib/url-share.ts` 순수 함수 59개
+- **Roadmap 확장**: Phase 3 (25개 구) · Phase 4 (데이터 확장: 타 종류 통/사용자 제보/사진) · Phase 5 (실제 보행 경로 + TTS) · 인프라/품질 cross-cutting (i18n 남음)
+- **Stack**: Next.js 16 (Turbopack) · Bun · TypeScript strict · Tailwind v4 · Leaflet + OSM/CartoDB · Vercel Analytics + Speed Insights · Sentry (lazy) · Lighthouse CI
+- **Test**: `bun run test` (vitest 4.x) — `lib/geo.ts`·`lib/eta.ts`·`lib/url-share.ts`·`lib/favorites.ts`·`lib/savings.ts`·`lib/monitoring.ts` 순수 함수 105개
 - **Dev**: `bun run dev` → http://localhost:3000 (점유 시 자동 3001)
 - **Build**: `bun run build` 통과
 - **Deploy**: `git push` → 자동 Vercel build → https://junggu-trash-map.vercel.app (16~22초). 수동 `vercel deploy`는 hotfix 시에만
@@ -18,7 +18,8 @@
 - **Data**: `public/data/junggu.json` — 표준데이터 변환 **59 그룹** (혼합 56 / 단일 3 모두 일반). 같은 좌표 다중 행 그룹화: `TrashBin.types: ('일반'|'재활용')[]`
 - **Geolocation**: `watchPosition` 실시간 + Haversine/Manhattan `findNearest`/`findOptimalDetour` + sky/cyan 점선. 출발 + 목적지 모두 set 시 경유 휴지통 detour 알고리즘
 - **iOS fallback**: 🎯 출발 탭, 🏁 목적지 탭 — 두 탭 모드 mutually exclusive, 한 클릭으로 좌표 지정
-- **칩 스타일**: 비활성 = `bg-neutral-800` 다크 그레이. 활성 = 기능별 색 (전체=흰, 일반/재활용=색별, 위치=sky, 격자=amber, 출발 탭=violet, 목적지=rose)
+- **칩 스타일**: 비활성 = `bg-neutral-800` 다크 그레이. 활성 = 기능별 색 (전체=흰, 일반/재활용=색별, 위치=sky, 격자=amber, 출발 탭=violet, 목적지=rose, 방향 cone=sky·헤드업=violet, 속도 슬라이더=emerald, 즐겨찾기=amber)
+- **Lighthouse 점수** (PR #8 X.1 기준): perf 0.75 / a11y 0.96 / best-practices 0.93 / seo 1.00. 임계치 perf ≥0.65 (회복 시 0.70으로 ratchet up 검토). PWA 카테고리는 LH12에서 제거됨.
 
 ---
 
