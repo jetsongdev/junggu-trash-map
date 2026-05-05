@@ -868,6 +868,17 @@ function PageContent() {
             </div>
           </div>
         )}
+        {manifest && (
+          <a
+            href="https://www.data.go.kr/data/15129450/standard.do"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute bottom-2 left-2 z-[1000] rounded bg-neutral-900/80 px-2 py-1 text-[10px] text-neutral-400 ring-1 ring-neutral-700 backdrop-blur-sm hover:text-neutral-200"
+            aria-label={`데이터 출처: 공공데이터포털 전국휴지통표준데이터 v${manifest.version}`}
+          >
+            📊 공공데이터포털 · v{manifest.version}
+          </a>
+        )}
       </main>
     </div>
   );
