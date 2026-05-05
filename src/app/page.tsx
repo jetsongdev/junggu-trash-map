@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { FilterChips } from '@/components/FilterChips';
 import { LocateButton } from '@/components/LocateButton';
@@ -69,7 +69,13 @@ const DEFAULT_APP_STATE: AppState = {
   destination: null,
 };
 
-const Map = dynamic(() => import('@/components/Map'), {
+const STATUS_VIS = {
+  loaded:   { icon: '✓', cls: 'text-emerald-400' },
+  inFlight: { icon: '⟳', cls: 'text-amber-400 animate-pulse' },
+  pending:  { icon: '⏳', cls: 'text-neutral-500' },
+} as const;
+
+const MapView = dynamic(() => import('@/components/Map'), {
   ssr: false,
   loading: () => (
     <div className="flex h-full w-full items-center justify-center bg-neutral-100 text-neutral-500">
@@ -80,8 +86,8 @@ const Map = dynamic(() => import('@/components/Map'), {
 
 function PageContent() {
   const searchParams = useSearchParams();
-  const [districtsCache, setDistrictsCache] = useState<globalThis.Map<DistrictCode, TrashBin[]>>(
-    () => new globalThis.Map<DistrictCode, TrashBin[]>(),
+  const [districtsCache, setDistrictsCache] = useState<Map<DistrictCode, TrashBin[]>>(
+    () => new Map<DistrictCode, TrashBin[]>(),
   );
   const [activeDistricts, setActiveDistricts] = useState<Set<DistrictCode>>(
     () => new Set(),
@@ -225,25 +231,25 @@ function PageContent() {
         const meta = findDistrictMeta(m, initialCode);
         if (!meta) throw new Error(`Unknown district code: ${initialCode}`);
         if (meta.binCount === 0) {
-          setActiveDistricts((prev) => new globalThis.Set([...prev, initialCode!]));
+          setActiveDistricts((prev) => new Set([...prev, initialCode!]));
           return;
         }
 
-        setActiveFetches((prev) => new globalThis.Set([...prev, initialCode!]));
+        setActiveFetches((prev) => new Set([...prev, initialCode!]));
         const data = await fetchDistrict(initialCode, m.version);
         if (!active) return;
         setDistrictsCache((prev) => {
-          const next = new globalThis.Map<DistrictCode, TrashBin[]>(prev);
+          const next = new Map<DistrictCode, TrashBin[]>(prev);
           next.set(initialCode!, data);
           return next;
         });
-        setActiveDistricts((prev) => new globalThis.Set([...prev, initialCode!]));
+        setActiveDistricts((prev) => new Set([...prev, initialCode!]));
       } catch (e: unknown) {
         if (active) setError(e instanceof Error ? e.message : 'unknown');
       } finally {
         if (active && initialCode) {
           setActiveFetches((prev) => {
-            const next = new globalThis.Set(prev);
+            const next = new Set(prev);
             next.delete(initialCode!);
             return next;
           });
@@ -269,14 +275,15 @@ function PageContent() {
 
     const startPrefetch = () => {
       const toFetch = manifest.districts.filter(
-        (d) => d.binCount > 0 && !districtsCache.has(d.code),
+        (d) =>
+          d.binCount > 0 &&
+          !districtsCache.has(d.code) &&
+          !activeFetches.has(d.code),
       );
       if (toFetch.length === 0) return;
 
-      // 동기적으로 전체 prefetch 대상을 activeFetches에 add — 오버레이가 즉시 보임.
-      // 개별 settle마다 remove하여 활성 카운트가 점진적으로 줄어듦.
       setActiveFetches(
-        (prev) => new globalThis.Set([...prev, ...toFetch.map((d) => d.code)]),
+        (prev) => new Set([...prev, ...toFetch.map((d) => d.code)]),
       );
 
       for (const d of toFetch) {
@@ -287,17 +294,17 @@ function PageContent() {
             const data = await fetchDistrict(d.code, manifest.version);
             if (cancelled) return;
             setDistrictsCache((prev) => {
-              const next = new globalThis.Map<DistrictCode, TrashBin[]>(prev);
+              const next = new Map<DistrictCode, TrashBin[]>(prev);
               next.set(d.code, data);
               return next;
             });
-            setActiveDistricts((prev) => new globalThis.Set([...prev, d.code]));
+            setActiveDistricts((prev) => new Set([...prev, d.code]));
             showToast(`${d.name} ${data.length}개`, 1500);
           } catch {
             // silent — user can pan to retry
           } finally {
             setActiveFetches((prev) => {
-              const next = new globalThis.Set(prev);
+              const next = new Set(prev);
               next.delete(d.code);
               return next;
             });
@@ -366,8 +373,8 @@ function PageContent() {
 
   const loadedPopulatedCount = useMemo(() => {
     if (!manifest) return 0;
-    return [...activeDistricts].filter(
-      (c) => (findDistrictMeta(manifest, c)?.binCount ?? 0) > 0,
+    return manifest.districts.filter(
+      (d) => d.binCount > 0 && activeDistricts.has(d.code),
     ).length;
   }, [activeDistricts, manifest]);
 
@@ -423,23 +430,29 @@ function PageContent() {
 
   const allLoadedToastFiredRef = useRef(false);
   useEffect(() => {
-    if (!manifest) return;
-    if (populatedDistrictCount < 2) return;
     if (allLoadedToastFiredRef.current) return;
-    const loadedPopulated = [...activeDistricts].filter((code) => {
-      const meta = findDistrictMeta(manifest, code);
-      return meta != null && meta.binCount > 0;
-    }).length;
-    if (loadedPopulated >= populatedDistrictCount) {
-      allLoadedToastFiredRef.current = true;
-      showToast(`전체 ${populatedDistrictCount}개 자치구 ${bins.length}개 휴지통 로드 완료`, 4000, true);
-    }
-    // showToast intentionally omitted — closure is stable for this lifecycle
+    if (populatedDistrictCount < 2) return;
+    if (loadedPopulatedCount < populatedDistrictCount) return;
+    allLoadedToastFiredRef.current = true;
+    showToast(
+      `전체 ${populatedDistrictCount}개 자치구 ${bins.length}개 휴지통 로드 완료`,
+      4000,
+      true,
+    );
+    // showToast 는 매 render 새로 만드는 closure지만 ref guard 덕에 1회 실행 보장.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeDistricts, manifest, populatedDistrictCount, bins.length]);
+  }, [loadedPopulatedCount, populatedDistrictCount, bins.length]);
 
-  const districtBreakdown = useMemo(() => {
-    if (!manifest) return [] as { code: DistrictCode; name: string; binCount: number; loaded: boolean }[];
+  type DistrictRow = {
+    code: DistrictCode;
+    name: string;
+    binCount: number;
+    loaded: boolean;
+    inFlight: boolean;
+  };
+
+  const districtBreakdown = useMemo<DistrictRow[]>(() => {
+    if (!manifest) return [];
     return manifest.districts
       .filter((d) => d.binCount > 0)
       .map((d) => ({
@@ -447,9 +460,10 @@ function PageContent() {
         name: d.name,
         binCount: d.binCount,
         loaded: districtsCache.has(d.code),
+        inFlight: activeFetches.has(d.code),
       }))
       .sort((a, b) => b.binCount - a.binCount);
-  }, [districtsCache, manifest]);
+  }, [districtsCache, activeFetches, manifest]);
 
   const totalAvailableBins = useMemo(
     () =>
@@ -560,39 +574,56 @@ function PageContent() {
     setTapTarget(null);
   };
 
-  const handleCenterChange = async (latlng: LatLng) => {
-    if (!manifest || !districtsGeo) return;
-    const code = findDistrictForPoint(latlng, districtsGeo as never);
-    if (!code) return;
-    if (activeDistricts.has(code)) return;
+  // Refs syncing latest state — let handleCenterChange be useCallback-stable so
+  // MapMoveHandler doesn't rebind the leaflet `moveend` listener on every render.
+  const activeDistrictsRef = useRef(activeDistricts);
+  const activeFetchesRef = useRef(activeFetches);
+  useEffect(() => {
+    activeDistrictsRef.current = activeDistricts;
+  }, [activeDistricts]);
+  useEffect(() => {
+    activeFetchesRef.current = activeFetches;
+  }, [activeFetches]);
 
-    const meta = findDistrictMeta(manifest, code);
-    if (!meta) return;
-    if (meta.binCount === 0) {
-      setActiveDistricts((prev) => new globalThis.Set([...prev, code]));
-      return;
-    }
+  const handleCenterChange = useCallback(
+    async (latlng: LatLng) => {
+      if (!manifest || !districtsGeo) return;
+      const code = findDistrictForPoint(latlng, districtsGeo as never);
+      if (!code) return;
+      if (activeDistrictsRef.current.has(code)) return;
+      if (activeFetchesRef.current.has(code)) return;
 
-    setActiveFetches((prev) => new globalThis.Set([...prev, code]));
-    try {
-      const data = await fetchDistrict(code, manifest.version);
-      setDistrictsCache((prev) => {
-        const next = new globalThis.Map<DistrictCode, TrashBin[]>(prev);
-        next.set(code, data);
-        return next;
-      });
-      setActiveDistricts((prev) => new globalThis.Set([...prev, code]));
-      showToast(`${meta.name} ${data.length}개`, 1500);
-    } catch {
-      // silent — user can pan back, fetch will retry on next moveend
-    } finally {
-      setActiveFetches((prev) => {
-        const next = new globalThis.Set(prev);
-        next.delete(code);
-        return next;
-      });
-    }
-  };
+      const meta = findDistrictMeta(manifest, code);
+      if (!meta) return;
+      if (meta.binCount === 0) {
+        setActiveDistricts((prev) => new Set([...prev, code]));
+        return;
+      }
+
+      setActiveFetches((prev) => new Set([...prev, code]));
+      try {
+        const data = await fetchDistrict(code, manifest.version);
+        setDistrictsCache((prev) => {
+          const next = new Map<DistrictCode, TrashBin[]>(prev);
+          next.set(code, data);
+          return next;
+        });
+        setActiveDistricts((prev) => new Set([...prev, code]));
+        showToast(`${meta.name} ${data.length}개`, 1500);
+      } catch {
+        // silent — fetch will retry on next moveend
+      } finally {
+        setActiveFetches((prev) => {
+          const next = new Set(prev);
+          next.delete(code);
+          return next;
+        });
+      }
+      // showToast은 매 render 새 closure지만 부수효과만 일으키므로 deps 누락 안전.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    },
+    [manifest, districtsGeo],
+  );
 
   const handleSearchSelect = (
     lat: number,
@@ -649,21 +680,22 @@ function PageContent() {
     destination,
   };
 
+  const themeChrome =
+    tileTheme === 'light'
+      ? {
+          root: 'bg-neutral-50 text-neutral-900',
+          header: 'border-neutral-200 bg-neutral-50',
+          section: 'border-neutral-200 bg-neutral-100',
+        }
+      : {
+          root: 'bg-neutral-950 text-neutral-100',
+          header: 'border-neutral-800 bg-neutral-950',
+          section: 'border-neutral-800 bg-neutral-900',
+        };
+
   return (
-    <div
-      className={`flex h-dvh flex-col ${
-        tileTheme === 'light'
-          ? 'bg-neutral-50 text-neutral-900'
-          : 'bg-neutral-950 text-neutral-100'
-      }`}
-    >
-      <header
-        className={`border-b px-4 py-3 ${
-          tileTheme === 'light'
-            ? 'border-neutral-200 bg-neutral-50'
-            : 'border-neutral-800 bg-neutral-950'
-        }`}
-      >
+    <div className={`flex h-dvh flex-col ${themeChrome.root}`}>
+      <header className={`border-b px-4 py-3 ${themeChrome.header}`}>
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-bold tracking-tight">🗑️ 중구 휴지통 지도</h1>
           <span className="rounded bg-amber-400 px-1.5 py-0.5 text-[10px] font-bold text-neutral-900">
@@ -672,13 +704,7 @@ function PageContent() {
         </div>
       </header>
 
-      <section
-        className={`border-b px-4 py-3 ${
-          tileTheme === 'light'
-            ? 'border-neutral-200 bg-neutral-100'
-            : 'border-neutral-800 bg-neutral-900'
-        }`}
-      >
+      <section className={`border-b px-4 py-3 ${themeChrome.section}`}>
         <div className="mb-3">
           <SearchBox onSelect={handleSearchSelect} tapMode={tapTarget} />
         </div>
@@ -900,7 +926,7 @@ function PageContent() {
       </section>
 
       <main className="relative min-h-0 flex-1">
-        <Map
+        <MapView
           bins={visible}
           userLocation={userLocation}
           userHeading={compassMode !== 'off' ? compass.heading : null}
@@ -940,37 +966,28 @@ function PageContent() {
                 </span>
               </div>
               <ul className="space-y-1 text-xs">
-                {manifest.districts
-                  .filter((d) => d.binCount > 0)
-                  .sort((a, b) => b.binCount - a.binCount)
-                  .map((d) => {
-                    const loaded = districtsCache.has(d.code);
-                    const inFlight = activeFetches.has(d.code);
-                    const icon = loaded ? '✓' : inFlight ? '⟳' : '⏳';
-                    const iconClass = loaded
-                      ? 'text-emerald-400'
-                      : inFlight
-                        ? 'text-amber-400 animate-pulse'
-                        : 'text-neutral-500';
-                    return (
-                      <li
-                        key={d.code}
-                        className={`flex items-center justify-between gap-3 ${
-                          loaded ? 'text-neutral-200' : 'text-neutral-400'
-                        }`}
-                      >
-                        <span className="flex items-center gap-1.5">
-                          <span aria-hidden className={`font-mono ${iconClass}`}>
-                            {icon}
-                          </span>
-                          <span>{d.name}</span>
+                {districtBreakdown.map((d) => {
+                  const status = d.loaded ? 'loaded' : d.inFlight ? 'inFlight' : 'pending';
+                  const { icon, cls } = STATUS_VIS[status];
+                  return (
+                    <li
+                      key={d.code}
+                      className={`flex items-center justify-between gap-3 ${
+                        d.loaded ? 'text-neutral-200' : 'text-neutral-400'
+                      }`}
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <span aria-hidden className={`font-mono ${cls}`}>
+                          {icon}
                         </span>
-                        <span className="font-mono text-neutral-500">
-                          {loaded ? d.binCount : ''}
-                        </span>
-                      </li>
-                    );
-                  })}
+                        <span>{d.name}</span>
+                      </span>
+                      <span className="font-mono text-neutral-500">
+                        {d.loaded ? d.binCount : ''}
+                      </span>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           </div>
