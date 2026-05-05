@@ -10,6 +10,7 @@
 ## [Unreleased]
 
 ### Added
+- 서울 7개 자치구 휴지통 데이터(중구·서초·중랑·성북·마포·구로·노원, 총 802개)가 한 지도에 들어왔습니다. 처음에는 내 위치(또는 기본 중구)의 자치구 마커만 보이고, 지도를 다른 자치구 영역으로 옮기면 그 자치구 데이터가 자동으로 추가 로드됩니다. 데이터를 아직 발행하지 않은 18개 구는 빈 영역으로 남습니다.
 - 주소·랜드마크 검색 박스로 출발/목적지를 빠르게 지정할 수 있습니다.
 - 휴지통 팝업의 `✓ 사용` 버튼으로 분리수거를 위해 추가로 걸은 거리·시간·횟수를 브라우저에 누적 저장하고 통계 바에서 바로 확인할 수 있습니다.
 - 지원되는 기기에서는 마커·검색 결과·필터/모드 칩을 탭할 때 강도별 햅틱 진동(가벼운 토글 6ms, 선택 12ms, 좌표 확정 18ms 3단계)으로 선택감을 줍니다.
@@ -24,7 +25,8 @@
 - Sentry SDK를 메인 번들에서 분리해 lazy chunk로 전환했습니다. capture 함수가 호출될 때만 다운로드되고, 초기화는 `requestIdleCallback`으로 첫 페인트 이후로 미뤄집니다 — 메인 번들 ~90KB 감소, TBT 단축.
 
 ### Infrastructure
-- P3.1a 데이터 분할 foundation — `seoul-manifest.json`/`seoul-districts.geojson`/`districts/<code>.json` 3축 정적 자원, 클라이언트 point-in-polygon 자치구 판정. 현재는 중구만 데이터 보유, 24개 구는 자리 표시자. 25구 데이터 적재(P3.2)와 markercluster(P3.1b)·인접 prefetch(P3.1c)는 후속.
+- P3.1a 데이터 분할 foundation — `seoul-manifest.json`/`seoul-districts.geojson`/`districts/<code>.json` 3축 정적 자원, 클라이언트 point-in-polygon 자치구 판정.
+- P3.2 7개 자치구 데이터 적재 + `<MapMoveHandler>` panning 트리거 — 지도 center가 다른 자치구 폴리곤에 진입하면 해당 자치구 JSON을 자동 fetch + active set 추가. 데이터 미발행 구(`binCount: 0`)는 fetch skip, active만 등록. 후속: markercluster(P3.1b)·인접 prefetch(P3.1c).
 - `lib/geo.ts` · `lib/eta.ts` · `lib/url-share.ts` · `lib/favorites.ts` · `lib/savings.ts` · `lib/monitoring.ts` 순수 함수 105개 vitest 단위 테스트 (`bun run test`).
 - Add Lighthouse CI GitHub Actions workflow for PR performance/a11y gating. 최소 점수 perf ≥ 0.65 / a11y ≥ 0.95 / best-practices ≥ 0.90 / seo ≥ 0.90 (PWA 카테고리는 LH12에서 제거).
 - Sentry 클라이언트/서버 에러 모니터링 통합 (`@sentry/nextjs@10.51`, production-only + DSN 게이트 + dynamic import). geolocation 실패·`fetchBins` 에러·uncaught 브라우저 에러 자동 수집. `NEXT_PUBLIC_SENTRY_DSN` 미설정 시 안전한 no-op.

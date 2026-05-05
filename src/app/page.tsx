@@ -374,6 +374,32 @@ function PageContent() {
     setTapTarget(null);
   };
 
+  const handleCenterChange = async (latlng: LatLng) => {
+    if (!manifest || !districtsGeo) return;
+    const code = findDistrictForPoint(latlng, districtsGeo as never);
+    if (!code) return;
+    if (activeDistricts.has(code)) return;
+
+    const meta = findDistrictMeta(manifest, code);
+    if (!meta) return;
+    if (meta.binCount === 0) {
+      setActiveDistricts((prev) => new globalThis.Set([...prev, code]));
+      return;
+    }
+
+    try {
+      const data = await fetchDistrict(code, manifest.version);
+      setDistrictsCache((prev) => {
+        const next = new globalThis.Map<DistrictCode, TrashBin[]>(prev);
+        next.set(code, data);
+        return next;
+      });
+      setActiveDistricts((prev) => new globalThis.Set([...prev, code]));
+    } catch {
+      // silent — user can pan back, fetch will retry on next moveend
+    }
+  };
+
   const handleSearchSelect = (
     lat: number,
     lon: number,
@@ -654,6 +680,7 @@ function PageContent() {
           focusTarget={mapFocusTarget}
           distanceMode={distanceMode}
           onMapClick={tapTarget ? handleMapClick : undefined}
+          onCenterChange={handleCenterChange}
           tapMode={tapTarget !== null}
           tileTheme={tileTheme}
           favorites={favorites}
