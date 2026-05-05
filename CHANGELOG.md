@@ -9,6 +9,8 @@
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-05-05
+
 ### Added
 - 처음 앱을 켰을 때 emerald 강조 토스트로 "🎯 출발과 🏁 목적지를 정하면 경유 휴지통을 알려드려요" 가이드가 6초 동안 한 번만 표시됩니다. 두 번째 방문부터는 자동으로 사라집니다.
 - 출발/목적지 칩에 1️⃣/2️⃣ 순서 뱃지를 붙여 두 모드의 사용 순서를 시각적으로 명확하게 했습니다. 모드를 켠 동안에는 지도 하단에 보라색/장미색 고정 안내 배너 ("지도에서 출발/목적지 위치를 탭하거나 검색하세요")가 떠 있어, 칩 라벨 변화를 놓쳐도 무엇을 해야 할지 한눈에 보입니다.
@@ -186,7 +188,8 @@
 - `~/.claude/skills/snapshot/` — 글로벌 스냅샷 스킬 (프레임워크 무관, config 기반)
 - `CLAUDE.md` — 세션 진입 가이드 (작업 큐 / 시각 히스토리 / CHANGELOG 포인터)
 
-[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.7.0...v0.8.0
