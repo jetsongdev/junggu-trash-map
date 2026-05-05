@@ -250,6 +250,49 @@ function PageContent() {
   }, [searchParams]);
 
   useEffect(() => {
+    if (!manifest) return;
+    let cancelled = false;
+    const handles: number[] = [];
+
+    const idle: (cb: () => void) => number =
+      typeof window !== 'undefined' && 'requestIdleCallback' in window
+        ? (cb) => window.requestIdleCallback(cb, { timeout: 3000 })
+        : (cb) => window.setTimeout(cb, 0);
+
+    for (const d of manifest.districts) {
+      if (d.binCount === 0) continue;
+      if (districtsCache.has(d.code)) continue;
+      const handle = idle(async () => {
+        if (cancelled) return;
+        try {
+          const data = await fetchDistrict(d.code, manifest.version);
+          if (cancelled) return;
+          setDistrictsCache((prev) => {
+            const next = new globalThis.Map<DistrictCode, TrashBin[]>(prev);
+            next.set(d.code, data);
+            return next;
+          });
+          setActiveDistricts((prev) => new globalThis.Set([...prev, d.code]));
+        } catch {
+          // silent — user can pan to retry
+        }
+      });
+      handles.push(handle);
+    }
+
+    return () => {
+      cancelled = true;
+      const cancel: (h: number) => void =
+        typeof window !== 'undefined' && 'cancelIdleCallback' in window
+          ? (h) => window.cancelIdleCallback(h)
+          : (h) => window.clearTimeout(h);
+      handles.forEach(cancel);
+    };
+    // districtsCache intentionally omitted — initial-cache snapshot is enough; setDistrictsCache must not re-trigger this effect (would queue duplicate fetches and loop).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [manifest]);
+
+  useEffect(() => {
     return () => {
       if (watchIdRef.current !== null && 'geolocation' in navigator) {
         navigator.geolocation.clearWatch(watchIdRef.current);
@@ -276,6 +319,18 @@ function PageContent() {
     }
     return flat;
   }, [districtsCache, activeDistricts]);
+
+  const districtBreakdown = useMemo(() => {
+    if (!manifest) return [] as { code: DistrictCode; name: string; loaded: number }[];
+    return [...activeDistricts]
+      .map((code) => {
+        const meta = findDistrictMeta(manifest, code);
+        const loaded = districtsCache.get(code)?.length ?? 0;
+        return { code, name: meta?.name ?? code, loaded };
+      })
+      .filter((d) => d.loaded > 0)
+      .sort((a, b) => b.loaded - a.loaded);
+  }, [activeDistricts, districtsCache, manifest]);
 
   const visible = useMemo(() => {
     const byType = filterByTypes(bins, selected);
@@ -681,6 +736,17 @@ function PageContent() {
           {locateError && <span className="ml-2 text-red-400">({locateError})</span>}
           {error && <span className="ml-2 text-red-400">({error})</span>}
         </div>
+        {districtBreakdown.length >= 2 && (
+          <div className="mt-1 text-[11px] leading-relaxed text-neutral-500">
+            {districtBreakdown.map((d, i) => (
+              <span key={d.code}>
+                {i > 0 && <span aria-hidden className="mx-1.5 text-neutral-700">·</span>}
+                <span className="text-neutral-400">{d.name}</span>{' '}
+                <span className="font-mono text-neutral-300">{d.loaded}</span>
+              </span>
+            ))}
+          </div>
+        )}
       </section>
 
       <main className="relative min-h-0 flex-1">
