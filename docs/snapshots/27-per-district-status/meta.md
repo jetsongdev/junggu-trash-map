@@ -3,7 +3,7 @@ index: 27
 slug: per-district-status
 date: 2026-05-05
 phase: "P3.2"
-git_sha: 050435f (dirty)
+git_sha: 7f6a37c (clean)
 viewport: 390x844
 ---
 
