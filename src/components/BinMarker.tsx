@@ -65,9 +65,11 @@ type Props = {
   bin: TrashBin;
   rank?: Rank;
   dimmed?: boolean;
+  isFavorite?: boolean;
+  onToggleFavorite?: (binId: string) => void;
 };
 
-function BinMarkerImpl({ bin, rank, dimmed }: Props) {
+function BinMarkerImpl({ bin, rank, dimmed, isFavorite, onToggleFavorite }: Props) {
   return (
     <Marker
       position={[bin.lat, bin.lng]}
@@ -77,7 +79,7 @@ function BinMarkerImpl({ bin, rank, dimmed }: Props) {
       }}
     >
       <Popup>
-        <BinPopup bin={bin} />
+        <BinPopup bin={bin} isFavorite={isFavorite} onToggleFavorite={onToggleFavorite} />
       </Popup>
     </Marker>
   );

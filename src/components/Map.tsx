@@ -65,6 +65,8 @@ type Props = {
   onMapClick?: (latlng: LatLng) => void;
   tapMode?: boolean;
   tileTheme?: TileTheme;
+  favorites?: Set<string>;
+  onToggleFavorite?: (binId: string) => void;
 };
 
 const JUNGGU_CENTER: [number, number] = [37.5635, 126.987];
@@ -182,6 +184,8 @@ export function Map({
   onMapClick,
   tapMode = false,
   tileTheme = 'dark',
+  favorites,
+  onToggleFavorite,
 }: Props) {
   const preset = TILE_PRESETS[tileTheme];
   const primaryHighlight = highlights[0] ?? null;
@@ -223,6 +227,8 @@ export function Map({
             bin={bin}
             rank={rank}
             dimmed={hasCandidates && !rank}
+            isFavorite={favorites?.has(bin.id) ?? false}
+            onToggleFavorite={onToggleFavorite}
           />
         );
       })}

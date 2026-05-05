@@ -66,6 +66,7 @@
 - [x] **P2.9** 보행 속도 사용자 정의 km/h — cycle 칩 → 슬라이더(2~7 km/h, 0.5 step). 칩 클릭으로 슬라이더 panel 토글, emoji는 임계 자동(🐢/🚶/🏃). URL/localStorage 호환 (legacy preset 'slow'/'normal'/'fast' → 3/4/5).
 - [x] **I.2** 에러 모니터링 — Sentry 연동, production-only 초기화, geolocation/fetch 에러 캡처, global-error 추가
 - [x] **I.3** Lighthouse CI — PR마다 PWA/접근성/성능 점수 회귀 차단
+- [x] **P2.14** 즐겨찾기 — popup ☆/★ 토글로 휴지통 표시, 칩 필터로 즐겨찾기만 보기. localStorage `favorites` 영속화 (comma-separated id), `lib/favorites.ts` 순수 함수 + vitest 13개
 
 ---
 
@@ -74,7 +75,6 @@
 핵심 기능 다 들어가있고, 아래는 사용성·확장성 강화. 가벼운 → 무거운 순:
 
 - [ ] **P2.3** 클러스터링 — `leaflet.markercluster`. 마커 100+ 시 lag 방지. **25구 확장(Phase 3) 전엔 ø**
-- [ ] **P2.14** 즐겨찾기/최근 휴지통 — localStorage. 같은 동선 반복 사용자(출퇴근/산책 루틴) 대응
 
 ---
 

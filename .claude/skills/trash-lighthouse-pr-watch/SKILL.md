@@ -70,6 +70,18 @@ gh pr view $PR_NUM --json comments \
 
 응답 본문에서 점수 표 추출해 사용자에게 출력.
 
+**중요한 해석**: PR 코멘트의 점수는 lhci의 representative/median run 결과인데, **assertion은 기본 `aggregationMethod: "optimistic"` 으로 best-of-N을 사용한다**. 즉:
+
+- 3 run 점수: 0.61 / 0.69 / 0.70 → median(코멘트) 0.69, optimistic(assertion) 0.70
+- minScore 0.70 임계 → optimistic 0.70 ≥ 0.70 → PASS
+- 코멘트만 보면 "0.69 < 0.70인데 왜 통과?" 의문
+
+해석 시 사용자에게 이 차이를 알려줄 것:
+- 코멘트 점수가 임계치 약간 아래여도 통과할 수 있음 (optimistic)
+- 통과한 PR이라도 representative 점수가 임계치 아래면 회귀 추세 — 다음 PR에서 fail 가능성
+
+trend가 임계치 근접하면 **임계치 또는 aggregationMethod 조정 권장** (예: `aggregationMethod: "median"` 명시 + 임계치 약간 하향).
+
 다음으로 진행:
 - 자동 머지 또는 사용자 확인 후 머지
 - main sync
@@ -134,9 +146,11 @@ main이 production 자동 배포 트리거. ~16~22초 후 production 반영.
 
 - **gh run list가 빈 응답**: 워크플로우 등록 안 된 상태. 보통 첫 도입 시 chicken-and-egg (워크플로우 파일이 main에 없음). [TIL](../../../docs/til/2026-05-04-github-actions-first-workflow-bootstrap.md) 참고.
 - **점수가 매번 ±0.02 흔들림**: lighthouse는 본질적으로 jitter 있음 (network, CPU contention). 임계치는 측정 median - 0.03 마진으로 잡을 것.
+- **PR 코멘트 점수와 assertion 통과 결과 불일치**: 위 3a의 `aggregationMethod: "optimistic"` 설명 참고. 코멘트가 "fail"이라고 했는데 워크플로우는 success일 수 있고(드물지만), 코멘트가 "pass"인데 representative 점수가 임계치 아래일 수 있다. 워크플로우 conclusion이 진실, 코멘트는 representative.
 - **assertion 실패 시 재시도하지 말 것**: 점수가 0.74인데 0.85 임계치라면 retry해도 동일. 임계치 자체를 바꿔야 함.
 - **Lighthouse CI run + Copilot review run 헷갈림**: API 응답에 둘 다 나옴. `name == "Lighthouse CI"` 필터 필수.
-- **`gh pr merge`가 502 / "Merge already in progress"**: GitHub 일시 오류 또는 직전 머지가 처리 중. 5~10초 후 retry.
+- **여러 push로 인한 다중 run**: 같은 PR에 commit이 여러 번 push되면 Lighthouse CI가 여러 번 트리거됨. 가장 최신 run을 추적하려면 `head_sha == <latest commit>` 필터 또는 `created_at desc`로 정렬 후 first.
+- **`gh pr merge`가 502 / "Merge already in progress"**: GitHub 일시 오류 또는 직전 머지가 처리 중. 5~10초 후 retry. Retry 후 `gh pr view --json state` 로 MERGED 확인.
 
 ## 출처
 
