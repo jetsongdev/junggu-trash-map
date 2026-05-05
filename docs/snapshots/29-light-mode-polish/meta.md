@@ -3,7 +3,7 @@ index: 29
 slug: light-mode-polish
 date: 2026-05-05
 phase: "I.5"
-git_sha: ad6cb46 (clean)
+git_sha: f07f526 (clean)
 viewport: 390x844
 ---
 
