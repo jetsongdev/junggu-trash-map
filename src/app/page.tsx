@@ -662,8 +662,20 @@ function PageContent() {
   };
 
   return (
-    <div className="flex h-dvh flex-col bg-neutral-950 text-neutral-100">
-      <header className="border-b border-neutral-800 bg-neutral-950 px-4 py-3">
+    <div
+      className={`flex h-dvh flex-col ${
+        tileTheme === 'light'
+          ? 'bg-neutral-50 text-neutral-900'
+          : 'bg-neutral-950 text-neutral-100'
+      }`}
+    >
+      <header
+        className={`border-b px-4 py-3 ${
+          tileTheme === 'light'
+            ? 'border-neutral-200 bg-neutral-50'
+            : 'border-neutral-800 bg-neutral-950'
+        }`}
+      >
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-bold tracking-tight">🗑️ 중구 휴지통 지도</h1>
           <span className="rounded bg-amber-400 px-1.5 py-0.5 text-[10px] font-bold text-neutral-900">
@@ -672,7 +684,13 @@ function PageContent() {
         </div>
       </header>
 
-      <section className="border-b border-neutral-800 bg-neutral-900 px-4 py-3">
+      <section
+        className={`border-b px-4 py-3 ${
+          tileTheme === 'light'
+            ? 'border-neutral-200 bg-neutral-100'
+            : 'border-neutral-800 bg-neutral-900'
+        }`}
+      >
         <div className="mb-3">
           <SearchBox onSelect={handleSearchSelect} tapMode={tapTarget} />
         </div>
@@ -923,23 +941,49 @@ function PageContent() {
             aria-live="polite"
             aria-label="자치구 데이터 로드 중"
           >
-            <div className="flex items-center gap-3 rounded-2xl bg-neutral-900/85 px-5 py-4 text-sm text-neutral-100 shadow-2xl ring-1 ring-neutral-700 backdrop-blur-sm">
-              <span
-                aria-hidden
-                className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-neutral-600 border-t-amber-400"
-              />
-              <span className="flex flex-col">
-                <span className="font-semibold">자치구 데이터 로드 중</span>
-                <span className="text-xs text-neutral-400">
-                  {activeFetches.size > 0
-                    ? [...activeFetches]
-                        .map((c) => findDistrictMeta(manifest, c)?.name ?? c)
-                        .join(' · ')
-                    : !fullyLoaded
-                      ? `${populatedDistrictCount - loadedPopulatedCount}개 자치구 추가 로드 대기…`
-                      : '마무리 중…'}
+            <div className="rounded-2xl bg-neutral-900/85 px-5 py-4 text-sm text-neutral-100 shadow-2xl ring-1 ring-neutral-700 backdrop-blur-sm min-w-[200px]">
+              <div className="mb-2 flex items-center gap-2 font-semibold">
+                <span
+                  aria-hidden
+                  className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-neutral-600 border-t-amber-400"
+                />
+                <span>
+                  자치구 로드 ({loadedPopulatedCount}/{populatedDistrictCount})
                 </span>
-              </span>
+              </div>
+              <ul className="space-y-1 text-xs">
+                {manifest.districts
+                  .filter((d) => d.binCount > 0)
+                  .sort((a, b) => b.binCount - a.binCount)
+                  .map((d) => {
+                    const loaded = districtsCache.has(d.code);
+                    const inFlight = activeFetches.has(d.code);
+                    const icon = loaded ? '✓' : inFlight ? '⟳' : '⏳';
+                    const iconClass = loaded
+                      ? 'text-emerald-400'
+                      : inFlight
+                        ? 'text-amber-400 animate-pulse'
+                        : 'text-neutral-500';
+                    return (
+                      <li
+                        key={d.code}
+                        className={`flex items-center justify-between gap-3 ${
+                          loaded ? 'text-neutral-200' : 'text-neutral-400'
+                        }`}
+                      >
+                        <span className="flex items-center gap-1.5">
+                          <span aria-hidden className={`font-mono ${iconClass}`}>
+                            {icon}
+                          </span>
+                          <span>{d.name}</span>
+                        </span>
+                        <span className="font-mono text-neutral-500">
+                          {loaded ? d.binCount : ''}
+                        </span>
+                      </li>
+                    );
+                  })}
+              </ul>
             </div>
           </div>
         )}
