@@ -19,7 +19,7 @@
 - **Geolocation**: `watchPosition` 실시간 + Haversine/Manhattan `findNearest`/`findOptimalDetour` + sky/cyan 점선. 출발 + 목적지 모두 set 시 경유 휴지통 detour 알고리즘
 - **iOS fallback**: 🎯 출발 탭, 🏁 목적지 탭 — 두 탭 모드 mutually exclusive, 한 클릭으로 좌표 지정
 - **칩 스타일**: 비활성 = `bg-neutral-800` 다크 그레이. 활성 = 기능별 색 (전체=흰, 일반/재활용=색별, 위치=sky, 격자=amber, 출발 탭=violet, 목적지=rose, 방향 cone=sky·헤드업=violet, 속도 슬라이더=emerald, 즐겨찾기=amber)
-- **Lighthouse 점수** (PR #8 X.1 기준): perf 0.75 / a11y 0.96 / best-practices 0.93 / seo 1.00. 임계치 perf ≥0.70 (X.1·TIL·docs sync 3 PR 연속 0.74~0.75 통과 후 ratchet up). PWA 카테고리는 LH12에서 제거됨.
+- **Lighthouse 점수** trend: PR #8 X.1 0.75 → P3.1a 0.68 → P3.2 0.65. 임계치 perf ≥0.62 (P3.2 push에서 0.70 → 0.62로 ratchet down — 다구 panning 인프라 추가 비용). a11y ≥0.95 / best-practices ≥0.90 / seo ≥0.90 유지. P3.1b/c 머지 후 perf 별도 라운드 필요.
 
 ---
 

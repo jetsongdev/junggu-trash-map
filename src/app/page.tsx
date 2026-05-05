@@ -88,6 +88,7 @@ function PageContent() {
   );
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [districtsGeo, setDistrictsGeo] = useState<unknown | null>(null);
+  const [loadingDistrict, setLoadingDistrict] = useState<DistrictCode | null>(null);
   const [selected, setSelected] = useState<Set<BinType>>(() => new Set());
   const [error, setError] = useState<string | null>(null);
 
@@ -227,6 +228,7 @@ function PageContent() {
           return;
         }
 
+        setLoadingDistrict(initialCode);
         const data = await fetchDistrict(initialCode, m.version);
         if (!active) return;
         setDistrictsCache((prev) => {
@@ -237,6 +239,8 @@ function PageContent() {
         setActiveDistricts(new Set([initialCode]));
       } catch (e: unknown) {
         if (active) setError(e instanceof Error ? e.message : 'unknown');
+      } finally {
+        if (active) setLoadingDistrict(null);
       }
     })();
 
@@ -387,6 +391,7 @@ function PageContent() {
       return;
     }
 
+    setLoadingDistrict(code);
     try {
       const data = await fetchDistrict(code, manifest.version);
       setDistrictsCache((prev) => {
@@ -397,6 +402,8 @@ function PageContent() {
       setActiveDistricts((prev) => new globalThis.Set([...prev, code]));
     } catch {
       // silent — user can pan back, fetch will retry on next moveend
+    } finally {
+      setLoadingDistrict(null);
     }
   };
 
@@ -647,6 +654,17 @@ function PageContent() {
         )}
         <div className="mt-2 text-xs text-neutral-400">
           📍 {visible.length} / 전체 {bins.length}개
+          {loadingDistrict && manifest && (
+            <span className="ml-2 inline-flex items-center gap-1 text-amber-300" role="status" aria-live="polite">
+              <span
+                aria-hidden
+                className="inline-block h-2 w-2 animate-pulse rounded-full bg-amber-400"
+              />
+              <span>
+                {findDistrictMeta(manifest, loadingDistrict)?.name ?? loadingDistrict} 로드 중…
+              </span>
+            </span>
+          )}
           {bestRouteCandidate && (
             <span className="ml-2 text-cyan-300">
               · 출발→{bestRouteCandidate.bin.name.split(',')[0]}→목적지 {formatDistance(bestRouteCandidate.cost.total)} · {formatEta(etaSeconds(bestRouteCandidate.cost.total, walkingSpeed))} (경유 +{formatDistance(bestRouteCandidate.cost.extra)})
