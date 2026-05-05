@@ -75,10 +75,15 @@ gh pr edit <num> --add-label release:minor
 자동으로 일어나는 일 (라벨 머지 시):
 1. `package.json` 버전 bump
 2. `CHANGELOG.md` `[Unreleased]` → `[X.Y.Z] - YYYY-MM-DD` + 새 빈 `[Unreleased]` + compare link 갱신
-3. main에 `chore(release): vX.Y.Z [skip ci]` 직접 push
+3. main에 `chore(release): vX.Y.Z` 직접 push
 4. annotated tag `vX.Y.Z` push
 5. GitHub Release 생성 (해당 버전 CHANGELOG 섹션이 release notes)
 6. 머지된 PR에 release 링크 코멘트
+
+**Vercel 배포 동작** (hobby plan, 동시 1 슬롯):
+- 머지 commit이 main에 들어올 때 Vercel이 production build → 사용자 가시 변경 반영
+- 그 직후 bump commit이 push되지만 **Vercel project Settings → Build and Deployment → Ignored Build Step**의 `git log -1 --pretty=%B | grep -qE '^chore\(release\): v[0-9]+\.[0-9]+\.[0-9]+' && exit 0 || exit 1` 가드로 deployment registration 자체를 거부 → 큐 슬롯 안 잡음. 결과적으로 release cut 1회 = production build 1회.
+- 정규식이 `v[0-9]+\.[0-9]+\.[0-9]+`까지 요구하므로 일반 `chore(release):` prefix(예: 워크플로 정리 commit)에는 매치 안 됨 — 그런 commit은 정상 빌드된다.
 
 **전제 조건**: `[Unreleased]` 가 비어있지 않아야 함 — 비었는데 라벨이 붙으면 워크플로 fail (의도적; release 의미 없음). 따라서 PR 작성 시 CHANGELOG `[Unreleased]` 갱신은 필수.
 
