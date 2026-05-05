@@ -225,7 +225,7 @@ function PageContent() {
         const meta = findDistrictMeta(m, initialCode);
         if (!meta) throw new Error(`Unknown district code: ${initialCode}`);
         if (meta.binCount === 0) {
-          setActiveDistricts(new Set([initialCode]));
+          setActiveDistricts((prev) => new globalThis.Set([...prev, initialCode!]));
           return;
         }
 
@@ -237,7 +237,7 @@ function PageContent() {
           next.set(initialCode!, data);
           return next;
         });
-        setActiveDistricts(new Set([initialCode]));
+        setActiveDistricts((prev) => new globalThis.Set([...prev, initialCode!]));
       } catch (e: unknown) {
         if (active) setError(e instanceof Error ? e.message : 'unknown');
       } finally {
