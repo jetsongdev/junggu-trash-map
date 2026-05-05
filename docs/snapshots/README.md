@@ -34,6 +34,7 @@
 | 26 | 2026-05-05 | 🗺 다구 로드 — 7개 자치구 802 bins + breakdown (P3.1a + P3.2) | [26-multi-district-load](./26-multi-district-load/) |
 | 27 | 2026-05-05 | ✓ 자치구별 status 오버레이 + theme chrome 정비 (P3.2 후반) | [27-per-district-status](./27-per-district-status/) |
 | 28 | 2026-05-05 | 1️⃣2️⃣ onboarding & 모드 명확화 — 첫 방문 토스트 + 칩 뱃지 + tap mode 배너 (P2.17) | [28-onboarding-mode-clarity](./28-onboarding-mode-clarity/) |
+| 29 | 2026-05-05 | 🔵 markercluster — 802 bins 줌-아웃 클러스터링, ≥15 개별 마커 (P3.1b) | [29-markercluster](./29-markercluster/) |
 
 ## 새 스냅샷 찍는 법
 
