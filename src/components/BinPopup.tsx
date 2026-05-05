@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { HAPTIC, vibrate } from '@/lib/haptic';
 import type { TrashBin } from '@/lib/types';
 import { TYPE_STYLE, styleFor } from '@/lib/types';
 
@@ -5,10 +7,23 @@ type Props = {
   bin: TrashBin;
   isFavorite?: boolean;
   onToggleFavorite?: (binId: string) => void;
+  onUse?: (binId: string) => void;
 };
 
-export function BinPopup({ bin, isFavorite = false, onToggleFavorite }: Props) {
+export function BinPopup({ bin, isFavorite = false, onToggleFavorite, onUse }: Props) {
   const headStyle = styleFor(bin.types);
+  const [usedFlash, setUsedFlash] = useState(false);
+
+  const handleUse = () => {
+    if (!onUse) return;
+    vibrate(HAPTIC.CONFIRM);
+    setUsedFlash(true);
+    onUse(bin.id);
+    window.setTimeout(() => {
+      setUsedFlash(false);
+    }, 800);
+  };
+
   return (
     <div className="min-w-[220px] text-sm leading-relaxed">
       <div className="mb-1 flex items-center gap-2">
@@ -31,6 +46,20 @@ export function BinPopup({ bin, isFavorite = false, onToggleFavorite }: Props) {
             }`}
           >
             {isFavorite ? '★' : '☆'}
+          </button>
+        )}
+        {onUse && (
+          <button
+            type="button"
+            onClick={handleUse}
+            aria-label="이 휴지통 사용 기록"
+            className={`rounded-full px-2 py-1 text-xs font-semibold transition ${
+              usedFlash
+                ? 'bg-emerald-500 text-white'
+                : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+            }`}
+          >
+            ✓ 사용
           </button>
         )}
       </div>
