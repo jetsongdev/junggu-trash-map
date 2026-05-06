@@ -13,6 +13,7 @@ import {
 } from 'react-leaflet';
 import { BinMarker } from './BinMarker';
 import { DestinationMarker } from './DestinationMarker';
+import { MarkerClusterGroup } from './MarkerClusterGroup';
 import { UserMarker } from './UserMarker';
 import {
   findOptimalDetour,
@@ -266,20 +267,27 @@ export function Map({
         subdomains={preset.subdomains}
         maxZoom={preset.maxZoom}
       />
-      {bins.map((bin) => {
-        const rank = highlightRanks.get(bin.id);
-        return (
-          <BinMarker
-            key={bin.id}
-            bin={bin}
-            rank={rank}
-            dimmed={hasCandidates && !rank}
-            isFavorite={favorites?.has(bin.id) ?? false}
-            onToggleFavorite={onToggleFavorite}
-            onUse={onUse && userLocation ? () => handleUse(bin) : undefined}
-          />
-        );
-      })}
+      <MarkerClusterGroup
+        disableClusteringAtZoom={15}
+        spiderfyOnMaxZoom={false}
+        showCoverageOnHover={false}
+        chunkedLoading
+      >
+        {bins.map((bin) => {
+          const rank = highlightRanks.get(bin.id);
+          return (
+            <BinMarker
+              key={bin.id}
+              bin={bin}
+              rank={rank}
+              dimmed={hasCandidates && !rank}
+              isFavorite={favorites?.has(bin.id) ?? false}
+              onToggleFavorite={onToggleFavorite}
+              onUse={onUse && userLocation ? () => handleUse(bin) : undefined}
+            />
+          );
+        })}
+      </MarkerClusterGroup>
       {primaryHighlight && <HighlightRing bin={primaryHighlight} />}
       {showDistanceOnly &&
         highlights.map((bin, i) => (

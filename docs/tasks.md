@@ -5,7 +5,7 @@
 
 ## 현재 상태 (2026-05-05)
 
-- **Phase**: 3 진행 중. P3.1a Foundation + P3.2 데이터 transform 완료 (7개 자치구 802 bins, panning 트리거로 다구 active set 자동 추가). 다음 P3.1b (markercluster), P3.1c (인접 prefetch).
+- **Phase**: 3 진행 중. P3.1a Foundation + P3.2 데이터 transform + P3.1b markercluster 완료. 다음 P3.1c (인접 prefetch).
 - **사용자 환경 영속화** (`localStorage`): `distanceMode` (직선/격자), `tileTheme` (다크/라이트, **빈 값일 때 시스템 prefers-color-scheme 자동 감지**), `walkingSpeed` (km/h, 2~7 step 0.5), `favorites` (즐겨찾기 bin id), `savings` (누적 보행거리·시간·횟수)
 - **마커 색**: 일반 `#60a5fa` (blue-400), 재활용 `#34d399` (emerald-400), 혼합 `#c084fc` (violet-400) — 라이트/다크 양 타일에서 균형
 - **Roadmap 확장**: Phase 3 (25개 구) · Phase 4 (데이터 확장: 타 종류 통/사용자 제보/사진) · Phase 5 (실제 보행 경로 + TTS) · 인프라/품질 cross-cutting (i18n 남음)
@@ -20,7 +20,7 @@
 - **Geolocation**: `watchPosition` 실시간 + Haversine/Manhattan `findNearest`/`findOptimalDetour` + sky/cyan 점선. 출발 + 목적지 모두 set 시 경유 휴지통 detour 알고리즘
 - **iOS fallback**: 🎯 출발 탭, 🏁 목적지 탭 — 두 탭 모드 mutually exclusive, 한 클릭으로 좌표 지정
 - **칩 스타일**: 비활성 = `bg-neutral-800` 다크 그레이. 활성 = 기능별 색 (전체=흰, 일반/재활용=색별, 위치=sky, 격자=amber, 출발 탭=violet, 목적지=rose, 방향 cone=sky·헤드업=violet, 속도 슬라이더=emerald, 즐겨찾기=amber)
-- **Lighthouse 점수** trend: PR #8 X.1 0.75 → P3.1a 0.68 → P3.2 0.65. 임계치 perf ≥0.62 (P3.2 push에서 0.70 → 0.62로 ratchet down — 다구 panning 인프라 추가 비용). a11y ≥0.95 / best-practices ≥0.90 / seo ≥0.90 유지. P3.1b/c 머지 후 perf 별도 라운드 필요.
+- **Lighthouse 점수** trend: PR #8 X.1 0.75 → P3.1a 0.68 → P3.2 0.65. 임계치 perf ≥0.62 (P3.2 push에서 0.70 → 0.62로 ratchet down — 다구 panning 인프라 추가 비용). a11y ≥0.95 / best-practices ≥0.90 / seo ≥0.90 유지. P3.1b markercluster 추가 (~10KB gzip) 후 PR Lighthouse 게이트 결과 확인 필요. P3.1c 머지 후 perf 별도 라운드 필요.
 
 ---
 
@@ -79,6 +79,7 @@
 - [x] **P2.17** onboarding & 모드 명확화 — 첫 방문 1회 emphatic 토스트 (🎯+🏁 사용법 안내, localStorage `onboarded` 가드), 출발/목적지 칩에 1️⃣/2️⃣ 뱃지, tap mode 활성 시 하단 고정 banner ("지도에서 탭하거나 검색하세요"), 검색 드롭다운 열려있을 때 `handleMapClick` 가드로 빈 영역 오탭 방지 (UX U1+U2+U3)
 - [x] **P3.1c** 인접 자치구 prefetch — **obsoleted by P3.2 bulk prefetch**: 첫 user interaction 후 `requestIdleCallback`로 모든 populated 자치구를 일괄 fetch (page.tsx 274~378)가 strictly broader. 7개 자치구 중 junggu의 `adjacent`에 populated된 건 mapo 1개뿐 → adjacency-based는 사용자 가치 0. 25구가 다 채워지면 bulk가 too aggressive해질 때 재평가.
 - [x] **I.5** 라이트 모드 UI 정비 — Tailwind v4 `@custom-variant dark (.dark &)` 도입, root div에 `tileTheme === 'dark'` 시 `dark` 클래스 부착. inactiveChip / 헤더 / 섹션 / 속도 슬라이더 / 통계 텍스트 / breakdown / 로딩 오버레이 / toast 비강조 / 데이터 출처 핀 / SearchBox 입력+드롭다운 / LocateButton / FilterChips 12+ 표면을 양 테마 일관 콘트라스트로 분기. snapshot `29-light-mode-polish/` (light · dark · light-search 3장).
+- [x] **P3.1b** markercluster 도입 — `leaflet.markercluster@1.5.3` + `@types/leaflet.markercluster`. `MarkerClusterGroup` 래퍼는 `@react-leaflet/core`의 `createLayerComponent` + `extendContext({ layerContainer })` 패턴 (LayerGroup과 동일). `disableClusteringAtZoom: 15` + `chunkedLoading` + `spiderfyOnMaxZoom: false` + `showCoverageOnHover: false`. HighlightRing/DistanceLine/RouteLine은 cluster 바깥 — Top-3/헤드업/즐겨찾기 줌 ≥15에서 회귀 없음. snapshot `30-markercluster/`.
 
 ---
 
@@ -98,7 +99,6 @@
 
 자치구별 정적 JSON + 클라이언트 point-in-polygon 판정으로 결정. spec: `docs/superpowers/specs/2026-05-05-p3-1-data-partitioning-design.md`. P3.1은 3-PR로 분할 (a foundation → b markercluster · c 인접 prefetch).
 
-- [ ] **P3.1b** markercluster 도입 — `leaflet.markercluster` + 줌 ≥15에서 개별 마커. 별도 worktree·PR.
 - [ ] **P3.3** 자치구 자동 감지 진입 가이드 UI — 25구 선택 셀렉터, 빈 데이터 구(공공데이터 미발행 18개) 토스트 안내. (panning auto-add는 P3.2에서 들어감)
 
 ---
@@ -187,6 +187,10 @@
 - **GeoJSON 좌표 순서는 `[lng, lat]`** (ISO 표준). Leaflet과 우리 코드의 `{lat, lng}`와 반대. point-in-polygon 헬퍼 안에서만 한 번 갈아끼고 외부 API는 절대 swap 금지. 한 번 헷갈리면 전 구가 '서울 밖' 판정으로 침묵 실패.
 - **자치구 영문 슬러그는 manifest가 SoT**: 행정안전부 표준 영문 표기는 일관 안 됨 (`Jung-gu` vs `Junggu` vs `Jung Gu`). `public/data/seoul-manifest.json`이 단일 진실. `*-gu` 접미사 없음, 모두 lowercase. 한 번 정해진 이상 URL/파일명에 영구 박혀 변경 불가.
 - **`Map` const는 dynamic component와 충돌**: page.tsx에서 `const Map = dynamic(...)` 가 있으면 같은 함수 안에서 `new Map()` 은 컴포넌트로 해석돼 "This expression is not constructable" 발생. 새 코드는 `globalThis.Map`/`globalThis.Set` 명시적 한정 사용 (Set은 충돌 없지만 일관성).
+- **`leaflet.markercluster`는 `window.L` 글로벌 의존**: `leaflet-rotate`와 마찬가지. ESM 환경에선 `@/lib/leaflet-globals` (이미 셋업됨)가 plugin import보다 먼저 평가돼야 한다. `MarkerClusterGroup.tsx`는 `import '@/lib/leaflet-globals'` → `import 'leaflet.markercluster'` 순으로 명시. 한 번 더 깜빡이면 `L.markerClusterGroup is not a function`.
+- **`markercluster`를 react-leaflet에 끼우는 법**: react-leaflet 5.0은 cluster 컴포넌트가 없다. `@react-leaflet/core`의 `createLayerComponent` + `createElementObject(group, extendContext(ctx, { layerContainer: group }))` 패턴이면 `<Marker>` 자식이 자동으로 cluster group에 attach된다 (LayerGroup 구현과 동일 메커니즘). `react-leaflet-cluster` 같은 3rd party 패키지 없이 8줄로 끝남.
+- **markercluster `disableClusteringAtZoom`은 "그 줌부터 cluster off"**: `disableClusteringAtZoom: 15` → 줌 ≥15에서 개별, <15에서 cluster. spec의 "줌 <15 cluster / 줌 ≥15 개별" 임계와 일치. 같은 임계가 P2.10 Top-3 dimming(BinMarker rank/dimmed)과 자연 정렬됨 — Top-3 강조는 줌 ≥15에서 마커가 풀려야 시각적으로 의미 있고, 그 이하 줌에서는 어차피 cluster bubble로 묶여 보이지 않음. README 문서가 "at this zoom level and below" 라고 적혀있으나 소스(`MarkerClusterGroup.js` `_generateInitialClusters`)는 `maxZoom = disableClusteringAtZoom - 1`로 맞춰 zoom ≥ X 에서만 클러스터링이 일어나지 않게 한다 (docs 문구는 misleading). `docs/snapshots/29-markercluster/zoom-13/14/15/16.png`로 4단계 시각 검증 보존.
+- **워크트리 별 dev 서버 포트 충돌은 캡처 결과를 통째로 망가뜨림**: 동일 머신에 여러 worktree가 있고 다른 워크트리의 dev 서버가 같은 포트(3001)를 점유 중이면, 우리 worktree에서 띄운 서버가 자동 fallback(3002)되거나 연결 실패하는데, 헛갈리면 여전히 3001로 navigate해서 **다른 worktree의 빌드를 검증하게 된다**. P3.1b 검증 시 `MarkerClusterGroup`이 안 붙어있다고 잘못 결론낼 뻔함. 디펜스: (1) 워크트리에서 dev 띄울 때 `PORT=3010 bun run dev`처럼 명시 포트, (2) `lsof -i :3001 -sTCP:LISTEN` + `ps aux | grep next.*dev`로 점유자가 우리 워크트리인지 확인, (3) 페이지 콘솔에서 `window.location.port` + `__map`의 layer 검증.
 
 ---
 

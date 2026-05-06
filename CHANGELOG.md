@@ -9,6 +9,12 @@
 
 ## [Unreleased]
 
+### Added
+- 7개 자치구 802개 휴지통이 한 지도에 들어와도 줌-아웃 시 화면이 마커로 도배되지 않도록 클러스터링이 적용됐습니다 — 줌 ≤14에서는 묶인 카운트 풍선(작게 부드러운 노랑/연두/초록)으로, 줌 ≥15부터는 휴지통 색·이모지 그대로의 개별 마커로 보입니다. 클러스터를 탭하면 자동으로 한 단계 더 확대해 펼쳐줍니다 (P3.1b).
+
+### Performance
+- 마커 수가 늘어도 한 번에 그리는 DOM 요소 수가 클러스터 풍선 수준으로 줄어 줌-아웃 상태의 panning이 가벼워졌습니다 (`leaflet.markercluster` `chunkedLoading`).
+
 ### Infrastructure
 - Lighthouse CI 워크플로에 `paths-ignore` (`docs/**` · `**/*.md` · `.gitignore` · `.snapshot.config.json` · `LICENSE`) 추가 — CHANGELOG·snapshot SHA정합·docs-only PR이 더 이상 LH 4~5분을 잡지 않음. Hobby tier runner 큐 압력 감소. 더불어 `actions/cache@v4`로 Bun install 캐시 + Next.js `.next/cache`를 lockfile + 소스 해시 기반 키로 cache → 의존성 install 거의 즉시, Turbopack 증분 빌드도 인접 키로 hit 가능.
 
