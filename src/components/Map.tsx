@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useMemo, useRef, useState, type RefObject } from 'react';
+import L from 'leaflet';
+import { createRoot, type Root } from 'react-dom/client';
 import '@/lib/leaflet-globals';
 import 'leaflet-rotate/dist/leaflet-rotate.js';
 import {
@@ -11,7 +13,8 @@ import {
   useMap,
   useMapEvents,
 } from 'react-leaflet';
-import { BinMarker } from './BinMarker';
+import { getBinMarkerIcon, type Rank } from './BinMarker';
+import { BinPopup } from './BinPopup';
 import { DestinationMarker } from './DestinationMarker';
 import { UserMarker } from './UserMarker';
 import {
@@ -23,6 +26,13 @@ import {
   type LatLng,
 } from '@/lib/geo';
 import { etaSeconds } from '@/lib/eta';
+import { HAPTIC, vibrate } from '@/lib/haptic';
+import {
+  CLUSTER_BREAK_ZOOM,
+  shouldClusterMarkers,
+  shouldDimNonHighlightMarker,
+} from '@/lib/map-cluster';
+import { attachMarkerClusterLayer, type MarkerClusterRank } from '@/lib/marker-cluster-layer';
 import type { TrashBin } from '@/lib/types';
 
 type RotatedMap = ReturnType<typeof useMap> & {
@@ -114,6 +124,18 @@ function MapMoveHandler({ onCenterChange }: { onCenterChange: (ll: LatLng) => vo
   return null;
 }
 
+function ZoomLevelTracker({ onZoomChange }: { onZoomChange: (zoom: number) => void }) {
+  const map = useMapEvents({
+    zoomend: () => onZoomChange(map.getZoom()),
+  });
+
+  useEffect(() => {
+    onZoomChange(map.getZoom());
+  }, [map, onZoomChange]);
+
+  return null;
+}
+
 function HighlightRing({ bin }: { bin: TrashBin }) {
   return (
     <CircleMarker
@@ -129,6 +151,63 @@ function HighlightRing({ bin }: { bin: TrashBin }) {
       interactive={false}
     />
   );
+}
+
+function ClusteredBinsLayer({
+  bins,
+  highlightRanks,
+  hasCandidates,
+  zoom,
+  favorites,
+  onToggleFavorite,
+  onUseRef,
+}: {
+  bins: TrashBin[];
+  highlightRanks: Map<string, MarkerClusterRank>;
+  hasCandidates: boolean;
+  zoom: number;
+  favorites?: Set<string>;
+  onToggleFavorite?: (binId: string) => void;
+  onUseRef: RefObject<((bin: TrashBin) => void) | undefined>;
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    return attachMarkerClusterLayer({
+      bins,
+      favorites,
+      hasCandidates,
+      highlightRanks,
+      importMarkerCluster: () => import('leaflet.markercluster'),
+      leaflet: L,
+      map,
+      clusterBreakZoom: CLUSTER_BREAK_ZOOM,
+      createIcon: (bin, rank) =>
+        getBinMarkerIcon(
+          bin.types,
+          rank as Rank | undefined,
+          shouldDimNonHighlightMarker({
+            zoom,
+            hasCandidates,
+            isHighlighted: !!rank,
+          }),
+        ),
+      createPopupRoot: (container) => createRoot(container as Element) as Root,
+      popupContentFactory: (bin, isFavorite, onUse) => (
+        <BinPopup
+          bin={bin}
+          isFavorite={isFavorite}
+          onToggleFavorite={onToggleFavorite}
+          onUse={onUse}
+        />
+      ),
+      onMarkerClick: () => vibrate(HAPTIC.SELECT),
+      onToggleFavorite,
+      onUseForBin: (bin) => (onUseRef.current ? () => onUseRef.current?.(bin) : undefined),
+    });
+  }, [map, bins, highlightRanks, hasCandidates, zoom, favorites, onToggleFavorite, onUseRef]);
+
+  return null;
 }
 
 // Light tile uses darker sky scale so rank 2/3 don't wash out on white-ish bg.
@@ -217,30 +296,43 @@ export function Map({
   walkingSpeed = 4,
   onUse,
 }: Props) {
+  const [zoom, setZoom] = useState(CLUSTER_BREAK_ZOOM - 1);
   const preset = TILE_PRESETS[tileTheme];
   const primaryHighlight = highlights[0] ?? null;
-  const showRoute = !!(userLocation && destination && primaryHighlight);
-  const showDistanceOnly = !!(userLocation && primaryHighlight && !destination);
-  const highlightRanks = new globalThis.Map(
-    highlights.map((bin, index) => [bin.id, (index + 1) as 1 | 2 | 3]),
+  const highlightRanks = useMemo(
+    () =>
+      new globalThis.Map(
+        highlights.map((bin, index) => [bin.id, (index + 1) as 1 | 2 | 3]),
+      ),
+    [highlights],
   );
   const hasCandidates = highlights.length > 0;
+  const showCandidateDecorations = hasCandidates && !shouldClusterMarkers(zoom);
+  const showRoute = showCandidateDecorations && !!(userLocation && destination && primaryHighlight);
+  const showDistanceOnly =
+    showCandidateDecorations && !!(userLocation && primaryHighlight && !destination);
+  const onUseRef = useRef<((bin: TrashBin) => void) | undefined>(undefined);
 
-  const handleUse = (bin: TrashBin) => {
-    if (!onUse || !userLocation) return;
-
-    if (destination) {
-      const route = findOptimalDetour([bin], userLocation, destination, distanceMode);
-      if (!route) return;
-      const extraMeters = route.cost.extra;
-      onUse(bin.id, extraMeters, etaSeconds(extraMeters, walkingSpeed));
+  useEffect(() => {
+    if (!onUse || !userLocation) {
+      onUseRef.current = undefined;
       return;
     }
 
-    const nearest = findNearest([bin], userLocation, distanceMode);
-    if (!nearest) return;
-    onUse(bin.id, nearest.meters, etaSeconds(nearest.meters, walkingSpeed));
-  };
+    onUseRef.current = (bin: TrashBin) => {
+      if (destination) {
+        const route = findOptimalDetour([bin], userLocation, destination, distanceMode);
+        if (!route) return;
+        const extraMeters = route.cost.extra;
+        onUse(bin.id, extraMeters, etaSeconds(extraMeters, walkingSpeed));
+        return;
+      }
+
+      const nearest = findNearest([bin], userLocation, distanceMode);
+      if (!nearest) return;
+      onUse(bin.id, nearest.meters, etaSeconds(nearest.meters, walkingSpeed));
+    };
+  }, [onUse, userLocation, destination, distanceMode, walkingSpeed]);
 
   return (
     <div
@@ -266,21 +358,16 @@ export function Map({
         subdomains={preset.subdomains}
         maxZoom={preset.maxZoom}
       />
-      {bins.map((bin) => {
-        const rank = highlightRanks.get(bin.id);
-        return (
-          <BinMarker
-            key={bin.id}
-            bin={bin}
-            rank={rank}
-            dimmed={hasCandidates && !rank}
-            isFavorite={favorites?.has(bin.id) ?? false}
-            onToggleFavorite={onToggleFavorite}
-            onUse={onUse && userLocation ? () => handleUse(bin) : undefined}
-          />
-        );
-      })}
-      {primaryHighlight && <HighlightRing bin={primaryHighlight} />}
+      <ClusteredBinsLayer
+        bins={bins}
+        highlightRanks={highlightRanks}
+        hasCandidates={hasCandidates}
+        zoom={zoom}
+        favorites={favorites}
+        onToggleFavorite={onToggleFavorite}
+        onUseRef={onUseRef}
+      />
+      {showCandidateDecorations && primaryHighlight && <HighlightRing bin={primaryHighlight} />}
       {showDistanceOnly &&
         highlights.map((bin, i) => (
           <DistanceLine
@@ -323,6 +410,7 @@ export function Map({
       <PanToUser target={userLocation} />
       <PanToUser target={focusTarget} />
       <BearingController bearing={mapBearing ?? 0} />
+      <ZoomLevelTracker onZoomChange={setZoom} />
       {onMapClick && <MapClickHandler onClick={onMapClick} />}
       {onCenterChange && <MapMoveHandler onCenterChange={onCenterChange} />}
     </MapContainer>

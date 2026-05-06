@@ -5,7 +5,7 @@
 
 ## 현재 상태 (2026-05-05)
 
-- **Phase**: 3 진행 중. P3.1a Foundation + P3.2 데이터 transform 완료 (7개 자치구 802 bins, panning 트리거로 다구 active set 자동 추가). 다음 P3.1b (markercluster), P3.1c (인접 prefetch).
+- **Phase**: 3 진행 중. P3.1a Foundation + P3.1b markercluster + P3.2 데이터 transform 완료 (7개 자치구 802 bins, panning 트리거로 다구 active set 자동 추가). 다음 P3.3 (자치구 진입 가이드 UI).
 - **사용자 환경 영속화** (`localStorage`): `distanceMode` (직선/격자), `tileTheme` (다크/라이트, **빈 값일 때 시스템 prefers-color-scheme 자동 감지**), `walkingSpeed` (km/h, 2~7 step 0.5), `favorites` (즐겨찾기 bin id), `savings` (누적 보행거리·시간·횟수)
 - **마커 색**: 일반 `#60a5fa` (blue-400), 재활용 `#34d399` (emerald-400), 혼합 `#c084fc` (violet-400) — 라이트/다크 양 타일에서 균형
 - **Roadmap 확장**: Phase 3 (25개 구) · Phase 4 (데이터 확장: 타 종류 통/사용자 제보/사진) · Phase 5 (실제 보행 경로 + TTS) · 인프라/품질 cross-cutting (i18n 남음)
@@ -73,6 +73,7 @@
 ### Phase 3 — 25개 구 확장
 - [x] **P3.1** 데이터 분할 전략 결정 — 자치구 단위 정적 JSON + GeoJSON 폴리곤 클라이언트 판정 + 3-PR 분할 (foundation → cluster · prefetch). spec: `docs/superpowers/specs/2026-05-05-p3-1-data-partitioning-design.md`.
 - [x] **P3.1a** Foundation — `seoul-manifest.json`/`seoul-districts.geojson`/`districts/<code>.json` 3축 자원, `point-in-district`/`districts`/`fetchDistrict` 모듈, page.tsx 부트 시퀀스. 25구 데이터·markercluster·prefetch는 후속.
+- [x] **P3.1b** markercluster 도입 — 네이티브 `leaflet.markercluster`를 react-leaflet wrapper 없이 `L.markerClusterGroup()`으로 마운트. 줌 <15에서는 cluster, 줌 ≥15에서는 개별 마커로 전환. 필터 상태가 cluster count에 그대로 반영되고, Top-3 dimming/점선 강조는 Option C로 줌 ≥15에서만 적용.
 - [x] **P3.2** 25구 데이터 transform — 공공데이터포털 표준데이터 발행분 7개 자치구 (중구·서초·중랑·성북·마포·구로·노원, 총 802 bins) `transform.ts` 일괄 변환 + manifest binCount/version 갱신. 다른 18개는 미발행 → 자리 표시자 유지. + `<MapMoveHandler>` panning 트리거: 지도 center가 다른 폴리곤에 진입하면 그 자치구 자동 fetch + active set 추가.
 - [x] **P3.2-fix1** prefetch stale closure — `districtsCacheRef`/`activeFetchesRef`/`failedDistrictsRef`로 latest state 읽도록 수정. 더 이상 mount 시점 스냅샷에 묶여 panning으로 로드한 구를 재fetch하지 않음.
 - [x] **P3.2-fix2** 로딩 오버레이 fail terminal — `failedDistricts` Set 추가, 3개 catch 블록 모두 실패 등록, `terminalPopulatedCount = loaded ∪ failed`로 `fullyLoaded` 산정 → 실패 시에도 오버레이 dismiss. overlay 행에 `✗` 빨강 아이콘으로 실패 표시.
@@ -98,7 +99,6 @@
 
 자치구별 정적 JSON + 클라이언트 point-in-polygon 판정으로 결정. spec: `docs/superpowers/specs/2026-05-05-p3-1-data-partitioning-design.md`. P3.1은 3-PR로 분할 (a foundation → b markercluster · c 인접 prefetch).
 
-- [ ] **P3.1b** markercluster 도입 — `leaflet.markercluster` + 줌 ≥15에서 개별 마커. 별도 worktree·PR.
 - [ ] **P3.3** 자치구 자동 감지 진입 가이드 UI — 25구 선택 셀렉터, 빈 데이터 구(공공데이터 미발행 18개) 토스트 안내. (panning auto-add는 P3.2에서 들어감)
 
 ---
@@ -173,6 +173,7 @@
 - **`vercel link` GitHub 자동 연결 실패**: 첫 시도에서 "Failed to connect ... private repo access" 메시지 후 두 번째 시도엔 메시지 없이 link만 됨. 추후 `vercel git connect`로 명시 연결 시도하면 "already connected" 응답 (한 번 설정되면 자동). push가 production/preview 자동 deploy를 트리거.
 - **Vercel commit-email-GitHub 매칭**: 커밋 author 이메일이 GitHub 계정에 등록 안 돼있으면 deploy block. CLI는 generic "Unexpected error"만 떨굼, dashboard에 사유. → git identity를 GitHub 계정 이메일로 맞추기 (이 repo는 jetsong.dev@gmail.com).
 - **Leaflet `divIcon` 캐시**: 같은 (단일타입/혼합) 키 마커들은 `L.divIcon` 인스턴스를 공유해도 안전 (Leaflet은 html을 템플릿으로만 쓰고 DOM은 마커별 생성). 59개 마커 × 매 렌더 → 3 인스턴스로 절감.
+- **`leaflet.markercluster` + React popup은 수동 cleanup 필요**: wrapper 없이 `L.markerClusterGroup()` + `marker.bindPopup(container)`를 쓰면 popup 안의 React root를 layer rebuild/unmount 때 직접 `root.unmount()` 해야 메모리 누수가 없다. Top-3 dimming/점선 강조는 cluster와 임계치를 맞춰 줌 ≥15에서만 켜라 (Option C).
 - **localStorage 초기화 ≠ useState 초기화**: `useState(() => localStorage.getItem(...))` 패턴은 SSR(server) → 기본값, CSR(client) → 저장값으로 첫 렌더가 갈라져 hydration mismatch. 항상 기본값으로 useState → mount 후 useEffect에서 localStorage 읽어 setState. 첫 effect의 자동 persist는 hydratedRef로 가드해서 default가 saved를 덮어쓰지 않도록 할 것.
 - **divIcon `transform:scale()`은 레이아웃 변형 X**: 마커 크기를 진짜 줄이려면 `width/height/font-size`를 직접 곱해서 박을 것. 자세한 예시는 [TIL](./til/2026-05-04-leaflet-divicon-css-transform-scale.md).
 - **`leaflet-rotate`는 markerPane을 `_norotatePane`에 분리**: 이미 마커 직립 처리됨. 컨테이너에 counter-rotate CSS를 추가로 걸면 double-rotation 버그. [TIL](./til/2026-05-04-leaflet-rotate-marker-double-rotation.md).

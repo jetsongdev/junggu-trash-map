@@ -9,7 +9,7 @@ import type { TrashBin } from '@/lib/types';
 import { styleFor } from '@/lib/types';
 
 const ICON_CACHE = new Map<string, L.DivIcon>();
-type Rank = 1 | 2 | 3;
+export type Rank = 1 | 2 | 3;
 
 const RANK_STYLE: Record<Rank, { scale: number }> = {
   1: { scale: 1 },
@@ -51,7 +51,11 @@ function makeIcon(types: TrashBin['types'], rank?: Rank, dimmed?: boolean): L.Di
   });
 }
 
-function getIcon(types: TrashBin['types'], rank?: Rank, dimmed?: boolean): L.DivIcon {
+export function getBinMarkerIcon(
+  types: TrashBin['types'],
+  rank?: Rank,
+  dimmed?: boolean,
+): L.DivIcon {
   const key = iconKey(types, rank, dimmed);
   let icon = ICON_CACHE.get(key);
   if (!icon) {
@@ -74,7 +78,7 @@ function BinMarkerImpl({ bin, rank, dimmed, isFavorite, onToggleFavorite, onUse 
   return (
     <Marker
       position={[bin.lat, bin.lng]}
-      icon={getIcon(bin.types, rank, dimmed)}
+      icon={getBinMarkerIcon(bin.types, rank, dimmed)}
       eventHandlers={{
         click: () => vibrate(HAPTIC.SELECT),
       }}
