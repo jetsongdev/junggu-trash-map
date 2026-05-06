@@ -25,13 +25,18 @@ export function LocateButton({ active, pending, onLocate, onClear }: Props) {
       aria-pressed={active}
       aria-label={ariaLabel}
       title={ariaLabel}
-      className={`min-h-[44px] min-w-[44px] rounded-full px-3 text-base transition flex items-center justify-center ${
+      className={`relative flex h-11 w-11 items-center justify-center rounded-md px-3 text-base transition ring-1 ${
         active
-          ? 'bg-sky-500 text-white shadow'
-          : 'bg-neutral-100 text-neutral-700 ring-1 ring-neutral-200 hover:bg-neutral-200 disabled:opacity-60 dark:bg-neutral-800 dark:text-neutral-200 dark:ring-neutral-700 dark:hover:bg-neutral-700'
+          ? 'bg-sky-500/15 text-sky-700 ring-1 ring-sky-500 shadow-sm dark:bg-sky-400/15 dark:text-sky-200 dark:ring-sky-400'
+          : 'bg-white/95 text-neutral-700 ring-1 ring-neutral-300 hover:bg-white disabled:opacity-60 dark:bg-neutral-900/95 dark:text-neutral-200 dark:ring-neutral-700 dark:hover:bg-neutral-800'
       }`}
     >
       <span aria-hidden>{pending ? '⏳' : '📍'}</span>
+      {active && !pending && (
+        <span className="absolute -right-1 -top-1 rounded-md bg-sky-500 px-1 text-[10px] leading-5 text-white ring-1 ring-white dark:ring-neutral-900">
+          ✓
+        </span>
+      )}
     </button>
   );
 }

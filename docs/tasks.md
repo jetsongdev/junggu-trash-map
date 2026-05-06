@@ -3,7 +3,7 @@
 > 이 파일은 Claude가 매 세션 시작 시 읽고 작업 우선순위를 판단하는 1차 소스.
 > 사람과 에이전트 모두 직접 편집 가능. 컨벤션은 파일 끝 「운영 규칙」 참고.
 
-## 현재 상태 (2026-05-06)
+## 현재 상태 (2026-05-07)
 
 - **Phase**: 3 진행 중. P3.1a Foundation + P3.2 데이터 transform + P3.1b markercluster 완료. 다음 P3.1c (인접 prefetch).
 - **사용자 환경 영속화** (`localStorage`): `distanceMode` (직선/격자), `tileTheme` (다크/라이트, **빈 값일 때 시스템 prefers-color-scheme 자동 감지**), `walkingSpeed` (km/h, 2~7 step 0.5), `favorites` (즐겨찾기 bin id), `savings` (누적 보행거리·시간·횟수)
@@ -82,6 +82,7 @@
 - [x] **P3.1b** markercluster 도입 — `leaflet.markercluster@1.5.3` + `@types/leaflet.markercluster`. `MarkerClusterGroup` 래퍼는 `@react-leaflet/core`의 `createLayerComponent` + `extendContext({ layerContainer })` 패턴 (LayerGroup과 동일). `disableClusteringAtZoom: 15` + `chunkedLoading` + `spiderfyOnMaxZoom: false` + `showCoverageOnHover: false`. HighlightRing/DistanceLine/RouteLine은 cluster 바깥 — Top-3/헤드업/즐겨찾기 줌 ≥15에서 회귀 없음. snapshot `30-markercluster/`.
 - [x] **P2.22** 모바일 툴바 압축 — 칩을 3개 시각 그룹(필터/경로/보기)으로 묶고, 아이콘 only로 텍스트 축약 (📍, 📏, 1️⃣🎯, 2️⃣🏁, 🧭, ☀️, 🔗). Leaflet 줌 컨트롤을 `<ZoomControl position="bottomleft" />`로 좌하단 명시, 데이터 출처 배지를 `bottom-7 right-2` 우하단으로 이동. 메뉴 영역 화면 점유율 ~50% → ~33%로 감소. snapshot `31-mobile-toolbar-compact/`.
 - [x] **P2.22+** 데이터 현황 + 출처 통합 토글 — 메뉴의 합계/자치구 분포를 우하단 출처 카드에 통합. 접힘=한 줄 (`📊 v2026-05-05 · 📍 802/802 ▴`), 펼침=자치구 7행 + status + 출처 링크. `bg-white/70` 더 투명. `localStorage.statusOverlayCollapsed`로 영속화. 메뉴 영역 ~33% → ~30% 추가 압축. snapshot `32-status-overlay-toggle/`.
+- [x] **P2.23** HUD 재배치 — 필터를 좌상단 floating row(✓/🗑️/♻️ 아이콘 only)로, 즐겨찾기/직선·격자/나침반을 우상단 floating stack으로, 출발/목적지를 segmented 한 박스로 통합(1️⃣/2️⃣ 뱃지 제거, 슬롯 위치로 순서 시사). 칩 형태 `rounded-full` → `rounded-md` HUD 스타일, 5색 accent state(amber/sky/violet/rose/emerald) + 15% fill + ring + ✓ corner badge. 우하단 카드 투명도 `/70` → `/45`. 메뉴 영역 ~30% → ~20% (검색 + 한 줄 칩). HUD 헬퍼: `hudInactive`/`hudChip`/`hudIconBtn`/`hudFloatingGroup`. snapshot `33-hud-rearrange/` (default → fix1 → fix2 → fix3 4 라운드 누적).
 
 ---
 

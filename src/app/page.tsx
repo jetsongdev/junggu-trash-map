@@ -737,14 +737,26 @@ function PageContent() {
       ? '2️⃣ 🏁 목적지 탭하세요'
       : '2️⃣ 🏁 목적지';
 
-  const inactiveChip =
-    'bg-neutral-100 text-neutral-700 ring-1 ring-neutral-200 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-200 dark:ring-neutral-700 dark:hover:bg-neutral-700';
-  const chipBase =
-    'min-h-[44px] rounded-full px-4 text-sm font-medium transition flex items-center gap-1.5';
-  const iconChip =
-    'min-h-[44px] min-w-[44px] rounded-full px-3 text-base font-medium transition flex items-center justify-center';
-  const groupDivider =
-    'hidden self-stretch w-px bg-neutral-300 dark:bg-neutral-700 sm:inline-block';
+  const hudInactive =
+    'bg-white/95 text-neutral-700 ring-1 ring-neutral-300 hover:bg-white dark:bg-neutral-900/95 dark:text-neutral-200 dark:ring-neutral-700 dark:hover:bg-neutral-800';
+  const hudChip =
+    'min-h-[44px] rounded-md px-3 text-sm font-medium transition flex items-center gap-1.5 ring-1';
+  const hudIconBtn =
+    'relative flex h-11 w-11 shrink-0 items-center justify-center rounded-md px-2 text-base font-medium transition ring-1';
+  const routeSegmentBtn =
+    'relative flex h-11 w-14 shrink-0 flex-col items-center justify-center gap-0.5 px-2 text-xs font-medium leading-none transition';
+  const routeSegmentInactive =
+    'text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800';
+  const hudFloatingGroup =
+    'rounded-md bg-white/80 ring-1 ring-neutral-300 backdrop-blur-sm dark:bg-neutral-900/80 dark:ring-neutral-700';
+  const hudAmberActive =
+    'bg-amber-500/15 text-amber-700 ring-1 ring-amber-500 shadow-sm dark:bg-amber-400/15 dark:text-amber-200 dark:ring-amber-400';
+  const hudSkyActive =
+    'bg-sky-500/15 text-sky-700 ring-1 ring-sky-500 shadow-sm dark:bg-sky-400/15 dark:text-sky-200 dark:ring-sky-400';
+  const hudVioletActive =
+    'bg-violet-500/15 text-violet-700 ring-1 ring-violet-500 shadow-sm dark:bg-violet-400/15 dark:text-violet-200 dark:ring-violet-400';
+  const hudEmeraldActive =
+    'bg-emerald-500/15 text-emerald-700 ring-1 ring-emerald-500 shadow-sm dark:bg-emerald-400/15 dark:text-emerald-200 dark:ring-emerald-400';
   const shareState: AppState = {
     selected,
     tileTheme,
@@ -769,7 +781,7 @@ function PageContent() {
         </div>
       </header>
 
-      <section className="border-b border-neutral-200 bg-neutral-100 px-4 py-3 dark:border-neutral-800 dark:bg-neutral-900">
+      <section className="relative z-[1000] border-b border-neutral-200 bg-neutral-100 px-4 py-3 dark:border-neutral-800 dark:bg-neutral-900">
         <div className="mb-3">
           <SearchBox
             onSelect={handleSearchSelect}
@@ -778,39 +790,7 @@ function PageContent() {
           />
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {/* 그룹 1: 필터 (전체/일반/재활용/즐겨찾기) */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            <FilterChips selected={selected} onToggle={toggle} onClear={clearTypes} />
-            <button
-              type="button"
-              onClick={() => {
-                vibrate(HAPTIC.TAP);
-                setFavoritesOnly((prev) => !prev);
-              }}
-              disabled={!favoritesOnly && favorites.size === 0}
-              aria-pressed={favoritesOnly}
-              aria-label={
-                favorites.size === 0
-                  ? '즐겨찾기 없음 (마커 팝업의 ☆ 클릭)'
-                  : favoritesOnly
-                    ? '즐겨찾기 필터 끄기'
-                    : `즐겨찾기 ${favorites.size}개만 보기`
-              }
-              title={favorites.size === 0 ? '즐겨찾기' : `즐겨찾기 ${favorites.size}개`}
-              className={`${iconChip} ${
-                favoritesOnly ? 'bg-amber-500 text-white shadow' : inactiveChip
-              } ${!favoritesOnly && favorites.size === 0 ? 'opacity-40 cursor-not-allowed' : ''}`}
-            >
-              <span aria-hidden>{favoritesOnly ? '★' : '☆'}</span>
-              {favorites.size > 0 && (
-                <span className="ml-1 text-xs font-mono">{favorites.size}</span>
-              )}
-            </button>
-          </div>
-
-          <span aria-hidden className={groupDivider} />
-
-          {/* 그룹 2: 경로 (위치/출발/목적지/거리모드/속도) */}
+          {/* 그룹 1: 위치/경로/속도 */}
           <div className="flex flex-wrap items-center gap-1.5">
             <LocateButton
               active={!!userLocation}
@@ -818,53 +798,52 @@ function PageContent() {
               onLocate={locate}
               onClear={clearLocation}
             />
-            <button
-              type="button"
-              onClick={onOriginTap}
-              aria-pressed={tapTarget === 'origin'}
-              aria-label={tapTarget === 'origin' ? '출발 위치 탭하세요' : '출발 위치 지정'}
-              title="출발 위치 (1)"
-              className={`${iconChip} ${
-                tapTarget === 'origin'
-                  ? 'bg-violet-500 text-white shadow'
-                  : inactiveChip
-              }`}
-            >
-              <span aria-hidden>1️⃣🎯</span>
-            </button>
-            <button
-              type="button"
-              onClick={onDestinationButton}
-              aria-pressed={tapTarget === 'destination' || !!destination}
-              aria-label={destButtonLabel}
-              title={destination ? '목적지 해제' : '목적지 지정 (2)'}
-              className={`${iconChip} ${
-                destination || tapTarget === 'destination'
-                  ? 'bg-rose-500 text-white shadow'
-                  : inactiveChip
-              }`}
-            >
-              <span aria-hidden>2️⃣🏁</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                vibrate(HAPTIC.TAP);
-                setDistanceMode((prev) =>
-                  prev === 'euclidean' ? 'manhattan' : 'euclidean',
-                );
-              }}
-              aria-pressed={distanceMode === 'manhattan'}
-              aria-label={distanceMode === 'manhattan' ? '격자 거리 (탭하면 직선)' : '직선 거리 (탭하면 격자)'}
-              title={distanceMode === 'manhattan' ? '격자 거리' : '직선 거리'}
-              className={`${iconChip} ${
-                distanceMode === 'manhattan'
-                  ? 'bg-amber-500 text-white shadow'
-                  : inactiveChip
-              }`}
-            >
-              <span aria-hidden>{distanceMode === 'euclidean' ? '📏' : '📐'}</span>
-            </button>
+            <div className="flex overflow-hidden rounded-md bg-white/95 ring-1 ring-neutral-300 dark:bg-neutral-900/95 dark:ring-neutral-700">
+              <button
+                type="button"
+                onClick={onOriginTap}
+                aria-pressed={tapTarget === 'origin'}
+                aria-label={tapTarget === 'origin' ? '출발 위치 탭하세요' : '출발 위치 지정'}
+                title="출발 위치 (1)"
+                className={`${routeSegmentBtn} ${
+                  tapTarget === 'origin'
+                    ? 'bg-violet-500/15 text-violet-700 dark:text-violet-200'
+                    : routeSegmentInactive
+                }`}
+              >
+                <span aria-hidden className="text-base leading-none">🎯</span>
+                <span className="text-xs">출발</span>
+                {userLocation && (
+                  <span className="absolute right-0.5 top-0.5 rounded-sm bg-violet-500 px-1 text-[9px] leading-4 text-white ring-1 ring-white dark:ring-neutral-900">
+                    ✓
+                  </span>
+                )}
+              </button>
+              <span
+                aria-hidden
+                className="self-stretch border-l border-neutral-300 dark:border-neutral-700"
+              />
+              <button
+                type="button"
+                onClick={onDestinationButton}
+                aria-pressed={tapTarget === 'destination' || !!destination}
+                aria-label={destButtonLabel}
+                title={destination ? '목적지 해제' : '목적지 지정 (2)'}
+                className={`${routeSegmentBtn} ${
+                  tapTarget === 'destination'
+                    ? 'bg-rose-500/15 text-rose-600 dark:text-rose-200'
+                    : routeSegmentInactive
+                }`}
+              >
+                <span aria-hidden className="text-base leading-none">🏁</span>
+                <span className="text-xs">목적지</span>
+                {destination && (
+                  <span className="absolute right-0.5 top-0.5 rounded-sm bg-rose-500 px-1 text-[9px] leading-4 text-white ring-1 ring-white dark:ring-neutral-900">
+                    ✓
+                  </span>
+                )}
+              </button>
+            </div>
             <button
               type="button"
               onClick={() => {
@@ -875,65 +854,19 @@ function PageContent() {
               aria-label={`보행 속도 ${formatKmh(walkingSpeed)}km/h. 클릭해 슬라이더 ${
                 speedSliderOpen ? '닫기' : '열기'
               }`}
-              className={`${chipBase} ${
-                speedSliderOpen ? 'bg-emerald-600 text-white shadow' : inactiveChip
+              className={`${hudChip} ${
+                speedSliderOpen ? hudEmeraldActive : hudInactive
               }`}
             >
-              <span aria-hidden>{getSpeedDisplay(walkingSpeed).emoji}</span>
-              <span>{formatKmh(walkingSpeed)}km/h</span>
+              <span aria-hidden>{speedSliderOpen ? `✓${getSpeedDisplay(walkingSpeed).emoji}` : getSpeedDisplay(walkingSpeed).emoji}</span>
+              <span>
+                <span className="font-mono">{formatKmh(walkingSpeed)}</span>km/h
+              </span>
             </button>
           </div>
 
-          <span aria-hidden className={groupDivider} />
-
-          {/* 그룹 3: 보기/공유 (방향/테마/공유) */}
+          {/* 그룹 2: 보기/공유 */}
           <div className="flex flex-wrap items-center gap-1.5">
-            <button
-              type="button"
-              onClick={async () => {
-                vibrate(HAPTIC.TAP);
-                const next =
-                  compassMode === 'off'
-                    ? 'cone'
-                    : compassMode === 'cone'
-                      ? 'head-up'
-                      : 'off';
-                if (compassMode === 'off') {
-                  const result = await compass.request();
-                  if (result !== 'granted') return;
-                }
-                setCompassMode(next);
-              }}
-              disabled={!compass.supported || compass.permission === 'denied'}
-              aria-pressed={compassMode !== 'off'}
-              aria-label={
-                !compass.supported
-                  ? '방향 센서 미지원'
-                  : compass.permission === 'denied'
-                    ? '방향 권한 거부됨'
-                    : compassMode === 'off'
-                      ? '방향 cone 켜기'
-                      : compassMode === 'cone'
-                        ? '헤드업 모드로 전환'
-                        : '방향 표시 끄기'
-              }
-              title={
-                compassMode === 'head-up'
-                  ? '헤드업 모드'
-                  : compassMode === 'cone'
-                    ? '방향 cone'
-                    : '방향'
-              }
-              className={`${iconChip} ${
-                compassMode === 'head-up'
-                  ? 'bg-violet-500 text-white shadow'
-                  : compassMode === 'cone'
-                    ? 'bg-sky-500 text-white shadow'
-                    : inactiveChip
-              } ${!compass.supported || compass.permission === 'denied' ? 'opacity-40 cursor-not-allowed' : ''}`}
-            >
-              <span aria-hidden>🧭</span>
-            </button>
             <button
               type="button"
               onClick={() => {
@@ -946,19 +879,19 @@ function PageContent() {
               }}
               aria-label={`타일 테마 ${tileTheme === 'dark' ? '라이트로 전환' : '다크로 전환'}`}
               title={tileTheme === 'dark' ? '다크 테마' : '라이트 테마'}
-              className={`${iconChip} ${inactiveChip}`}
+              className={`${hudIconBtn} ${hudInactive}`}
             >
               <span aria-hidden>{tileTheme === 'dark' ? '🌑' : '☀️'}</span>
             </button>
             <ShareButton
               state={shareState}
               defaults={DEFAULT_APP_STATE}
-              className={`${iconChip} ${inactiveChip}`}
+              className={`${hudIconBtn} ${hudInactive}`}
             />
           </div>
         </div>
         {speedSliderOpen && (
-          <div className="mt-2 flex items-center gap-3 rounded-lg bg-neutral-200/80 px-3 py-2 dark:bg-neutral-800/80">
+          <div className="mt-2 flex items-center gap-3 rounded-md bg-white/95 px-3 py-2 ring-1 ring-emerald-500/40 dark:bg-neutral-900/95">
             <span aria-hidden className="text-base">
               {getSpeedDisplay(walkingSpeed).emoji}
             </span>
@@ -1002,6 +935,111 @@ function PageContent() {
           walkingSpeed={walkingSpeed}
           onUse={handleUseBin}
         />
+        <div className={`absolute left-2 top-2 z-[1000] max-w-[60%] overflow-x-auto p-1.5 ${hudFloatingGroup}`}>
+          <FilterChips selected={selected} onToggle={toggle} onClear={clearTypes} />
+        </div>
+        <div className={`absolute right-2 top-2 z-[1000] flex flex-col gap-1.5 p-1.5 ${hudFloatingGroup}`}>
+          <button
+            type="button"
+            onClick={() => {
+              vibrate(HAPTIC.TAP);
+              setFavoritesOnly((prev) => !prev);
+            }}
+            disabled={!favoritesOnly && favorites.size === 0}
+            aria-pressed={favoritesOnly}
+            aria-label={
+              favorites.size === 0
+                ? '즐겨찾기 없음 (마커 팝업의 ☆ 클릭)'
+                : favoritesOnly
+                  ? '즐겨찾기 필터 끄기'
+                  : `즐겨찾기 ${favorites.size}개만 보기`
+            }
+            title={favorites.size === 0 ? '즐겨찾기' : `즐겨찾기 ${favorites.size}개`}
+            className={`${hudIconBtn} ${
+              favoritesOnly ? hudAmberActive : hudInactive
+            } ${!favoritesOnly && favorites.size === 0 ? 'opacity-40 cursor-not-allowed' : ''}`}
+          >
+            <span aria-hidden className="text-xl leading-none">{favoritesOnly ? '★' : '☆'}</span>
+            {favoritesOnly && (
+              <span className="absolute -bottom-1 -left-1 rounded-md bg-amber-500 px-1 text-[10px] leading-5 text-white ring-1 ring-white dark:ring-neutral-900">
+                ✓
+              </span>
+            )}
+            {favorites.size > 0 && (
+              <span className="absolute -right-1 -top-1 min-w-5 rounded-md bg-amber-500 px-1 text-center font-mono text-[10px] leading-5 text-white ring-1 ring-white dark:ring-neutral-900">
+                {favorites.size}
+              </span>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              vibrate(HAPTIC.TAP);
+              setDistanceMode((prev) =>
+                prev === 'euclidean' ? 'manhattan' : 'euclidean',
+              );
+            }}
+            aria-pressed={distanceMode === 'manhattan'}
+            aria-label={distanceMode === 'manhattan' ? '격자 거리 (탭하면 직선)' : '직선 거리 (탭하면 격자)'}
+            title={distanceMode === 'manhattan' ? '격자 거리' : '직선 거리'}
+            className={`${hudIconBtn} ${
+              distanceMode === 'manhattan' ? hudAmberActive : hudInactive
+            }`}
+          >
+            <span aria-hidden>{distanceMode === 'euclidean' ? '📏' : '📐'}</span>
+          </button>
+          <button
+            type="button"
+            onClick={async () => {
+              vibrate(HAPTIC.TAP);
+              const next =
+                compassMode === 'off'
+                  ? 'cone'
+                  : compassMode === 'cone'
+                    ? 'head-up'
+                    : 'off';
+              if (compassMode === 'off') {
+                const result = await compass.request();
+                if (result !== 'granted') return;
+              }
+              setCompassMode(next);
+            }}
+            disabled={!compass.supported || compass.permission === 'denied'}
+            aria-pressed={compassMode !== 'off'}
+            aria-label={
+              !compass.supported
+                ? '방향 센서 미지원'
+                : compass.permission === 'denied'
+                  ? '방향 권한 거부됨'
+                  : compassMode === 'off'
+                    ? '방향 cone 켜기'
+                    : compassMode === 'cone'
+                      ? '헤드업 모드로 전환'
+                      : '방향 표시 끄기'
+            }
+            title={
+              compassMode === 'head-up'
+                ? '헤드업 모드'
+                : compassMode === 'cone'
+                  ? '방향 cone'
+                  : '방향'
+            }
+            className={`${hudIconBtn} ${
+              compassMode === 'head-up'
+                ? hudVioletActive
+                : compassMode === 'cone'
+                  ? hudSkyActive
+                  : hudInactive
+            } ${!compass.supported || compass.permission === 'denied' ? 'opacity-40 cursor-not-allowed' : ''}`}
+          >
+            <span aria-hidden>🧭</span>
+            {compassMode !== 'off' && (
+              <span className="absolute -right-1 -top-1 min-w-5 rounded-md bg-sky-500 px-1 text-center font-mono text-[10px] leading-5 text-white ring-1 ring-white dark:ring-neutral-900">
+                {compassMode === 'head-up' ? '2' : '1'}
+              </span>
+            )}
+          </button>
+        </div>
         {showLoadingOverlay && manifest && (
           <div
             className="pointer-events-none absolute inset-0 z-[1002] flex items-center justify-center px-4"
@@ -1092,7 +1130,7 @@ function PageContent() {
           </div>
         )}
         {manifest && (
-          <div className="absolute bottom-7 right-2 z-[1000] flex max-w-[80%] flex-col items-stretch overflow-hidden rounded-lg bg-white/70 text-neutral-800 ring-1 ring-neutral-200 backdrop-blur-sm dark:bg-neutral-900/70 dark:text-neutral-100 dark:ring-neutral-700">
+          <div className="absolute bottom-7 right-2 z-[1000] flex max-w-[80%] flex-col items-stretch overflow-hidden rounded-lg bg-white/45 text-neutral-800 ring-1 ring-neutral-200 backdrop-blur-sm dark:bg-neutral-900/45 dark:text-neutral-100 dark:ring-neutral-700">
             {!statusCollapsed && (
               <div className="border-b border-neutral-200/70 px-3 py-2 text-[11px] leading-relaxed dark:border-neutral-700/70">
                 {districtBreakdown.length >= 2 && (

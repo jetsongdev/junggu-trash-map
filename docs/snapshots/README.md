@@ -38,6 +38,7 @@
 | 30 | 2026-05-05 | 🔵 markercluster — 802 bins 줌-아웃 클러스터링, ≥15 개별 마커 (P3.1b) | [30-markercluster](./30-markercluster/) |
 | 31 | 2026-05-06 | 📱 모바일 툴바 압축 — 3그룹 / 아이콘 only / 줌 좌하단 / 출처 우하단 (P2.22) | [31-mobile-toolbar-compact](./31-mobile-toolbar-compact/) |
 | 32 | 2026-05-06 | 📊 데이터 현황 + 출처 통합 토글 — 우하단 한 카드, 펼침=자치구 리스트+링크 (P2.22+) | [32-status-overlay-toggle](./32-status-overlay-toggle/) |
+| 33 | 2026-05-07 | 🎯 HUD 재배치 — 좌상단 필터 / 우상단 모드 stack / 출발-목적지 segmented (P2.23) | [33-hud-rearrange](./33-hud-rearrange/) |
 
 ## 새 스냅샷 찍는 법
 
