@@ -3,7 +3,7 @@ index: 30
 slug: cluster-markers
 date: 2026-05-06
 phase: "Phase 3 — P3.1b"
-git_sha: 8df02873d962f181cb544d5e430ea0386205ce4f (dirty)
+git_sha: 2a3a6820a8c4201f3523f63dfad3280ac3657465
 viewport: 390x844
 ---
 
