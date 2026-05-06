@@ -15,7 +15,7 @@ P2.10에서 Top-3 후보를 색·굵기·opacity로만 구분했었지만 색맹
 - **rank 1**: 굵은 실선(weight 4, opacity 0.85) — 1순위 후보로 시선 즉시 안착
 - **rank 2**: 대시(`8 6`, weight 2.5, opacity dark 0.75 / light 0.8) — "다음 후보"임을 패턴으로 알림
 - **rank 3**: 도트(`3 5`, weight 2, opacity dark 0.7 / light 0.85) — 가독성 보강된 보조 후보
-- 색은 light/dark 양쪽 sky 톤 그대로 (P2.11에서 잡은 균형 유지)
+- 색은 dark는 sky 톤(P2.11 균형) 유지, **light는 slate 톤**(slate-700 / 500 / 400)으로 교체 — sky 빈 마커·UserMarker와 톤 분리되어 "경로선" 의미 또렷
 - RouteLine(detour 시 cyan `8 6`)은 미터치 — 별 개념이라 패턴이 겹쳐도 OK
 
 ## 무엇이 끝났나

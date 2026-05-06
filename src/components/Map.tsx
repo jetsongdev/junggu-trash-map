@@ -132,8 +132,8 @@ function HighlightRing({ bin }: { bin: TrashBin }) {
   );
 }
 
-// Light tile uses darker sky scale so rank 2/3 don't wash out on white-ish bg.
-// Dark tile keeps the original lighter scale that pops on CartoDB Dark Matter.
+// Dark tile uses sky scale that pops on CartoDB Dark Matter.
+// Light tile uses slate scale — neutral gray-blue avoids clashing with sky-tinted bin markers and UserMarker.
 const DISTANCE_LINE_STYLE: Record<
   TileTheme,
   Record<1 | 2 | 3, { color: string; weight: number; opacity: number; dashArray?: string }>
@@ -144,9 +144,9 @@ const DISTANCE_LINE_STYLE: Record<
     3: { color: '#bae6fd', weight: 2, opacity: 0.7, dashArray: '3 5' },
   },
   light: {
-    1: { color: '#0284c7', weight: 4, opacity: 0.85 },
-    2: { color: '#0ea5e9', weight: 2.5, opacity: 0.8, dashArray: '8 6' },
-    3: { color: '#38bdf8', weight: 2, opacity: 0.85, dashArray: '3 5' },
+    1: { color: '#334155', weight: 4, opacity: 0.85 },
+    2: { color: '#64748b', weight: 2.5, opacity: 0.8, dashArray: '8 6' },
+    3: { color: '#94a3b8', weight: 2, opacity: 0.85, dashArray: '3 5' },
   },
 };
 
