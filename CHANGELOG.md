@@ -9,6 +9,8 @@
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-05-06
+
 ### Added
 - 7개 자치구 802개 휴지통이 한 지도에 들어와도 줌-아웃 시 화면이 마커로 도배되지 않도록 클러스터링이 적용됐습니다 — 줌 ≤14에서는 묶인 카운트 풍선(작게 부드러운 노랑/연두/초록)으로, 줌 ≥15부터는 휴지통 색·이모지 그대로의 개별 마커로 보입니다. 클러스터를 탭하면 자동으로 한 단계 더 확대해 펼쳐줍니다 (P3.1b).
 
@@ -203,7 +205,8 @@
 - `~/.claude/skills/snapshot/` — 글로벌 스냅샷 스킬 (프레임워크 무관, config 기반)
 - `CLAUDE.md` — 세션 진입 가이드 (작업 큐 / 시각 히스토리 / CHANGELOG 포인터)
 
-[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.12.0...HEAD
+[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.13.0...HEAD
+[0.13.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.9.0...v0.10.0
