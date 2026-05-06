@@ -3,7 +3,7 @@ index: 33
 slug: hud-rearrange
 date: 2026-05-07
 phase: "P2.23"
-git_sha: 7d68481e0c8166d9dedb7c3d9982feb92da14253 (dirty)
+git_sha: 803a94c4a3071cdae076c6824ffe8b7a90b36541
 viewport: 390x844
 ---
 

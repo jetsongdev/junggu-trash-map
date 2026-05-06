@@ -3,7 +3,7 @@ index: 32
 slug: status-overlay-toggle
 date: 2026-05-06
 phase: "P2.22+"
-git_sha: 9d1ed5134761fa956610e7251cdc53823320a54a (dirty)
+git_sha: 7d68481e0c8166d9dedb7c3d9982feb92da14253
 viewport: 390x844
 ---
 
