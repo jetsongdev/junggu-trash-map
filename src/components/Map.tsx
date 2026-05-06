@@ -144,9 +144,9 @@ const DISTANCE_LINE_STYLE: Record<
     3: { color: '#bae6fd', weight: 2, opacity: 0.7, dashArray: '3 5' },
   },
   light: {
-    1: { color: '#334155', weight: 4, opacity: 0.85 },
-    2: { color: '#64748b', weight: 2.5, opacity: 0.8, dashArray: '8 6' },
-    3: { color: '#94a3b8', weight: 2, opacity: 0.85, dashArray: '3 5' },
+    1: { color: '#1e293b', weight: 4, opacity: 0.9 },
+    2: { color: '#475569', weight: 2.5, opacity: 0.85, dashArray: '8 6' },
+    3: { color: '#64748b', weight: 2, opacity: 0.9, dashArray: '3 5' },
   },
 };
 
