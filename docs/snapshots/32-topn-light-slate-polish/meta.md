@@ -3,7 +3,7 @@ index: 32
 slug: topn-light-slate-polish
 date: 2026-05-06
 phase: "P2.20 후속 — 라이트 거리선 slate 톤 + 콘트라스트 보강"
-git_sha: 3201f8fc06cac3f5dfbedcd863ad69d0dabdb454 (dirty)
+git_sha: bfa86a5d79f7a940464dcc913c30f55ed6fd3088
 viewport: 390x844
 ---
 
