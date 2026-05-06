@@ -36,6 +36,8 @@
 | 28 | 2026-05-05 | 1️⃣2️⃣ onboarding & 모드 명확화 — 첫 방문 토스트 + 칩 뱃지 + tap mode 배너 (P2.17) | [28-onboarding-mode-clarity](./28-onboarding-mode-clarity/) |
 | 29 | 2026-05-05 | ☀️🌑 라이트 모드 일관 전환 — 헤더·필터·칩·통계·오버레이·검색·핀까지 양 테마 (I.5) | [29-light-mode-polish](./29-light-mode-polish/) |
 | 30 | 2026-05-05 | 🔵 markercluster — 802 bins 줌-아웃 클러스터링, ≥15 개별 마커 (P3.1b) | [30-markercluster](./30-markercluster/) |
+| 31 | 2026-05-06 | 📱 모바일 툴바 압축 — 3그룹 / 아이콘 only / 줌 좌하단 / 출처 우하단 (P2.22) | [31-mobile-toolbar-compact](./31-mobile-toolbar-compact/) |
+| 32 | 2026-05-06 | 📊 데이터 현황 + 출처 통합 토글 — 우하단 한 카드, 펼침=자치구 리스트+링크 (P2.22+) | [32-status-overlay-toggle](./32-status-overlay-toggle/) |
 
 ## 새 스냅샷 찍는 법
 

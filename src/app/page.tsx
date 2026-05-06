@@ -122,6 +122,7 @@ function PageContent() {
     totalSeconds: 0,
     uses: 0,
   });
+  const [statusCollapsed, setStatusCollapsed] = useState(false);
   const watchIdRef = useRef<number | null>(null);
   const prefsHydratedRef = useRef(false);
 
@@ -195,6 +196,10 @@ function PageContent() {
 
     setFavorites(loadFavorites());
     setSavings(loadSavings());
+
+    if (window.localStorage.getItem('statusOverlayCollapsed') === 'true') {
+      setStatusCollapsed(true);
+    }
 
     queueMicrotask(() => {
       prefsHydratedRef.current = true;
@@ -429,6 +434,11 @@ function PageContent() {
     if (!prefsHydratedRef.current) return;
     window.localStorage.setItem('walkingSpeed', formatKmh(walkingSpeed));
   }, [walkingSpeed]);
+
+  useEffect(() => {
+    if (!prefsHydratedRef.current) return;
+    window.localStorage.setItem('statusOverlayCollapsed', String(statusCollapsed));
+  }, [statusCollapsed]);
 
   const bins = useMemo<TrashBin[]>(() => {
     const flat: TrashBin[] = [];
@@ -731,6 +741,10 @@ function PageContent() {
     'bg-neutral-100 text-neutral-700 ring-1 ring-neutral-200 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-200 dark:ring-neutral-700 dark:hover:bg-neutral-700';
   const chipBase =
     'min-h-[44px] rounded-full px-4 text-sm font-medium transition flex items-center gap-1.5';
+  const iconChip =
+    'min-h-[44px] min-w-[44px] rounded-full px-3 text-base font-medium transition flex items-center justify-center';
+  const groupDivider =
+    'hidden self-stretch w-px bg-neutral-300 dark:bg-neutral-700 sm:inline-block';
   const shareState: AppState = {
     selected,
     tileTheme,
@@ -764,159 +778,184 @@ function PageContent() {
           />
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <FilterChips selected={selected} onToggle={toggle} onClear={clearTypes} />
-          <button
-            type="button"
-            onClick={() => {
-              vibrate(HAPTIC.TAP);
-              setFavoritesOnly((prev) => !prev);
-            }}
-            disabled={!favoritesOnly && favorites.size === 0}
-            aria-pressed={favoritesOnly}
-            aria-label={
-              favorites.size === 0
-                ? '즐겨찾기 없음 (마커 팝업의 ☆ 클릭)'
-                : favoritesOnly
-                  ? '즐겨찾기 필터 끄기'
-                  : `즐겨찾기 ${favorites.size}개만 보기`
-            }
-            className={`${chipBase} ${
-              favoritesOnly ? 'bg-amber-500 text-white shadow' : inactiveChip
-            } ${!favoritesOnly && favorites.size === 0 ? 'opacity-40 cursor-not-allowed' : ''}`}
-          >
-            <span aria-hidden>{favoritesOnly ? '★' : '☆'}</span>
-            <span>즐겨찾기{favorites.size > 0 ? ` ${favorites.size}` : ''}</span>
-          </button>
-          <LocateButton
-            active={!!userLocation}
-            pending={locatePending}
-            onLocate={locate}
-            onClear={clearLocation}
-          />
-          <button
-            type="button"
-            onClick={() => {
-              vibrate(HAPTIC.TAP);
-              setDistanceMode((prev) =>
-                prev === 'euclidean' ? 'manhattan' : 'euclidean',
-              );
-            }}
-            aria-pressed={distanceMode === 'manhattan'}
-            className={`${chipBase} ${
-              distanceMode === 'manhattan'
-                ? 'bg-amber-500 text-white shadow'
-                : inactiveChip
-            }`}
-          >
-            <span>{distanceMode === 'euclidean' ? '📏 직선' : '📐 격자'}</span>
-          </button>
-          <button
-            type="button"
-            onClick={onOriginTap}
-            aria-pressed={tapTarget === 'origin'}
-            className={`${chipBase} ${
-              tapTarget === 'origin'
-                ? 'bg-violet-500 text-white shadow'
-                : inactiveChip
-            }`}
-          >
-            <span aria-hidden>1️⃣ 🎯</span>
-            <span>{tapTarget === 'origin' ? '출발 탭하세요' : '출발 탭'}</span>
-          </button>
-          <button
-            type="button"
-            onClick={onDestinationButton}
-            aria-pressed={tapTarget === 'destination' || !!destination}
-            className={`${chipBase} ${
-              destination
-                ? 'bg-rose-500 text-white shadow'
-                : tapTarget === 'destination'
+          {/* 그룹 1: 필터 (전체/일반/재활용/즐겨찾기) */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <FilterChips selected={selected} onToggle={toggle} onClear={clearTypes} />
+            <button
+              type="button"
+              onClick={() => {
+                vibrate(HAPTIC.TAP);
+                setFavoritesOnly((prev) => !prev);
+              }}
+              disabled={!favoritesOnly && favorites.size === 0}
+              aria-pressed={favoritesOnly}
+              aria-label={
+                favorites.size === 0
+                  ? '즐겨찾기 없음 (마커 팝업의 ☆ 클릭)'
+                  : favoritesOnly
+                    ? '즐겨찾기 필터 끄기'
+                    : `즐겨찾기 ${favorites.size}개만 보기`
+              }
+              title={favorites.size === 0 ? '즐겨찾기' : `즐겨찾기 ${favorites.size}개`}
+              className={`${iconChip} ${
+                favoritesOnly ? 'bg-amber-500 text-white shadow' : inactiveChip
+              } ${!favoritesOnly && favorites.size === 0 ? 'opacity-40 cursor-not-allowed' : ''}`}
+            >
+              <span aria-hidden>{favoritesOnly ? '★' : '☆'}</span>
+              {favorites.size > 0 && (
+                <span className="ml-1 text-xs font-mono">{favorites.size}</span>
+              )}
+            </button>
+          </div>
+
+          <span aria-hidden className={groupDivider} />
+
+          {/* 그룹 2: 경로 (위치/출발/목적지/거리모드/속도) */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <LocateButton
+              active={!!userLocation}
+              pending={locatePending}
+              onLocate={locate}
+              onClear={clearLocation}
+            />
+            <button
+              type="button"
+              onClick={onOriginTap}
+              aria-pressed={tapTarget === 'origin'}
+              aria-label={tapTarget === 'origin' ? '출발 위치 탭하세요' : '출발 위치 지정'}
+              title="출발 위치 (1)"
+              className={`${iconChip} ${
+                tapTarget === 'origin'
+                  ? 'bg-violet-500 text-white shadow'
+                  : inactiveChip
+              }`}
+            >
+              <span aria-hidden>1️⃣🎯</span>
+            </button>
+            <button
+              type="button"
+              onClick={onDestinationButton}
+              aria-pressed={tapTarget === 'destination' || !!destination}
+              aria-label={destButtonLabel}
+              title={destination ? '목적지 해제' : '목적지 지정 (2)'}
+              className={`${iconChip} ${
+                destination || tapTarget === 'destination'
                   ? 'bg-rose-500 text-white shadow'
                   : inactiveChip
-            }`}
-          >
-            <span>{destButtonLabel}</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              vibrate(HAPTIC.TAP);
-              setSpeedSliderOpen((prev) => !prev);
-            }}
-            aria-pressed={speedSliderOpen}
-            aria-label={`보행 속도 ${formatKmh(walkingSpeed)}km/h. 클릭해 슬라이더 ${
-              speedSliderOpen ? '닫기' : '열기'
-            }`}
-            className={`${chipBase} ${
-              speedSliderOpen ? 'bg-emerald-600 text-white shadow' : inactiveChip
-            }`}
-          >
-            <span aria-hidden>{getSpeedDisplay(walkingSpeed).emoji}</span>
-            <span>{formatKmh(walkingSpeed)}km/h</span>
-          </button>
-          <button
-            type="button"
-            onClick={async () => {
-              vibrate(HAPTIC.TAP);
-              const next =
-                compassMode === 'off'
-                  ? 'cone'
-                  : compassMode === 'cone'
-                    ? 'head-up'
-                    : 'off';
-              if (compassMode === 'off') {
-                const result = await compass.request();
-                if (result !== 'granted') return;
-              }
-              setCompassMode(next);
-            }}
-            disabled={!compass.supported || compass.permission === 'denied'}
-            aria-pressed={compassMode !== 'off'}
-            aria-label={
-              !compass.supported
-                ? '방향 센서 미지원'
-                : compass.permission === 'denied'
-                  ? '방향 권한 거부됨'
-                  : compassMode === 'off'
-                    ? '방향 cone 켜기'
-                    : compassMode === 'cone'
-                      ? '헤드업 모드로 전환'
-                      : '방향 표시 끄기'
-            }
-            className={`${chipBase} ${
-              compassMode === 'head-up'
-                ? 'bg-violet-500 text-white shadow'
-                : compassMode === 'cone'
-                  ? 'bg-sky-500 text-white shadow'
+              }`}
+            >
+              <span aria-hidden>2️⃣🏁</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                vibrate(HAPTIC.TAP);
+                setDistanceMode((prev) =>
+                  prev === 'euclidean' ? 'manhattan' : 'euclidean',
+                );
+              }}
+              aria-pressed={distanceMode === 'manhattan'}
+              aria-label={distanceMode === 'manhattan' ? '격자 거리 (탭하면 직선)' : '직선 거리 (탭하면 격자)'}
+              title={distanceMode === 'manhattan' ? '격자 거리' : '직선 거리'}
+              className={`${iconChip} ${
+                distanceMode === 'manhattan'
+                  ? 'bg-amber-500 text-white shadow'
                   : inactiveChip
-            } ${!compass.supported || compass.permission === 'denied' ? 'opacity-40 cursor-not-allowed' : ''}`}
-          >
-            <span aria-hidden>🧭</span>
-            <span>
-              {compassMode === 'head-up' ? '헤드업' : compassMode === 'cone' ? '방향' : '방향'}
-            </span>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              vibrate(HAPTIC.TAP);
-              setTileTheme((prev) => {
-                const next = prev === 'dark' ? 'light' : 'dark';
-                window.localStorage.setItem('tileTheme', next);
-                return next;
-              });
-            }}
-            aria-label={`타일 테마 ${tileTheme === 'dark' ? '라이트로 전환' : '다크로 전환'}`}
-            className={`${chipBase} ${inactiveChip}`}
-          >
-            <span aria-hidden>{tileTheme === 'dark' ? '🌑' : '☀️'}</span>
-            <span>{tileTheme === 'dark' ? '다크' : '라이트'}</span>
-          </button>
-          <ShareButton
-            state={shareState}
-            defaults={DEFAULT_APP_STATE}
-            className={`${chipBase} ${inactiveChip}`}
-          />
+              }`}
+            >
+              <span aria-hidden>{distanceMode === 'euclidean' ? '📏' : '📐'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                vibrate(HAPTIC.TAP);
+                setSpeedSliderOpen((prev) => !prev);
+              }}
+              aria-pressed={speedSliderOpen}
+              aria-label={`보행 속도 ${formatKmh(walkingSpeed)}km/h. 클릭해 슬라이더 ${
+                speedSliderOpen ? '닫기' : '열기'
+              }`}
+              className={`${chipBase} ${
+                speedSliderOpen ? 'bg-emerald-600 text-white shadow' : inactiveChip
+              }`}
+            >
+              <span aria-hidden>{getSpeedDisplay(walkingSpeed).emoji}</span>
+              <span>{formatKmh(walkingSpeed)}km/h</span>
+            </button>
+          </div>
+
+          <span aria-hidden className={groupDivider} />
+
+          {/* 그룹 3: 보기/공유 (방향/테마/공유) */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <button
+              type="button"
+              onClick={async () => {
+                vibrate(HAPTIC.TAP);
+                const next =
+                  compassMode === 'off'
+                    ? 'cone'
+                    : compassMode === 'cone'
+                      ? 'head-up'
+                      : 'off';
+                if (compassMode === 'off') {
+                  const result = await compass.request();
+                  if (result !== 'granted') return;
+                }
+                setCompassMode(next);
+              }}
+              disabled={!compass.supported || compass.permission === 'denied'}
+              aria-pressed={compassMode !== 'off'}
+              aria-label={
+                !compass.supported
+                  ? '방향 센서 미지원'
+                  : compass.permission === 'denied'
+                    ? '방향 권한 거부됨'
+                    : compassMode === 'off'
+                      ? '방향 cone 켜기'
+                      : compassMode === 'cone'
+                        ? '헤드업 모드로 전환'
+                        : '방향 표시 끄기'
+              }
+              title={
+                compassMode === 'head-up'
+                  ? '헤드업 모드'
+                  : compassMode === 'cone'
+                    ? '방향 cone'
+                    : '방향'
+              }
+              className={`${iconChip} ${
+                compassMode === 'head-up'
+                  ? 'bg-violet-500 text-white shadow'
+                  : compassMode === 'cone'
+                    ? 'bg-sky-500 text-white shadow'
+                    : inactiveChip
+              } ${!compass.supported || compass.permission === 'denied' ? 'opacity-40 cursor-not-allowed' : ''}`}
+            >
+              <span aria-hidden>🧭</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                vibrate(HAPTIC.TAP);
+                setTileTheme((prev) => {
+                  const next = prev === 'dark' ? 'light' : 'dark';
+                  window.localStorage.setItem('tileTheme', next);
+                  return next;
+                });
+              }}
+              aria-label={`타일 테마 ${tileTheme === 'dark' ? '라이트로 전환' : '다크로 전환'}`}
+              title={tileTheme === 'dark' ? '다크 테마' : '라이트 테마'}
+              className={`${iconChip} ${inactiveChip}`}
+            >
+              <span aria-hidden>{tileTheme === 'dark' ? '🌑' : '☀️'}</span>
+            </button>
+            <ShareButton
+              state={shareState}
+              defaults={DEFAULT_APP_STATE}
+              className={`${iconChip} ${inactiveChip}`}
+            />
+          </div>
         </div>
         {speedSliderOpen && (
           <div className="mt-2 flex items-center gap-3 rounded-lg bg-neutral-200/80 px-3 py-2 dark:bg-neutral-800/80">
@@ -936,46 +975,6 @@ function PageContent() {
             <span className="min-w-[64px] text-right font-mono text-sm text-emerald-700 dark:text-emerald-300">
               {formatKmh(walkingSpeed)} km/h
             </span>
-          </div>
-        )}
-        <div className="mt-2 text-xs text-neutral-600 dark:text-neutral-400">
-          📍 {visible.length} / 전체 {totalAvailableBins || bins.length}개
-          {activeFetches.size > 0 && (
-            <span className="ml-2 inline-flex items-center gap-1 text-amber-700 dark:text-amber-300" role="status" aria-live="polite">
-              <span
-                aria-hidden
-                className="inline-block h-2 w-2 animate-pulse rounded-full bg-amber-400"
-              />
-              <span>{activeFetches.size}개 자치구 로드 중…</span>
-            </span>
-          )}
-          {bestRouteCandidate && (
-            <span className="ml-2 text-cyan-700 dark:text-cyan-300">
-              · 출발→{bestRouteCandidate.bin.name.split(',')[0]}→목적지 {formatDistance(bestRouteCandidate.cost.total)} · {formatEta(etaSeconds(bestRouteCandidate.cost.total, walkingSpeed))} (경유 +{formatDistance(bestRouteCandidate.cost.extra)})
-            </span>
-          )}
-          {!bestRouteCandidate && bestNearestCandidate && (
-            <span className="ml-2 text-sky-700 dark:text-sky-300">
-              · 가까운 통 {formatDistance(bestNearestCandidate.meters)} · {formatEta(etaSeconds(bestNearestCandidate.meters, walkingSpeed))} ({bestNearestCandidate.bin.name.split(',')[0]})
-            </span>
-          )}
-          {savings.uses > 0 && (
-            <span className="ml-2 text-emerald-700 dark:text-emerald-300">{formatSavingsLine(savings)}</span>
-          )}
-          {locateError && <span className="ml-2 text-red-600 dark:text-red-400">({locateError})</span>}
-          {error && <span className="ml-2 text-red-600 dark:text-red-400">({error})</span>}
-        </div>
-        {districtBreakdown.length >= 2 && (
-          <div className="mt-1 text-[11px] leading-relaxed">
-            {districtBreakdown.map((d, i) => (
-              <span key={d.code}>
-                {i > 0 && <span aria-hidden className="mx-1.5 text-neutral-300 dark:text-neutral-700">·</span>}
-                <span className={d.loaded ? 'text-neutral-700 dark:text-neutral-300' : 'text-neutral-400 dark:text-neutral-600'}>
-                  {d.name}{' '}
-                  <span className="font-mono">{d.binCount}</span>
-                </span>
-              </span>
-            ))}
           </div>
         )}
       </section>
@@ -1093,15 +1092,103 @@ function PageContent() {
           </div>
         )}
         {manifest && (
-          <a
-            href="https://www.data.go.kr/data/15129450/standard.do"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="absolute bottom-2 left-2 z-[1000] rounded bg-white/85 px-2 py-1 text-[10px] text-neutral-600 ring-1 ring-neutral-200 backdrop-blur-sm hover:text-neutral-900 dark:bg-neutral-900/80 dark:text-neutral-400 dark:ring-neutral-700 dark:hover:text-neutral-200"
-            aria-label={`데이터 출처: 공공데이터포털 전국휴지통표준데이터 v${manifest.version}`}
-          >
-            📊 공공데이터포털 · v{manifest.version}
-          </a>
+          <div className="absolute bottom-7 right-2 z-[1000] flex max-w-[80%] flex-col items-stretch overflow-hidden rounded-lg bg-white/70 text-neutral-800 ring-1 ring-neutral-200 backdrop-blur-sm dark:bg-neutral-900/70 dark:text-neutral-100 dark:ring-neutral-700">
+            {!statusCollapsed && (
+              <div className="border-b border-neutral-200/70 px-3 py-2 text-[11px] leading-relaxed dark:border-neutral-700/70">
+                {districtBreakdown.length >= 2 && (
+                  <ul className="space-y-0.5">
+                    {districtBreakdown.map((d) => {
+                      const status = d.loaded
+                        ? 'loaded'
+                        : d.failed
+                          ? 'failed'
+                          : d.inFlight
+                            ? 'inFlight'
+                            : 'pending';
+                      const { icon, cls } = STATUS_VIS[status];
+                      return (
+                        <li
+                          key={d.code}
+                          className={`flex items-center justify-between gap-3 ${
+                            d.loaded
+                              ? 'text-neutral-700 dark:text-neutral-200'
+                              : 'text-neutral-500 dark:text-neutral-400'
+                          }`}
+                        >
+                          <span className="flex items-center gap-1">
+                            <span aria-hidden className={`font-mono ${cls}`}>
+                              {icon}
+                            </span>
+                            <span>{d.name}</span>
+                          </span>
+                          <span className="font-mono text-neutral-400 dark:text-neutral-500">
+                            {d.binCount}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+                {(bestRouteCandidate || bestNearestCandidate || savings.uses > 0 || locateError || error) && (
+                  <div className="mt-1.5 space-y-0.5 border-t border-neutral-200/70 pt-1.5 dark:border-neutral-700/70">
+                    {bestRouteCandidate && (
+                      <div className="text-cyan-700 dark:text-cyan-300">
+                        → {bestRouteCandidate.bin.name.split(',')[0]} {formatDistance(bestRouteCandidate.cost.total)} · {formatEta(etaSeconds(bestRouteCandidate.cost.total, walkingSpeed))}
+                      </div>
+                    )}
+                    {!bestRouteCandidate && bestNearestCandidate && (
+                      <div className="text-sky-700 dark:text-sky-300">
+                        가까운 {bestNearestCandidate.bin.name.split(',')[0]} · {formatDistance(bestNearestCandidate.meters)} · {formatEta(etaSeconds(bestNearestCandidate.meters, walkingSpeed))}
+                      </div>
+                    )}
+                    {savings.uses > 0 && (
+                      <div className="text-emerald-700 dark:text-emerald-300">{formatSavingsLine(savings)}</div>
+                    )}
+                    {locateError && <div className="text-red-600 dark:text-red-400">{locateError}</div>}
+                    {error && <div className="text-red-600 dark:text-red-400">{error}</div>}
+                  </div>
+                )}
+                <a
+                  href="https://www.data.go.kr/data/15129450/standard.do"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-1.5 block border-t border-neutral-200/70 pt-1.5 text-[10px] text-neutral-500 hover:text-neutral-900 dark:border-neutral-700/70 dark:text-neutral-400 dark:hover:text-neutral-200"
+                  aria-label={`데이터 출처: 공공데이터포털 전국휴지통표준데이터 v${manifest.version}`}
+                >
+                  출처 → 공공데이터포털
+                </a>
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                vibrate(HAPTIC.TAP);
+                setStatusCollapsed((prev) => !prev);
+              }}
+              aria-expanded={!statusCollapsed}
+              aria-label={`데이터 현황 ${statusCollapsed ? '펼치기' : '접기'}`}
+              className="flex w-full items-center gap-1.5 px-3 py-1.5 text-[10px] font-medium hover:bg-neutral-100/40 dark:hover:bg-neutral-800/40"
+            >
+              <span aria-hidden>📊</span>
+              <span className="text-neutral-600 dark:text-neutral-400">v{manifest.version}</span>
+              <span aria-hidden className="text-neutral-300 dark:text-neutral-600">·</span>
+              <span aria-hidden>📍</span>
+              <span className="font-mono">
+                {visible.length}/{totalAvailableBins || bins.length}
+              </span>
+              {activeFetches.size > 0 && (
+                <span
+                  aria-hidden
+                  className="ml-0.5 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-amber-400"
+                  role="status"
+                  aria-live="polite"
+                />
+              )}
+              <span aria-hidden className="ml-auto text-neutral-400 dark:text-neutral-500">
+                {statusCollapsed ? '▴' : '▾'}
+              </span>
+            </button>
+          </div>
         )}
       </main>
     </div>

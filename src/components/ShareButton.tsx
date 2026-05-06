@@ -79,11 +79,11 @@ export function ShareButton({ state, defaults, className }: Props) {
       onClick={() => {
         void handleShare();
       }}
-      aria-label="현재 필터와 경로 상태 공유"
+      aria-label={copied ? '링크 복사됨' : '현재 필터와 경로 상태 공유'}
+      title={copied ? '복사됨!' : '공유'}
       className={className}
     >
-      <span aria-hidden>🔗</span>
-      <span>{copied ? '복사됨!' : '공유'}</span>
+      <span aria-hidden>{copied ? '✓' : '🔗'}</span>
     </button>
   );
 }

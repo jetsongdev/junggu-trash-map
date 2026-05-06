@@ -3,7 +3,7 @@
 > 이 파일은 Claude가 매 세션 시작 시 읽고 작업 우선순위를 판단하는 1차 소스.
 > 사람과 에이전트 모두 직접 편집 가능. 컨벤션은 파일 끝 「운영 규칙」 참고.
 
-## 현재 상태 (2026-05-05)
+## 현재 상태 (2026-05-06)
 
 - **Phase**: 3 진행 중. P3.1a Foundation + P3.2 데이터 transform + P3.1b markercluster 완료. 다음 P3.1c (인접 prefetch).
 - **사용자 환경 영속화** (`localStorage`): `distanceMode` (직선/격자), `tileTheme` (다크/라이트, **빈 값일 때 시스템 prefers-color-scheme 자동 감지**), `walkingSpeed` (km/h, 2~7 step 0.5), `favorites` (즐겨찾기 bin id), `savings` (누적 보행거리·시간·횟수)
@@ -80,6 +80,8 @@
 - [x] **P3.1c** 인접 자치구 prefetch — **obsoleted by P3.2 bulk prefetch**: 첫 user interaction 후 `requestIdleCallback`로 모든 populated 자치구를 일괄 fetch (page.tsx 274~378)가 strictly broader. 7개 자치구 중 junggu의 `adjacent`에 populated된 건 mapo 1개뿐 → adjacency-based는 사용자 가치 0. 25구가 다 채워지면 bulk가 too aggressive해질 때 재평가.
 - [x] **I.5** 라이트 모드 UI 정비 — Tailwind v4 `@custom-variant dark (.dark &)` 도입, root div에 `tileTheme === 'dark'` 시 `dark` 클래스 부착. inactiveChip / 헤더 / 섹션 / 속도 슬라이더 / 통계 텍스트 / breakdown / 로딩 오버레이 / toast 비강조 / 데이터 출처 핀 / SearchBox 입력+드롭다운 / LocateButton / FilterChips 12+ 표면을 양 테마 일관 콘트라스트로 분기. snapshot `29-light-mode-polish/` (light · dark · light-search 3장).
 - [x] **P3.1b** markercluster 도입 — `leaflet.markercluster@1.5.3` + `@types/leaflet.markercluster`. `MarkerClusterGroup` 래퍼는 `@react-leaflet/core`의 `createLayerComponent` + `extendContext({ layerContainer })` 패턴 (LayerGroup과 동일). `disableClusteringAtZoom: 15` + `chunkedLoading` + `spiderfyOnMaxZoom: false` + `showCoverageOnHover: false`. HighlightRing/DistanceLine/RouteLine은 cluster 바깥 — Top-3/헤드업/즐겨찾기 줌 ≥15에서 회귀 없음. snapshot `30-markercluster/`.
+- [x] **P2.22** 모바일 툴바 압축 — 칩을 3개 시각 그룹(필터/경로/보기)으로 묶고, 아이콘 only로 텍스트 축약 (📍, 📏, 1️⃣🎯, 2️⃣🏁, 🧭, ☀️, 🔗). Leaflet 줌 컨트롤을 `<ZoomControl position="bottomleft" />`로 좌하단 명시, 데이터 출처 배지를 `bottom-7 right-2` 우하단으로 이동. 메뉴 영역 화면 점유율 ~50% → ~33%로 감소. snapshot `31-mobile-toolbar-compact/`.
+- [x] **P2.22+** 데이터 현황 + 출처 통합 토글 — 메뉴의 합계/자치구 분포를 우하단 출처 카드에 통합. 접힘=한 줄 (`📊 v2026-05-05 · 📍 802/802 ▴`), 펼침=자치구 7행 + status + 출처 링크. `bg-white/70` 더 투명. `localStorage.statusOverlayCollapsed`로 영속화. 메뉴 영역 ~33% → ~30% 추가 압축. snapshot `32-status-overlay-toggle/`.
 
 ---
 

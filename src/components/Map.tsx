@@ -8,6 +8,7 @@ import {
   MapContainer,
   Polyline,
   TileLayer,
+  ZoomControl,
   useMap,
   useMapEvents,
 } from 'react-leaflet';
@@ -257,9 +258,11 @@ export function Map({
       center={JUNGGU_CENTER}
       zoom={14}
       scrollWheelZoom
+      zoomControl={false}
       style={{ height: '100%', width: '100%' }}
       {...({ rotate: true, rotateControl: false, touchRotate: false, bearing: 0 } as object)}
     >
+      <ZoomControl position="bottomleft" />
       <TileLayer
         key={tileTheme}
         attribution={preset.attribution}
