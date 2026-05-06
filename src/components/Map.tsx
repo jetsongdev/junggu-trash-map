@@ -140,13 +140,13 @@ const DISTANCE_LINE_STYLE: Record<
 > = {
   dark: {
     1: { color: '#0ea5e9', weight: 4, opacity: 0.85 },
-    2: { color: '#7dd3fc', weight: 2.5, opacity: 0.6, dashArray: '8 6' },
-    3: { color: '#bae6fd', weight: 1.5, opacity: 0.4, dashArray: '2 6' },
+    2: { color: '#7dd3fc', weight: 2.5, opacity: 0.75, dashArray: '8 6' },
+    3: { color: '#bae6fd', weight: 2, opacity: 0.7, dashArray: '3 5' },
   },
   light: {
     1: { color: '#0284c7', weight: 4, opacity: 0.85 },
-    2: { color: '#0ea5e9', weight: 2.5, opacity: 0.7, dashArray: '8 6' },
-    3: { color: '#38bdf8', weight: 1.5, opacity: 0.6, dashArray: '2 6' },
+    2: { color: '#0ea5e9', weight: 2.5, opacity: 0.8, dashArray: '8 6' },
+    3: { color: '#38bdf8', weight: 2, opacity: 0.85, dashArray: '3 5' },
   },
 };
 
