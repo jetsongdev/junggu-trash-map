@@ -61,12 +61,13 @@ git diff --name-only main...HEAD 2>/dev/null
 #### 추출
 
 ```bash
-# 브랜치명 + main..HEAD commit body 양쪽에서 추출, 케이스 유지
+# main..HEAD commit subject + 브랜치명 양쪽에서 추출, 첫 매치 케이스 유지
 {
+  git log --format=%s main..HEAD 2>/dev/null
   git branch --show-current
-  git log --format=%B main..HEAD 2>/dev/null
-} | grep -oE '([Pp][0-9]+\.[0-9]+[a-zA-Z]?|[Ii]\.[0-9]+[a-zA-Z]?)' | sort -uf
-# -f: case-insensitive dedup → "P3.1b"와 "p3.1b"가 같이 나오면 하나로
+} | grep -oE '([Pp][0-9]+\.[0-9]+[a-zA-Z]?|[Ii]\.[0-9]+[a-zA-Z]?)' \
+  | awk '!seen[tolower($0)]++'
+# commit subject의 표기(I.5, P3.1b)를 우선하고, 브랜치의 소문자 slug는 fallback source로만 사용
 ```
 
 #### tasks.md 매칭 — bold + checkbox prefix로 한정
@@ -187,3 +188,4 @@ trash-wrap-up 점검 (브랜치: feat/p3.1b-cluster, main..HEAD 4 commits)
 - **`main..HEAD` 빈 출력**: 브랜치가 main과 동일 (아직 commit 없음). 점검 항목 대부분이 "변경 없음 → ✅"으로 떨어지는데, 이건 진짜 OK가 아니라 "점검할 게 없음" — 사용자에게 먼저 commit하라고 알려야 함.
 - **snapshot의 NN 카운팅**: `ls docs/snapshots/`는 영문 정렬이라 `21` 다음에 `3-`이 끼면 순서 어긋남. 패턴으로 NN만 추출 (`ls docs/snapshots/ | grep -oE '^[0-9]+' | sort -n | tail -1`).
 - **`trash-feature-merge-flow`와 중복 안 됨**: 이 스킬은 "점검만", 그 스킬은 "실행". 사용자가 "마무리 ㄱㄱ"라고 하면 점검 후 머지 흐름까지 가는 게 자연스럽지만, 별도 스킬 invoke 결정은 사용자에게 맡긴다.
+- **commit body 예시 인용 false positive**: subject·브랜치명만 추출 소스로 쓰고 body(%B)는 피한다. body엔 설계 설명·다른 task 인용·CHANGELOG 발췌 등이 자주 들어가 P/I 패턴이 noise로 잡힌다. subject scope(feat(P3.1b):)와 브랜치 슬러그(feat/p3.1b-...)가 의도의 1차 출처.
