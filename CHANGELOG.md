@@ -9,6 +9,9 @@
 
 ## [Unreleased]
 
+### Infrastructure
+- Lighthouse CI 워크플로에 `paths-ignore` (`docs/**` · `**/*.md` · `.gitignore` · `.snapshot.config.json` · `LICENSE`) 추가 — CHANGELOG·snapshot SHA정합·docs-only PR이 더 이상 LH 4~5분을 잡지 않음. Hobby tier runner 큐 압력 감소. 더불어 `actions/cache@v4`로 Bun install 캐시 + Next.js `.next/cache`를 lockfile + 소스 해시 기반 키로 cache → 의존성 install 거의 즉시, Turbopack 증분 빌드도 인접 키로 hit 가능.
+
 ## [0.12.0] - 2026-05-05
 
 ### Changed
