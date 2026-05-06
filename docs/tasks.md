@@ -3,9 +3,9 @@
 > 이 파일은 Claude가 매 세션 시작 시 읽고 작업 우선순위를 판단하는 1차 소스.
 > 사람과 에이전트 모두 직접 편집 가능. 컨벤션은 파일 끝 「운영 규칙」 참고.
 
-## 현재 상태 (2026-05-05)
+## 현재 상태 (2026-05-06)
 
-- **Phase**: 3 진행 중. P3.1a Foundation + P3.2 데이터 transform + P3.1b markercluster 완료. 다음 P3.1c (인접 prefetch).
+- **Phase**: 3 거의 마무리. P3.1a/b 머지(802 bins 클러스터링), P3.2 7개 자치구 데이터, P3.1c는 obsolete. **P2.20 색맹 친화 거리선 패턴 분리 완료**. 다음 후보: P3.3(자치구 선택 UI), I.6(a11y 라운드), P4.1(타 종류 통).
 - **사용자 환경 영속화** (`localStorage`): `distanceMode` (직선/격자), `tileTheme` (다크/라이트, **빈 값일 때 시스템 prefers-color-scheme 자동 감지**), `walkingSpeed` (km/h, 2~7 step 0.5), `favorites` (즐겨찾기 bin id), `savings` (누적 보행거리·시간·횟수)
 - **마커 색**: 일반 `#60a5fa` (blue-400), 재활용 `#34d399` (emerald-400), 혼합 `#c084fc` (violet-400) — 라이트/다크 양 타일에서 균형
 - **Roadmap 확장**: Phase 3 (25개 구) · Phase 4 (데이터 확장: 타 종류 통/사용자 제보/사진) · Phase 5 (실제 보행 경로 + TTS) · 인프라/품질 cross-cutting (i18n 남음)
@@ -69,6 +69,7 @@
 - [x] **I.2** 에러 모니터링 — Sentry 연동, production-only 초기화, geolocation/fetch 에러 캡처, global-error 추가
 - [x] **I.3** Lighthouse CI — PR마다 PWA/접근성/성능 점수 회귀 차단
 - [x] **P2.14** 즐겨찾기 — popup ☆/★ 토글로 휴지통 표시, 칩 필터로 즐겨찾기만 보기. localStorage `favorites` 영속화 (comma-separated id), `lib/favorites.ts` 순수 함수 + vitest 13개
+- [x] **P2.20** Top-N 거리선 시각 분리 — rank 1 굵은 실선(weight 4) / rank 2 대시(`8 6` weight 2.5) / rank 3 도트(`2 6` weight 1.5). `DISTANCE_LINE_STYLE`에 옵셔널 `dashArray` 필드 추가, 라이트·다크 양 테마 적용. 색맹·소화면 가독성 보강(I.6 a11y 일부 흡수). snapshot `31-topn-distance-pattern/` (light·dark 2장).
 
 ### Phase 3 — 25개 구 확장
 - [x] **P3.1** 데이터 분할 전략 결정 — 자치구 단위 정적 JSON + GeoJSON 폴리곤 클라이언트 판정 + 3-PR 분할 (foundation → cluster · prefetch). spec: `docs/superpowers/specs/2026-05-05-p3-1-data-partitioning-design.md`.
@@ -90,7 +91,6 @@
 - [ ] **P2.3** 클러스터링 — `leaflet.markercluster`. 마커 100+ 시 lag 방지. **25구 확장(Phase 3) 전엔 ø**
 - [ ] **P2.18** 통계바 정보 분리 — 에러는 빨간 토스트, 통계바는 성공 상태만 표시 (UX U4)
 - [ ] **P2.19** hidden feature 발견 경로 — origin+dest 동시 set 시 공유 버튼 힌트, ☆/헤드업/격자 첫 사용 시 안내 (UX U5+U8)
-- [ ] **P2.20** Top-N 거리선 시각 분리 — rank 1 굵은 실선, 2/3 점선·굵기 차이로 색맹·소화면 가독성 보강 (UX U6 거리선 + U10)
 - [ ] **P2.21** 보행 속도 슬라이더 초기 안내 — 슬라이더 첫 토글 시 "현재 4 km/h (통상 보행)" 힌트 (UX U9)
 
 ---
