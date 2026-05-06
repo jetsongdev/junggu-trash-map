@@ -43,6 +43,7 @@ yarn-error.log*
 
 # git worktrees (superpowers convention)
 /.worktrees
+.claude/worktrees/
 
 # typescript
 *.tsbuildinfo
