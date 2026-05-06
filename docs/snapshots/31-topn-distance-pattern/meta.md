@@ -3,7 +3,7 @@ index: 31
 slug: topn-distance-pattern
 date: 2026-05-06
 phase: "P2.20 — Top-N 거리선 시각 분리"
-git_sha: 816545c7346661f0115c15bed4ff6364c7014803
+git_sha: 6cfbb5a5d6b70fd5f88471b97feeab4a5e705ff4
 viewport: 390x844
 ---
 
