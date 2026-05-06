@@ -1,5 +1,5 @@
 ---
-index: 29
+index: 30
 slug: markercluster
 date: 2026-05-05
 phase: "P3.1b"
@@ -7,7 +7,7 @@ git_sha: c190877 (clean)
 viewport: 390x844
 ---
 
-# 29 — markercluster (P3.1b)
+# 30 — markercluster (P3.1b)
 
 802 bins이 7개 자치구에 펼쳐지면서 줌-아웃 시 화면이 마커로 도배되는 문제를 `leaflet.markercluster`로 해소. 줌 <15에서는 클러스터 카운트 풍선, 줌 ≥15에서는 개별 마커. P3.2가 깐 다구 데이터 위에 시각 노이즈를 정리하는 한 단계.
 

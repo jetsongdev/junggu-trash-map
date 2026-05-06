@@ -50,3 +50,6 @@ next-env.d.ts
 
 # release automation 부산물 (bump-version.ts가 작성, 워크플로 안에서만 의미)
 release_notes.md
+
+# playwright MCP 로컬 산출물 (스크린샷·콘솔 로그 — git에 안 들어감)
+/.playwright-mcp

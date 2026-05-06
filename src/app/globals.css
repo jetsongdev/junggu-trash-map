@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* Class-based dark mode — page root <div> gets `dark` class when tileTheme === 'dark'.
+   System-prefers-color-scheme handling lives in page.tsx (first-paint init only). */
+@custom-variant dark (&:where(.dark, .dark *));
+
 html,
 body {
   height: 100%;

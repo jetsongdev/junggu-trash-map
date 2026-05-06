@@ -11,11 +11,24 @@
 
 ### Added
 - 7개 자치구 802개 휴지통이 한 지도에 들어와도 줌-아웃 시 화면이 마커로 도배되지 않도록 클러스터링이 적용됐습니다 — 줌 ≤14에서는 묶인 카운트 풍선(작게 부드러운 노랑/연두/초록)으로, 줌 ≥15부터는 휴지통 색·이모지 그대로의 개별 마커로 보입니다. 클러스터를 탭하면 자동으로 한 단계 더 확대해 펼쳐줍니다 (P3.1b).
-- 처음 앱을 켰을 때 emerald 강조 토스트로 "🎯 출발과 🏁 목적지를 정하면 경유 휴지통을 알려드려요" 가이드가 6초 동안 한 번만 표시됩니다. 두 번째 방문부터는 자동으로 사라집니다.
-- 출발/목적지 칩에 1️⃣/2️⃣ 순서 뱃지를 붙여 두 모드의 사용 순서를 시각적으로 명확하게 했습니다. 모드를 켠 동안에는 지도 하단에 보라색/장미색 고정 안내 배너 ("지도에서 출발/목적지 위치를 탭하거나 검색하세요")가 떠 있어, 칩 라벨 변화를 놓쳐도 무엇을 해야 할지 한눈에 보입니다.
 
 ### Performance
 - 마커 수가 늘어도 한 번에 그리는 DOM 요소 수가 클러스터 풍선 수준으로 줄어 줌-아웃 상태의 panning이 가벼워졌습니다 (`leaflet.markercluster` `chunkedLoading`).
+
+### Infrastructure
+- Lighthouse CI 워크플로에 `paths-ignore` (`docs/**` · `**/*.md` · `.gitignore` · `.snapshot.config.json` · `LICENSE`) 추가 — CHANGELOG·snapshot SHA정합·docs-only PR이 더 이상 LH 4~5분을 잡지 않음. Hobby tier runner 큐 압력 감소. 더불어 `actions/cache@v4`로 Bun install 캐시 + Next.js `.next/cache`를 lockfile + 소스 해시 기반 키로 cache → 의존성 install 거의 즉시, Turbopack 증분 빌드도 인접 키로 hit 가능.
+
+## [0.12.0] - 2026-05-05
+
+### Changed
+- 라이트 모드에서 그동안 다크 톤 그대로였던 필터 칩, 내 위치/직선/즐겨찾기/방향/공유 칩, 검색 입력·드롭다운, 통계 텍스트, 자치구 breakdown, 로딩 오버레이, toast(비강조), 데이터 출처 핀이 모두 라이트 콘트라스트로 정비되었습니다. 시스템 라이트 또는 ☀️ 토글로 라이트로 전환하면 헤더부터 지도 위 위젯까지 한 번에 일관 톤을 유지합니다.
+- 라이트 타일 위에서 가까운 통 Top-3 점선이 너무 옅어 보이던 문제를 해결했습니다. 라이트 모드는 한 단계 진한 sky 스케일(rank1 sky-600 / rank2 sky-500 / rank3 sky-400)을 쓰고, 다크 모드는 기존 lighter 스케일을 유지해 양쪽 다 가독성이 좋습니다.
+
+## [0.11.0] - 2026-05-05
+
+### Added
+- 처음 앱을 켰을 때 emerald 강조 토스트로 "🎯 출발과 🏁 목적지를 정하면 경유 휴지통을 알려드려요" 가이드가 6초 동안 한 번만 표시됩니다. 두 번째 방문부터는 자동으로 사라집니다.
+- 출발/목적지 칩에 1️⃣/2️⃣ 순서 뱃지를 붙여 두 모드의 사용 순서를 시각적으로 명확하게 했습니다. 모드를 켠 동안에는 지도 하단에 보라색/장미색 고정 안내 배너 ("지도에서 출발/목적지 위치를 탭하거나 검색하세요")가 떠 있어, 칩 라벨 변화를 놓쳐도 무엇을 해야 할지 한눈에 보입니다.
 
 ### Fixed
 - 검색 결과 드롭다운이 열려 있는 상태에서 손가락이 약간 빗나가 지도의 빈 영역을 누를 경우, 출발/목적지가 의도치 않게 그 좌표로 잡히던 문제 — 드롭다운이 열린 동안에는 지도 탭이 무시됩니다.
@@ -190,7 +203,9 @@
 - `~/.claude/skills/snapshot/` — 글로벌 스냅샷 스킬 (프레임워크 무관, config 기반)
 - `CLAUDE.md` — 세션 진입 가이드 (작업 큐 / 시각 히스토리 / CHANGELOG 포인터)
 
-[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.12.0...HEAD
+[0.12.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.11.0...v0.12.0
+[0.11.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.7.0...v0.8.0

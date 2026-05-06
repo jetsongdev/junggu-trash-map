@@ -728,7 +728,7 @@ function PageContent() {
       : '2️⃣ 🏁 목적지';
 
   const inactiveChip =
-    'bg-neutral-800 text-neutral-200 ring-1 ring-neutral-700 hover:bg-neutral-700';
+    'bg-neutral-100 text-neutral-700 ring-1 ring-neutral-200 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-200 dark:ring-neutral-700 dark:hover:bg-neutral-700';
   const chipBase =
     'min-h-[44px] rounded-full px-4 text-sm font-medium transition flex items-center gap-1.5';
   const shareState: AppState = {
@@ -740,22 +740,13 @@ function PageContent() {
     destination,
   };
 
-  const themeChrome =
-    tileTheme === 'light'
-      ? {
-          root: 'bg-neutral-50 text-neutral-900',
-          header: 'border-neutral-200 bg-neutral-50',
-          section: 'border-neutral-200 bg-neutral-100',
-        }
-      : {
-          root: 'bg-neutral-950 text-neutral-100',
-          header: 'border-neutral-800 bg-neutral-950',
-          section: 'border-neutral-800 bg-neutral-900',
-        };
-
   return (
-    <div className={`flex h-dvh flex-col ${themeChrome.root}`}>
-      <header className={`border-b px-4 py-3 ${themeChrome.header}`}>
+    <div
+      className={`flex h-dvh flex-col bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100 ${
+        tileTheme === 'dark' ? 'dark' : ''
+      }`}
+    >
+      <header className="border-b border-neutral-200 bg-neutral-50 px-4 py-3 dark:border-neutral-800 dark:bg-neutral-950">
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-bold tracking-tight">🗑️ 중구 휴지통 지도</h1>
           <span className="rounded bg-amber-400 px-1.5 py-0.5 text-[10px] font-bold text-neutral-900">
@@ -764,7 +755,7 @@ function PageContent() {
         </div>
       </header>
 
-      <section className={`border-b px-4 py-3 ${themeChrome.section}`}>
+      <section className="border-b border-neutral-200 bg-neutral-100 px-4 py-3 dark:border-neutral-800 dark:bg-neutral-900">
         <div className="mb-3">
           <SearchBox
             onSelect={handleSearchSelect}
@@ -928,7 +919,7 @@ function PageContent() {
           />
         </div>
         {speedSliderOpen && (
-          <div className="mt-2 flex items-center gap-3 rounded-lg bg-neutral-800/80 px-3 py-2">
+          <div className="mt-2 flex items-center gap-3 rounded-lg bg-neutral-200/80 px-3 py-2 dark:bg-neutral-800/80">
             <span aria-hidden className="text-base">
               {getSpeedDisplay(walkingSpeed).emoji}
             </span>
@@ -942,15 +933,15 @@ function PageContent() {
               className="flex-1 accent-emerald-500"
               aria-label="보행 속도 km/h"
             />
-            <span className="min-w-[64px] text-right font-mono text-sm text-emerald-300">
+            <span className="min-w-[64px] text-right font-mono text-sm text-emerald-700 dark:text-emerald-300">
               {formatKmh(walkingSpeed)} km/h
             </span>
           </div>
         )}
-        <div className="mt-2 text-xs text-neutral-400">
+        <div className="mt-2 text-xs text-neutral-600 dark:text-neutral-400">
           📍 {visible.length} / 전체 {totalAvailableBins || bins.length}개
           {activeFetches.size > 0 && (
-            <span className="ml-2 inline-flex items-center gap-1 text-amber-300" role="status" aria-live="polite">
+            <span className="ml-2 inline-flex items-center gap-1 text-amber-700 dark:text-amber-300" role="status" aria-live="polite">
               <span
                 aria-hidden
                 className="inline-block h-2 w-2 animate-pulse rounded-full bg-amber-400"
@@ -959,27 +950,27 @@ function PageContent() {
             </span>
           )}
           {bestRouteCandidate && (
-            <span className="ml-2 text-cyan-300">
+            <span className="ml-2 text-cyan-700 dark:text-cyan-300">
               · 출발→{bestRouteCandidate.bin.name.split(',')[0]}→목적지 {formatDistance(bestRouteCandidate.cost.total)} · {formatEta(etaSeconds(bestRouteCandidate.cost.total, walkingSpeed))} (경유 +{formatDistance(bestRouteCandidate.cost.extra)})
             </span>
           )}
           {!bestRouteCandidate && bestNearestCandidate && (
-            <span className="ml-2 text-sky-300">
+            <span className="ml-2 text-sky-700 dark:text-sky-300">
               · 가까운 통 {formatDistance(bestNearestCandidate.meters)} · {formatEta(etaSeconds(bestNearestCandidate.meters, walkingSpeed))} ({bestNearestCandidate.bin.name.split(',')[0]})
             </span>
           )}
           {savings.uses > 0 && (
-            <span className="ml-2 text-emerald-300">{formatSavingsLine(savings)}</span>
+            <span className="ml-2 text-emerald-700 dark:text-emerald-300">{formatSavingsLine(savings)}</span>
           )}
-          {locateError && <span className="ml-2 text-red-400">({locateError})</span>}
-          {error && <span className="ml-2 text-red-400">({error})</span>}
+          {locateError && <span className="ml-2 text-red-600 dark:text-red-400">({locateError})</span>}
+          {error && <span className="ml-2 text-red-600 dark:text-red-400">({error})</span>}
         </div>
         {districtBreakdown.length >= 2 && (
           <div className="mt-1 text-[11px] leading-relaxed">
             {districtBreakdown.map((d, i) => (
               <span key={d.code}>
-                {i > 0 && <span aria-hidden className="mx-1.5 text-neutral-700">·</span>}
-                <span className={d.loaded ? 'text-neutral-300' : 'text-neutral-600'}>
+                {i > 0 && <span aria-hidden className="mx-1.5 text-neutral-300 dark:text-neutral-700">·</span>}
+                <span className={d.loaded ? 'text-neutral-700 dark:text-neutral-300' : 'text-neutral-400 dark:text-neutral-600'}>
                   {d.name}{' '}
                   <span className="font-mono">{d.binCount}</span>
                 </span>
@@ -1019,11 +1010,11 @@ function PageContent() {
             aria-live="polite"
             aria-label="자치구 데이터 로드 중"
           >
-            <div className="rounded-2xl bg-neutral-900/85 px-5 py-4 text-sm text-neutral-100 shadow-2xl ring-1 ring-neutral-700 backdrop-blur-sm min-w-[200px]">
+            <div className="rounded-2xl bg-white/95 px-5 py-4 text-sm text-neutral-900 shadow-2xl ring-1 ring-neutral-200 backdrop-blur-sm min-w-[200px] dark:bg-neutral-900/85 dark:text-neutral-100 dark:ring-neutral-700">
               <div className="mb-2 flex items-center gap-2 font-semibold">
                 <span
                   aria-hidden
-                  className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-neutral-600 border-t-amber-400"
+                  className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-neutral-300 border-t-amber-500 dark:border-neutral-600 dark:border-t-amber-400"
                 />
                 <span>
                   자치구 로드 ({loadedPopulatedCount}/{populatedDistrictCount})
@@ -1043,7 +1034,9 @@ function PageContent() {
                     <li
                       key={d.code}
                       className={`flex items-center justify-between gap-3 ${
-                        d.loaded ? 'text-neutral-200' : 'text-neutral-400'
+                        d.loaded
+                          ? 'text-neutral-700 dark:text-neutral-200'
+                          : 'text-neutral-500 dark:text-neutral-400'
                       }`}
                     >
                       <span className="flex items-center gap-1.5">
@@ -1052,7 +1045,7 @@ function PageContent() {
                         </span>
                         <span>{d.name}</span>
                       </span>
-                      <span className="font-mono text-neutral-500">
+                      <span className="font-mono text-neutral-400 dark:text-neutral-500">
                         {d.loaded ? d.binCount : ''}
                       </span>
                     </li>
@@ -1091,7 +1084,7 @@ function PageContent() {
               className={
                 toast.emphatic
                   ? 'rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-2xl ring-2 ring-emerald-300'
-                  : 'rounded-full bg-neutral-900/90 px-4 py-2 text-xs text-neutral-100 shadow-lg ring-1 ring-neutral-700 backdrop-blur-sm'
+                  : 'rounded-full bg-white/95 px-4 py-2 text-xs text-neutral-800 shadow-lg ring-1 ring-neutral-200 backdrop-blur-sm dark:bg-neutral-900/90 dark:text-neutral-100 dark:ring-neutral-700'
               }
             >
               {toast.emphatic && <span aria-hidden className="mr-1.5">✅</span>}
@@ -1104,7 +1097,7 @@ function PageContent() {
             href="https://www.data.go.kr/data/15129450/standard.do"
             target="_blank"
             rel="noopener noreferrer"
-            className="absolute bottom-2 left-2 z-[1000] rounded bg-neutral-900/80 px-2 py-1 text-[10px] text-neutral-400 ring-1 ring-neutral-700 backdrop-blur-sm hover:text-neutral-200"
+            className="absolute bottom-2 left-2 z-[1000] rounded bg-white/85 px-2 py-1 text-[10px] text-neutral-600 ring-1 ring-neutral-200 backdrop-blur-sm hover:text-neutral-900 dark:bg-neutral-900/80 dark:text-neutral-400 dark:ring-neutral-700 dark:hover:text-neutral-200"
             aria-label={`데이터 출처: 공공데이터포털 전국휴지통표준데이터 v${manifest.version}`}
           >
             📊 공공데이터포털 · v{manifest.version}
