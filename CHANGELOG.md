@@ -28,6 +28,8 @@
 
 ### Fixed
 - iPad Safari에서 지도 일부가 잘리고 페이지 자체가 세로 스크롤되던 문제를 해결했습니다. `<html>`/`<body>`에 `overflow: hidden` + `overscroll-behavior: none`을 박아 root viewport를 잠그고 dynamic viewport(`h-dvh`)와 충돌하지 않도록 했습니다. iOS pull-to-refresh 동작도 차단됩니다.
+- 첫 방문 시 데이터 카드가 펼친 상태로 떠 지도 하단을 가리던 문제를 해결했습니다. 기본 상태가 접힘으로 바뀌었고, 펼침 상태는 사용자가 명시적으로 펼친 경우(`localStorage.statusOverlayCollapsed === 'false'`)에만 복원됩니다.
+- GPS 권한 거부, 자치구 fetch 실패 등 에러 메시지가 데이터 카드 안에만 있어서 카드가 접혀 있을 때 보이지 않던 회귀를 수정했습니다. 이제 에러는 카드 위치와 무관하게 화면 하단 빨간 토스트(⚠ + role=alert, 6초)로 즉시 노출되고, 카드 펼침 영역은 route/savings 같은 성공 상태만 보여줍니다 (P2.18).
 - 메뉴 칩 row를 더 컴팩트하게: 높이 44px → 36px(`h-9`), 출발/목적지 segmented 안의 아이콘+텍스트가 세로 두 줄에서 가로 한 줄로 바뀌어 360px 모바일 폭에 두 칩(출발-목적지·속도)이 한 줄에 자연 fit됩니다.
 - 우하단 데이터 카드 토글 버튼 가독성을 키웠습니다: 폰트 10px → 12px(`text-xs`), padding 늘려 hit area 확보, 토글 화살표를 lucide ChevronUp/Down SVG로 교체해 시인성 ↑.
 - 데이터 카드를 펼쳤을 때 보이는 순서를 swap했습니다: 출처(공공데이터포털 + 외부 링크 아이콘 + underline) 맨 위 → status → 자치구 7행 분포 아래. 출처를 첫 줄로 올려 데이터 신뢰도 시그널을 강화했습니다.

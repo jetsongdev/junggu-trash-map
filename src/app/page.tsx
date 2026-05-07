@@ -113,7 +113,8 @@ function PageContent() {
   const [districtsGeo, setDistrictsGeo] = useState<DistrictsGeoJson | null>(null);
   const [activeFetches, setActiveFetches] = useState<Set<DistrictCode>>(() => new Set());
   const [failedDistricts, setFailedDistricts] = useState<Set<DistrictCode>>(() => new Set());
-  const [toast, setToast] = useState<{ text: string; emphatic: boolean } | null>(null);
+  type ToastVariant = 'info' | 'emphatic' | 'error';
+  const [toast, setToast] = useState<{ text: string; variant: ToastVariant } | null>(null);
   const toastTimerRef = useRef<number | null>(null);
   const [selected, setSelected] = useState<Set<BinType>>(() => new Set());
   const [error, setError] = useState<string | null>(null);
@@ -137,7 +138,7 @@ function PageContent() {
     totalSeconds: 0,
     uses: 0,
   });
-  const [statusCollapsed, setStatusCollapsed] = useState(false);
+  const [statusCollapsed, setStatusCollapsed] = useState(true);
   const watchIdRef = useRef<number | null>(null);
   const prefsHydratedRef = useRef(false);
 
@@ -212,9 +213,13 @@ function PageContent() {
     setFavorites(loadFavorites());
     setSavings(loadSavings());
 
-    if (window.localStorage.getItem('statusOverlayCollapsed') === 'true') {
+    const storedCollapsed = window.localStorage.getItem('statusOverlayCollapsed');
+    if (storedCollapsed === 'false') {
+      setStatusCollapsed(false);
+    } else if (storedCollapsed === 'true') {
       setStatusCollapsed(true);
     }
+    // null (no key yet) → default collapsed (true) so first-time visitors see compact summary, not full panel covering the map
 
     queueMicrotask(() => {
       prefsHydratedRef.current = true;
@@ -464,8 +469,8 @@ function PageContent() {
     return flat;
   }, [districtsCache, activeDistricts]);
 
-  const showToast = (text: string, durationMs = 1800, emphatic = false) => {
-    setToast({ text, emphatic });
+  const showToast = (text: string, durationMs = 1800, variant: ToastVariant = 'info') => {
+    setToast({ text, variant });
     if (toastTimerRef.current != null) {
       window.clearTimeout(toastTimerRef.current);
     }
@@ -484,7 +489,7 @@ function PageContent() {
     showToast(
       `전체 ${populatedDistrictCount}개 자치구 ${bins.length}개 휴지통 로드 완료`,
       4000,
-      true,
+      'emphatic',
     );
     // showToast 는 매 render 새로 만드는 closure지만 ref guard 덕에 1회 실행 보장.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -501,10 +506,22 @@ function PageContent() {
     showToast(
       '🎯 출발과 🏁 목적지를 정하면 경유 휴지통을 알려드려요',
       6000,
-      true,
+      'emphatic',
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [manifest]);
+
+  // 에러는 collapsed/expanded 무관하게 카드 밖 토스트로 항상 노출.
+  // GPS 권한 거부, 자치구 fetch 실패 등은 즉시 사용자에게 보여야 함.
+  useEffect(() => {
+    if (locateError) showToast(locateError, 6000, 'error');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locateError]);
+
+  useEffect(() => {
+    if (error) showToast(error, 6000, 'error');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [error]);
 
   type DistrictRow = {
     code: DistrictCode;
@@ -1136,17 +1153,20 @@ function PageContent() {
         {toast && (
           <div
             className="pointer-events-none absolute inset-x-0 bottom-6 z-[1001] flex justify-center px-4"
-            role="status"
-            aria-live="polite"
+            role={toast.variant === 'error' ? 'alert' : 'status'}
+            aria-live={toast.variant === 'error' ? 'assertive' : 'polite'}
           >
             <div
               className={
-                toast.emphatic
-                  ? 'rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-2xl ring-2 ring-emerald-300'
-                  : 'rounded-full bg-white/95 px-4 py-2 text-xs text-neutral-800 shadow-lg ring-1 ring-neutral-200 backdrop-blur-sm dark:bg-neutral-900/90 dark:text-neutral-100 dark:ring-neutral-700'
+                toast.variant === 'error'
+                  ? 'rounded-full bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-2xl ring-2 ring-red-300'
+                  : toast.variant === 'emphatic'
+                    ? 'rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-2xl ring-2 ring-emerald-300'
+                    : 'rounded-full bg-white/95 px-4 py-2 text-xs text-neutral-800 shadow-lg ring-1 ring-neutral-200 backdrop-blur-sm dark:bg-neutral-900/90 dark:text-neutral-100 dark:ring-neutral-700'
               }
             >
-              {toast.emphatic && <span aria-hidden className="mr-1.5">✅</span>}
+              {toast.variant === 'error' && <span aria-hidden className="mr-1.5">⚠</span>}
+              {toast.variant === 'emphatic' && <span aria-hidden className="mr-1.5">✅</span>}
               {toast.text}
             </div>
           </div>
@@ -1165,7 +1185,7 @@ function PageContent() {
                   <span>출처 → 공공데이터포털</span>
                   <ExternalLink size={12} aria-hidden="true" className="shrink-0" />
                 </a>
-                {(bestRouteCandidate || bestNearestCandidate || savings.uses > 0 || locateError || error) && (
+                {(bestRouteCandidate || bestNearestCandidate || savings.uses > 0) && (
                   <div className="mt-1.5 space-y-0.5 border-t border-neutral-200/70 pt-1.5 dark:border-neutral-700/70">
                     {bestRouteCandidate && (
                       <div className="text-cyan-700 dark:text-cyan-300">
@@ -1180,8 +1200,6 @@ function PageContent() {
                     {savings.uses > 0 && (
                       <div className="text-emerald-700 dark:text-emerald-300">{formatSavingsLine(savings)}</div>
                     )}
-                    {locateError && <div className="text-red-600 dark:text-red-400">{locateError}</div>}
-                    {error && <div className="text-red-600 dark:text-red-400">{error}</div>}
                   </div>
                 )}
                 {districtBreakdown.length >= 2 && (
