@@ -198,7 +198,6 @@ function RouteLine({
         color: DISTANCE_LINE_STYLE[tileTheme][1].color,
         weight: 4,
         opacity: 0.9,
-        dashArray: '8 6',
       }}
       interactive={false}
     />
