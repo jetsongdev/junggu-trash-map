@@ -1,0 +1,6 @@
+# Map historical author identities to the canonical public identity.
+# Format: <Canonical Name> <canonical-email> <Commit Name> <commit-email>
+# Affects git shortlog/log --use-mailmap and GitHub contributor/blame views.
+
+Jet Song <jetsong.dev@gmail.com> 송창현 <chsong@saluscare.co.kr>
+Jet Song <jetsong.dev@gmail.com> CHANGHYEON SONG <85018885+jetsongdev@users.noreply.github.com>
