@@ -1,5 +1,6 @@
 'use client';
 
+import { Check, Share2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { HAPTIC, vibrate } from '@/lib/haptic';
 import { buildShareUrl, type AppState } from '@/lib/url-share';
@@ -86,7 +87,11 @@ export function ShareButton({ state, defaults, className }: Props) {
       title={copied ? '복사됨!' : '공유'}
       className={className ?? DEFAULT_CLASSNAME}
     >
-      <span aria-hidden>{copied ? '✓' : '🔗'}</span>
+      {copied ? (
+        <Check size={20} aria-hidden="true" />
+      ) : (
+        <Share2 size={20} aria-hidden="true" />
+      )}
     </button>
   );
 }

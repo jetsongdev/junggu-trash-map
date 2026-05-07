@@ -1,6 +1,19 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import {
+  BarChart3,
+  Compass,
+  Crosshair,
+  Flag,
+  Footprints,
+  Grid3x3,
+  MapPin,
+  Moon,
+  Ruler,
+  Star,
+  Sun,
+} from 'lucide-react';
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { FilterChips } from '@/components/FilterChips';
@@ -45,7 +58,6 @@ import {
   etaSeconds,
   formatEta,
   formatKmh,
-  getSpeedDisplay,
   MAX_KMH,
   MIN_KMH,
   STEP_KMH,
@@ -775,15 +787,42 @@ function PageContent() {
           <span className="rounded bg-amber-400 px-1.5 py-0.5 text-[10px] font-bold text-neutral-900">
             PROTO
           </span>
+          <button
+            type="button"
+            onClick={() => {
+              vibrate(HAPTIC.TAP);
+              setTileTheme((prev) => {
+                const next = prev === 'dark' ? 'light' : 'dark';
+                window.localStorage.setItem('tileTheme', next);
+                return next;
+              });
+            }}
+            aria-label={`테마 ${tileTheme === 'dark' ? '라이트로 전환' : '다크로 전환'}`}
+            title={tileTheme === 'dark' ? '다크 테마 (탭하면 라이트)' : '라이트 테마 (탭하면 다크)'}
+            className="ml-auto flex h-9 w-9 items-center justify-center rounded-md text-neutral-600 ring-1 ring-neutral-200 transition hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:ring-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
+          >
+            {tileTheme === 'dark' ? (
+              <Moon size={18} aria-hidden="true" />
+            ) : (
+              <Sun size={18} aria-hidden="true" />
+            )}
+          </button>
         </div>
       </header>
 
       <section className="relative z-[1000] border-b border-neutral-200 bg-neutral-100 px-4 py-3 dark:border-neutral-800 dark:bg-neutral-900">
-        <div className="mb-3">
-          <SearchBox
-            onSelect={handleSearchSelect}
-            tapMode={tapTarget}
-            onDropdownChange={setSearchDropdownOpen}
+        <div className="mb-3 flex gap-2">
+          <div className="flex-1">
+            <SearchBox
+              onSelect={handleSearchSelect}
+              tapMode={tapTarget}
+              onDropdownChange={setSearchDropdownOpen}
+            />
+          </div>
+          <ShareButton
+            state={shareState}
+            defaults={DEFAULT_APP_STATE}
+            className={`${hudIconBtn} ${hudInactive}`}
           />
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -808,7 +847,7 @@ function PageContent() {
                     : routeSegmentInactive
                 }`}
               >
-                <span aria-hidden className="text-base leading-none">🎯</span>
+                <Crosshair size={20} aria-hidden="true" />
                 <span className="text-xs">출발</span>
                 {userLocation && (
                   <span className="absolute right-0.5 top-0.5 rounded-sm bg-violet-500 px-1 text-[9px] leading-4 text-white ring-1 ring-white dark:ring-neutral-900">
@@ -832,7 +871,7 @@ function PageContent() {
                     : routeSegmentInactive
                 }`}
               >
-                <span aria-hidden className="text-base leading-none">🏁</span>
+                <Flag size={20} aria-hidden="true" />
                 <span className="text-xs">목적지</span>
                 {destination && (
                   <span className="absolute right-0.5 top-0.5 rounded-sm bg-rose-500 px-1 text-[9px] leading-4 text-white ring-1 ring-white dark:ring-neutral-900">
@@ -855,43 +894,16 @@ function PageContent() {
                 speedSliderOpen ? hudEmeraldActive : hudInactive
               }`}
             >
-              <span aria-hidden>{speedSliderOpen ? `✓${getSpeedDisplay(walkingSpeed).emoji}` : getSpeedDisplay(walkingSpeed).emoji}</span>
+              <Footprints size={20} aria-hidden="true" />
               <span>
                 <span className="font-mono">{formatKmh(walkingSpeed)}</span>km/h
               </span>
             </button>
           </div>
-
-          {/* 그룹 2: 보기/공유 */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            <button
-              type="button"
-              onClick={() => {
-                vibrate(HAPTIC.TAP);
-                setTileTheme((prev) => {
-                  const next = prev === 'dark' ? 'light' : 'dark';
-                  window.localStorage.setItem('tileTheme', next);
-                  return next;
-                });
-              }}
-              aria-label={`타일 테마 ${tileTheme === 'dark' ? '라이트로 전환' : '다크로 전환'}`}
-              title={tileTheme === 'dark' ? '다크 테마' : '라이트 테마'}
-              className={`${hudIconBtn} ${hudInactive}`}
-            >
-              <span aria-hidden>{tileTheme === 'dark' ? '🌑' : '☀️'}</span>
-            </button>
-            <ShareButton
-              state={shareState}
-              defaults={DEFAULT_APP_STATE}
-              className={`${hudIconBtn} ${hudInactive}`}
-            />
-          </div>
         </div>
         {speedSliderOpen && (
           <div className="mt-2 flex items-center gap-3 rounded-md bg-white/95 px-3 py-2 ring-1 ring-emerald-500/40 dark:bg-neutral-900/95">
-            <span aria-hidden className="text-base">
-              {getSpeedDisplay(walkingSpeed).emoji}
-            </span>
+            <Footprints size={20} aria-hidden="true" className="text-emerald-700 dark:text-emerald-300" />
             <input
               type="range"
               min={MIN_KMH}
@@ -956,7 +968,11 @@ function PageContent() {
               favoritesOnly ? hudAmberActive : hudInactive
             } ${!favoritesOnly && favorites.size === 0 ? 'opacity-40 cursor-not-allowed' : ''}`}
           >
-            <span aria-hidden className="text-xl leading-none">{favoritesOnly ? '★' : '☆'}</span>
+            <Star
+              size={20}
+              aria-hidden="true"
+              fill={favoritesOnly ? 'currentColor' : 'none'}
+            />
             {favoritesOnly && (
               <span className="absolute -bottom-1 -left-1 rounded-md bg-amber-500 px-1 text-[10px] leading-5 text-white ring-1 ring-white dark:ring-neutral-900">
                 ✓
@@ -983,7 +999,11 @@ function PageContent() {
               distanceMode === 'manhattan' ? hudAmberActive : hudInactive
             }`}
           >
-            <span aria-hidden>{distanceMode === 'euclidean' ? '📏' : '📐'}</span>
+            {distanceMode === 'euclidean' ? (
+              <Ruler size={20} aria-hidden="true" />
+            ) : (
+              <Grid3x3 size={20} aria-hidden="true" />
+            )}
           </button>
           <button
             type="button"
@@ -1029,7 +1049,7 @@ function PageContent() {
                   : hudInactive
             } ${!compass.supported || compass.permission === 'denied' ? 'opacity-40 cursor-not-allowed' : ''}`}
           >
-            <span aria-hidden>🧭</span>
+            <Compass size={20} aria-hidden="true" />
             {compassMode !== 'off' && (
               <span className="absolute -right-1 -top-1 min-w-5 rounded-md bg-sky-500 px-1 text-center font-mono text-[10px] leading-5 text-white ring-1 ring-white dark:ring-neutral-900">
                 {compassMode === 'head-up' ? '2' : '1'}
@@ -1204,10 +1224,10 @@ function PageContent() {
               aria-label={`데이터 현황 ${statusCollapsed ? '펼치기' : '접기'}`}
               className="flex w-full items-center gap-1.5 px-3 py-1.5 text-[10px] font-medium hover:bg-neutral-100/40 dark:hover:bg-neutral-800/40"
             >
-              <span aria-hidden>📊</span>
+              <BarChart3 size={20} aria-hidden="true" />
               <span className="text-neutral-600 dark:text-neutral-400">v{manifest.version}</span>
               <span aria-hidden className="text-neutral-300 dark:text-neutral-600">·</span>
-              <span aria-hidden>📍</span>
+              <MapPin size={20} aria-hidden="true" />
               <span className="font-mono">
                 {visible.length}/{totalAvailableBins || bins.length}
               </span>

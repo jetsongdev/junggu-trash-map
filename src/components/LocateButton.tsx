@@ -1,5 +1,6 @@
 'use client';
 
+import { Loader2, MapPin } from 'lucide-react';
 import { HAPTIC, vibrate } from '@/lib/haptic';
 
 type Props = {
@@ -31,7 +32,11 @@ export function LocateButton({ active, pending, onLocate, onClear }: Props) {
           : 'bg-white/95 text-neutral-700 ring-1 ring-neutral-300 hover:bg-white disabled:opacity-60 dark:bg-neutral-900/95 dark:text-neutral-200 dark:ring-neutral-700 dark:hover:bg-neutral-800'
       }`}
     >
-      <span aria-hidden>{pending ? '⏳' : '📍'}</span>
+      {pending ? (
+        <Loader2 size={20} aria-hidden="true" className="animate-spin" />
+      ) : (
+        <MapPin size={20} aria-hidden="true" />
+      )}
       {active && !pending && (
         <span className="absolute -right-1 -top-1 rounded-md bg-sky-500 px-1 text-[10px] leading-5 text-white ring-1 ring-white dark:ring-neutral-900">
           ✓
