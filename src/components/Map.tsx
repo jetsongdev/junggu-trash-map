@@ -132,21 +132,21 @@ function HighlightRing({ bin }: { bin: TrashBin }) {
   );
 }
 
-// Both themes use a fuchsia scale — distinct from any other map element (sky markers, emerald recycle, violet mix, rose destination, amber chips, cyan RouteLine).
-// Light: deeper shades for contrast against off-white tiles. Dark: lighter shades to pop on CartoDB Dark Matter.
+// Dark: sky scale that pops on CartoDB Dark Matter (P2.11 baseline).
+// Light: deep blue scale (blue-800/700/600) — cool tone that reads as a "navigation path" and stays clearly darker than the blue-400 general marker.
 const DISTANCE_LINE_STYLE: Record<
   TileTheme,
   Record<1 | 2 | 3, { color: string; weight: number; opacity: number; dashArray?: string }>
 > = {
   dark: {
-    1: { color: '#e879f9', weight: 4, opacity: 0.9 },
-    2: { color: '#f0abfc', weight: 2.5, opacity: 0.8, dashArray: '8 6' },
-    3: { color: '#f5d0fe', weight: 2, opacity: 0.75, dashArray: '3 5' },
+    1: { color: '#0ea5e9', weight: 4, opacity: 0.85 },
+    2: { color: '#7dd3fc', weight: 2.5, opacity: 0.75, dashArray: '8 6' },
+    3: { color: '#bae6fd', weight: 2, opacity: 0.7, dashArray: '3 5' },
   },
   light: {
-    1: { color: '#a21caf', weight: 4, opacity: 0.9 },
-    2: { color: '#c026d3', weight: 2.5, opacity: 0.85, dashArray: '8 6' },
-    3: { color: '#d946ef', weight: 2, opacity: 0.85, dashArray: '3 5' },
+    1: { color: '#1e40af', weight: 4, opacity: 0.9 },
+    2: { color: '#1d4ed8', weight: 2.5, opacity: 0.85, dashArray: '8 6' },
+    3: { color: '#2563eb', weight: 2, opacity: 0.85, dashArray: '3 5' },
   },
 };
 
