@@ -2,40 +2,78 @@
 index: 33
 slug: hud-rearrange
 date: 2026-05-07
-phase: "P2.23"
-git_sha: 803a94c4a3071cdae076c6824ffe8b7a90b36541
+phase: "P2.23 + P2.18"
+git_sha: 50ebd23
 viewport: 390x844
 ---
 
-# 33 — HUD 재배치 + 출발/목적지 segmented 통합
+# 33 — HUD 재배치 + 9 라운드 fix 누적
 
-기능별 컴포넌트를 메뉴 영역에서 빼서 지도 위 floating 영역으로 분산. 둥근 pill에서 각진 HUD 스타일로 시각 언어 통일. 출발/목적지를 두 분리 칩에서 segmented 한 박스로 통합. 메뉴 영역은 한 줄 축약.
+P2.23 HUD 재배치 시작 → 9 라운드 점진적 fix가 같은 폴더에 누적된 가장 큰 시각 마일스톤. 둥근 pill에서 각진 HUD 스타일로 시각 언어 통일 + emoji → SVG 아이콘 + floating 컴포넌트 재배치 + 우하단 카드 토글 + 라이트/다크 양 테마. 마지막에 Codex review로 발견된 회귀(P2.18 카드 default 펼침 + 에러 미노출) 정리.
 
-## 보이는 것
-- **좌상단 floating**: 필터 row (✓/🗑️/♻️ 아이콘 only). 활성 시 amber accent fill. 박스 ~150px (이전 글자 줄바꿈 문제 해결).
-- **우상단 floating stack**: ★/☆ (즐겨찾기, 활성 시 filled + count badge) → 📏/📐 (직선·격자) → 🧭 (방향, mode 1/2 corner badge).
-- **메뉴 한 줄**: 검색 + 📍 / [🎯 출발 ┃ 🏁 목적지] segmented / 🚶 4km/h / ☀️ / 🔗.
-- **좌하단**: 줌 +/- 컨트롤 (P2.22에서 명시).
-- **우하단 통합 카드**: `bg-white/45 dark:bg-neutral-900/45` 더 투명. 펼침=자치구 7행+status+출처 / 접힘=한 줄 (`📊 v2026-05-05 · 📍 802/802 ▴`).
-- **HUD 시각 언어**:
-  - `rounded-md` 각진 모서리
-  - `ring-1` thin border
-  - 5색 accent state: amber (즐겨찾기·격자·전체) / sky (cone) / violet (head-up·출발) / rose (목적지) / emerald (속도)
-  - active = 15% color fill + ring + ✓ corner badge (색맹 친화)
-  - mono numerics (`font-mono`)
-- **Asterisk `*` 글리프**: `text-3xl leading-none -translate-y-0.5`로 emoji와 시각 weight 매치.
+## 캡처 진화
+
+| 라운드 | 파일 | 변경 핵심 |
+|--------|------|----------|
+| 0 (P2.23 시작) | `screenshot-default.png` / `screenshot-collapsed.png` | 좌상단 글자 줄바꿈 문제 (max-w-[60%] + 한국어 wrap) |
+| fix1 | `screenshot-fix1-default.png` / `fix1-collapsed.png` | FilterChips 아이콘 only(✓/🗑️/♻️) + 출발/목적지 segmented 통합 |
+| fix2 | `screenshot-fix2-default.png` | 전체 ✓ → `*` 변경 (코너 ✓ 뱃지와 시각 충돌 해소) |
+| fix3 | `screenshot-fix3-default.png` | `*` 크게(text-3xl) + ☆/★ 상태별 분기 |
+| fix4 | `screenshot-fix4-default.png` / `fix4-dark.png` | emoji → lucide SVG 아이콘 통일 (12개 매핑) |
+| fix5 | `screenshot-fix5-light.png` / `fix5-dark.png` | 테마 토글 메뉴→헤더 우측, 다크 Moon 초승달 |
+| fix6 | `screenshot-fix6-light.png` / `fix6-dark.png` | 위치 메뉴→좌상단 + 메뉴 h-9 + 토글 ChevronUp/Down + 카드 swap(출처 위 / 자치구 아래) |
+| fix7 | `screenshot-fix7-light.png` | 위치 좌상단→좌하단 (Naver Map GPS 패턴, 줌 위) |
+| fix8 | `screenshot-fix8-ipad.png` | iPad 1024×1366 viewport 검증 — 스크롤 lock(`overflow-hidden`) 후 hasV/hasH false |
+| fix9 (현재) | `screenshot-fix9-icons.png` / `fix9-icons-dark.png` | LocateButton MapPin → LocateFixed (정밀 GPS 시맨틱) + 출발 Crosshair → MapPin / 카드 default 접힘(P2.18) + 에러 토스트 분리(P2.18) |
+
+## 최종(fix9) 보이는 것
+
+### 라이트 모드 (`screenshot-fix9-icons.png`)
+- **헤더 우측**: Sun (라이트 → 클릭 시 다크 전환)
+- **검색 row**: 풀폭 검색박스 + Share2 (공유)
+- **메뉴 칩 한 줄 (h-9)**: [🎯 출발 ┃ 🏁 목적지] segmented (MapPin/Flag) + 🚶 4km/h (Footprints + 텍스트)
+- **좌상단 floating**: 필터 박스 단독 (🗑️/♻️ emoji, 마커와 시각 일관성)
+- **우상단 floating stack**: ☆ (Star outline) / 📏 (Ruler) / 🧭 (Compass)
+- **좌하단 floating**: LocateFixed (십자선 + 중앙 점, 정밀 GPS) + 줌 +/- 컨트롤
+- **우하단 카드 (default 접힘)**: `📊 v2026-05-05 · 📍 802/802 ▾` 한 줄 — 첫 방문 시 지도 가시 영역 최대 (P2.18 fix)
+
+### 다크 모드 (`screenshot-fix9-icons-dark.png`)
+- 헤더 토글 Moon (초승달, 사용자 요구)
+- CartoDB Dark Matter 타일
+- 모든 SVG 아이콘 다크 콘트라스트 자동 분기 (`currentColor` + dark:text-*)
+- 우하단 카드 `bg-neutral-900/45` 다크 배경에서 더 명확
+
+## P2.18 / 회귀 fix (Codex review 반영)
+
+`fix9` 라운드에서 함께 처리:
+- **카드 default 접힘**: `useState(false)` → `useState(true)`. localStorage `'false'` 명시 시에만 펼침 복원. 첫 방문자가 펼친 카드에 지도 일부 가리던 회귀 해결.
+- **에러 토스트 분리** (P2.18 Done): `ToastVariant` 타입 도입(`info`|`emphatic`|`error`). `locateError`/`error` → 빨간 토스트(⚠ + role=alert + 6초). 카드 안 에러 영역 제거. 카드 펼침 영역은 route/savings 성공 상태만. (에러 토스트 시각 캡처는 navigator.geolocation 모킹 brower policy 한계로 별도 보존 X — 실 디바이스 GPS 거부 시나리오로 검증 권장.)
+
+## HUD 시각 언어 (전체 마일스톤 정리)
+
+- `rounded-md` 각진 모서리 (둥근 pill 폐기)
+- `ring-1` thin border + 5색 accent state (amber/sky/violet/rose/emerald)
+- active = 15% color fill + ring + ✓ corner badge (색맹 친화)
+- mono numerics (km/h, count 등)
+- emoji → lucide-react SVG (12개 매핑) — OS별 렌더링 차이 제거, currentColor로 테마 자동 분기
+- 마커 emoji (🗑️/♻️) + 토스트/aria-label emoji는 유지 (시각 정체성 + 메시지 톤)
 
 ## 무엇이 끝났나
-- HUD 헬퍼 도입: `hudInactive`/`hudChip`/`hudIconBtn`/`hudFloatingGroup` + 5색 active 헬퍼 (`hudAmberActive` 등)
-- `FilterChips` 아이콘 only 변환 (44×44 정사각, aria-label/title 보강)
-- 출발/목적지 segmented control 통합 (한 박스 + 중간 divider, 1️⃣/2️⃣ 뱃지 제거, 슬롯 위치로 순서 시사)
-- 즐겨찾기 ★/☆ 상태별 분기 (active=★ filled, inactive=☆ outline)
-- 우하단 카드 투명도 `/70` → `/45`
-- `LocateButton`/`ShareButton` HUD 스타일 적용 (rounded-md, accent ring, ✓ corner)
-- 메뉴 영역 점유율 ~30% → ~20% (헤더 + 검색 + 한 줄 칩)
-- `bun run build` ✓, 138 tests ✓
+
+- HUD 헬퍼 도입: `hudInactive`/`hudChip`/`hudIconBtn`/`hudFloatingGroup` + 5색 active 헬퍼
+- 메뉴 영역 점유율 ~50% (P2.22 이전) → ~30% (P2.22) → ~20% (P2.23) → ~17% (P2.18 fix 후 default 접힘)
+- 좌상단 / 우상단 / 좌하단 / 우하단 4코너 floating 분산
+- 카드 토글 가독성 (text-xs + ChevronUp/Down)
+- 출처 link 외부 시그널 (ExternalLink 아이콘 + underline)
+- 펼침 카드 swap (출처 위 / 자치구 아래)
+- iPad Safari overflow lock (`<html>`/`<body>` overflow-hidden + overscroll-none)
+- 라이트/다크 양 테마 + Sun/Moon 초승달
+- LocateFixed (GPS 정밀) vs MapPin (지점 마커) 시맨틱 분리
+- `bun run build` ✓, 138 tests ✓ (모든 라운드)
 
 ## 다음 것
-- Vercel preview 검수 — 모바일 GPS 권한 / iOS Safari 렌더링 / 다크 테마 콘트라스트
-- 캡처 fix 진화: `screenshot-default → fix1 → fix2 → fix3` 의 4단계가 같은 폴더에 누적 — 라운드별 비교 가능
-- P2.18 통계바 정보 분리, P2.19+P2.21 hidden feature 안내 묶음 PR (별도 라운드)
+
+- Vercel preview iPad/iOS Safari 실 디바이스 검수 (GPS 권한 / 다크 테마 / 검색 / segmented)
+- OK 시 PR 생성 + main 머지 (`/trash-feature-merge-flow`)
+- P2.19+P2.21 hidden feature 안내 묶음 PR (별도 라운드)
+- P2.24 Apple Liquid Glass 디자인 언어 (Open queue)
