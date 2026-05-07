@@ -38,6 +38,7 @@
 | 30 | 2026-05-05 | 🔵 markercluster — 802 bins 줌-아웃 클러스터링, ≥15 개별 마커 (P3.1b) | [30-markercluster](./30-markercluster/) |
 | 31 | 2026-05-06 | 〰️ Top-N 거리선 패턴 분리 — rank 1 실선 / 2 대시 / 3 도트 (P2.20, light+dark) | [31-topn-distance-pattern](./31-topn-distance-pattern/) |
 | 32 | 2026-05-06 | 〰️ 라이트 거리선 slate 폴리싱 — sky→slate-8/6/5 + opacity 보강 (P2.20 후속) | [32-topn-light-slate-polish](./32-topn-light-slate-polish/) |
+| 33 | 2026-05-07 | 〰️ Top-N 거리선 P2.20 최종 — light deep blue 단일 톤 + RouteLine 실선화 (light·dark·destination 3장) | [33-topn-deep-blue-final](./33-topn-deep-blue-final/) |
 
 ## 새 스냅샷 찍는 법
 
