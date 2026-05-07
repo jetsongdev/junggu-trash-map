@@ -941,18 +941,16 @@ function PageContent() {
           walkingSpeed={walkingSpeed}
           onUse={handleUseBin}
         />
-        <div className="absolute left-2 right-[4.75rem] top-2 z-[1000] flex items-start gap-2">
-          <div className={`min-w-0 overflow-x-auto p-1.5 ${hudFloatingGroup}`}>
-            <FilterChips selected={selected} onToggle={toggle} />
-          </div>
-          <div className={`shrink-0 p-1.5 ${hudFloatingGroup}`}>
-            <LocateButton
-              active={!!userLocation}
-              pending={locatePending}
-              onLocate={locate}
-              onClear={clearLocation}
-            />
-          </div>
+        <div className={`absolute left-2 top-2 z-[1000] max-w-[60%] overflow-x-auto p-1.5 ${hudFloatingGroup}`}>
+          <FilterChips selected={selected} onToggle={toggle} />
+        </div>
+        <div className={`absolute bottom-24 left-2 z-[1000] p-1.5 ${hudFloatingGroup}`}>
+          <LocateButton
+            active={!!userLocation}
+            pending={locatePending}
+            onLocate={locate}
+            onClear={clearLocation}
+          />
         </div>
         <div className={`absolute right-2 top-2 z-[1000] flex flex-col gap-1.5 p-1.5 ${hudFloatingGroup}`}>
           <button
