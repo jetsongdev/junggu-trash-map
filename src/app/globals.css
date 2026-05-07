@@ -29,6 +29,11 @@ body {
   border-radius: 8px;
 }
 
+/* leaflet-rotate가 rotateControl:false인데도 bearing 'N' indicator를 자동 추가 — 우리 cycle 버튼(좌하단)이 같은 정보를 담으므로 숨김 */
+.leaflet-control-rotate {
+  display: none !important;
+}
+
 /* Leaflet zoom control — dark theme override (only when dark tiles active) */
 .tile-theme-dark .leaflet-bar a,
 .tile-theme-dark .leaflet-bar a:hover {

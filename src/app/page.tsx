@@ -10,16 +10,21 @@ import {
   Flag,
   Footprints,
   Grid3x3,
+  Loader2,
   MapPin,
+  Minus,
   Moon,
+  Navigation,
+  Plus,
   Ruler,
   Star,
   Sun,
+  Target,
 } from 'lucide-react';
+import type { Map as LeafletMap } from 'leaflet';
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { FilterChips } from '@/components/FilterChips';
-import { LocateButton } from '@/components/LocateButton';
 import { SearchBox } from '@/components/SearchBox';
 import { ShareButton } from '@/components/ShareButton';
 import type { TileTheme } from '@/components/Map';
@@ -140,6 +145,10 @@ function PageContent() {
   const [statusCollapsed, setStatusCollapsed] = useState(true);
   const watchIdRef = useRef<number | null>(null);
   const prefsHydratedRef = useRef(false);
+  const mapRef = useRef<LeafletMap | null>(null);
+  const onMapReady = useCallback((m: LeafletMap) => {
+    mapRef.current = m;
+  }, []);
 
   const compass = useDeviceHeading(compassMode !== 'off');
 
@@ -765,6 +774,33 @@ function PageContent() {
       ? '2️⃣ 🏁 목적지 탭하세요'
       : '2️⃣ 🏁 목적지';
 
+  // 좌하단 통합 cycle: off → gps → gps+cone → gps+head-up → off
+  // GPS가 없으면 방향 모드는 의미 없음 (의존). 이를 cycle 순서로 강제.
+  const cycleLocate = async () => {
+    vibrate(HAPTIC.TAP);
+    if (locatePending) return;
+    if (!userLocation) {
+      // off → gps
+      locate();
+      return;
+    }
+    if (compassMode === 'off') {
+      // gps → gps+cone (방향 권한 요청)
+      if (!compass.supported || compass.permission === 'denied') return;
+      const result = await compass.request();
+      if (result === 'granted') setCompassMode('cone');
+      return;
+    }
+    if (compassMode === 'cone') {
+      // gps+cone → gps+head-up
+      setCompassMode('head-up');
+      return;
+    }
+    // gps+head-up → off (전부 끄기)
+    setCompassMode('off');
+    clearLocation();
+  };
+
   const hudInactive =
     'bg-white/95 text-neutral-700 ring-1 ring-neutral-300 hover:bg-white dark:bg-neutral-900/95 dark:text-neutral-200 dark:ring-neutral-700 dark:hover:bg-neutral-800';
   const hudChip =
@@ -956,17 +992,80 @@ function PageContent() {
           onToggleFavorite={handleToggleFavorite}
           walkingSpeed={walkingSpeed}
           onUse={handleUseBin}
+          onMapReady={onMapReady}
         />
         <div className={`absolute left-2 top-2 z-[1000] max-w-[60%] overflow-x-auto p-1.5 ${hudFloatingGroup}`}>
           <FilterChips selected={selected} onToggle={toggle} />
         </div>
-        <div className={`absolute bottom-24 left-2 z-[1000] p-1.5 ${hudFloatingGroup}`}>
-          <LocateButton
-            active={!!userLocation}
-            pending={locatePending}
-            onLocate={locate}
-            onClear={clearLocation}
-          />
+        {/* 좌하단 통합: 줌 + 위치/방향 cycle */}
+        <div className={`absolute bottom-2 left-2 z-[1000] flex flex-col gap-1.5 p-1.5 ${hudFloatingGroup}`}>
+          <button
+            type="button"
+            onClick={() => {
+              vibrate(HAPTIC.TAP);
+              mapRef.current?.zoomIn();
+            }}
+            aria-label="확대"
+            title="확대"
+            className={`${hudIconBtn} ${hudInactive}`}
+          >
+            <Plus size={20} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              vibrate(HAPTIC.TAP);
+              mapRef.current?.zoomOut();
+            }}
+            aria-label="축소"
+            title="축소"
+            className={`${hudIconBtn} ${hudInactive}`}
+          >
+            <Minus size={20} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            onClick={cycleLocate}
+            disabled={locatePending}
+            aria-pressed={!!userLocation || compassMode !== 'off'}
+            aria-label={
+              locatePending
+                ? '위치 찾는 중'
+                : !userLocation
+                  ? '내 위치 찾기'
+                  : compassMode === 'off'
+                    ? '방향 cone 켜기 (현재: 위치만)'
+                    : compassMode === 'cone'
+                      ? '헤드업 모드로 전환 (현재: cone)'
+                      : '위치/방향 끄기 (현재: 헤드업)'
+            }
+            title={
+              !userLocation
+                ? '위치'
+                : compassMode === 'off'
+                  ? '위치 ON'
+                  : compassMode === 'cone'
+                    ? '위치 + cone'
+                    : '헤드업'
+            }
+            className={`${hudIconBtn} ${
+              compassMode === 'head-up'
+                ? hudVioletActive
+                : compassMode === 'cone' || userLocation
+                  ? hudSkyActive
+                  : hudInactive
+            } disabled:opacity-60`}
+          >
+            {locatePending ? (
+              <Loader2 size={20} aria-hidden="true" className="animate-spin" />
+            ) : compassMode === 'head-up' ? (
+              <Navigation size={20} aria-hidden="true" fill="currentColor" />
+            ) : compassMode === 'cone' ? (
+              <Compass size={20} aria-hidden="true" />
+            ) : (
+              <Target size={20} aria-hidden="true" />
+            )}
+          </button>
         </div>
         <div className={`absolute right-2 top-2 z-[1000] flex flex-col gap-1.5 p-1.5 ${hudFloatingGroup}`}>
           <button
@@ -1024,57 +1123,6 @@ function PageContent() {
               <Ruler size={20} aria-hidden="true" />
             ) : (
               <Grid3x3 size={20} aria-hidden="true" />
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={async () => {
-              vibrate(HAPTIC.TAP);
-              const next =
-                compassMode === 'off'
-                  ? 'cone'
-                  : compassMode === 'cone'
-                    ? 'head-up'
-                    : 'off';
-              if (compassMode === 'off') {
-                const result = await compass.request();
-                if (result !== 'granted') return;
-              }
-              setCompassMode(next);
-            }}
-            disabled={!compass.supported || compass.permission === 'denied'}
-            aria-pressed={compassMode !== 'off'}
-            aria-label={
-              !compass.supported
-                ? '방향 센서 미지원'
-                : compass.permission === 'denied'
-                  ? '방향 권한 거부됨'
-                  : compassMode === 'off'
-                    ? '방향 cone 켜기'
-                    : compassMode === 'cone'
-                      ? '헤드업 모드로 전환'
-                      : '방향 표시 끄기'
-            }
-            title={
-              compassMode === 'head-up'
-                ? '헤드업 모드'
-                : compassMode === 'cone'
-                  ? '방향 cone'
-                  : '방향'
-            }
-            className={`${hudIconBtn} ${
-              compassMode === 'head-up'
-                ? hudVioletActive
-                : compassMode === 'cone'
-                  ? hudSkyActive
-                  : hudInactive
-            } ${!compass.supported || compass.permission === 'denied' ? 'opacity-40 cursor-not-allowed' : ''}`}
-          >
-            <Compass size={20} aria-hidden="true" />
-            {compassMode !== 'off' && (
-              <span className="absolute -right-1 -top-1 min-w-5 rounded-md bg-sky-500 px-1 text-center font-mono text-[10px] leading-5 text-white ring-1 ring-white dark:ring-neutral-900">
-                {compassMode === 'head-up' ? '2' : '1'}
-              </span>
             )}
           </button>
         </div>
