@@ -5,7 +5,7 @@
 
 ## 현재 상태 (2026-05-07)
 
-- **Phase**: 3 거의 마무리. P3.1a/b 머지(802 bins 클러스터링), P3.2 7개 자치구 데이터, P3.1c는 obsolete. **P2.20 색맹 친화 거리선 패턴 분리 + 라이트 deep blue + RouteLine 실선화까지 완료** (PR #29 머지 대기, GitHub Actions 빌링 풀려야 Lighthouse 게이트 통과). 다음 후보: P3.3(자치구 선택 UI), I.6(a11y 라운드), P4.1(타 종류 통).
+- **Phase**: 3 거의 마무리. P3.1a/b 머지(802 bins 클러스터링), P3.2 7개 자치구 데이터, P3.1c는 obsolete. P2.20 색맹 친화 거리선 패턴 분리 v0.14.0 cut. **P4.3 위치 힌트 텍스트 — 사진 원안 폐기, 운영자 큐레이션 한 줄로 재정의해 머지 진행 중** (별도 hints/<district>.json + lazy fetch + runtime 머지). 다음 후보: P3.3(자치구 선택 UI), I.6(a11y 라운드), P4.1(타 종류 통).
 - **사용자 환경 영속화** (`localStorage`): `distanceMode` (직선/격자), `tileTheme` (다크/라이트, **빈 값일 때 시스템 prefers-color-scheme 자동 감지**), `walkingSpeed` (km/h, 2~7 step 0.5), `favorites` (즐겨찾기 bin id), `savings` (누적 보행거리·시간·횟수)
 - **마커 색**: 일반 `#60a5fa` (blue-400), 재활용 `#34d399` (emerald-400), 혼합 `#c084fc` (violet-400) — 라이트/다크 양 타일에서 균형
 - **Roadmap 확장**: Phase 3 (25개 구) · Phase 4 (데이터 확장: 타 종류 통/사용자 제보/사진) · Phase 5 (실제 보행 경로 + TTS) · 인프라/품질 cross-cutting (i18n 남음)
@@ -82,6 +82,9 @@
 - [x] **I.5** 라이트 모드 UI 정비 — Tailwind v4 `@custom-variant dark (.dark &)` 도입, root div에 `tileTheme === 'dark'` 시 `dark` 클래스 부착. inactiveChip / 헤더 / 섹션 / 속도 슬라이더 / 통계 텍스트 / breakdown / 로딩 오버레이 / toast 비강조 / 데이터 출처 핀 / SearchBox 입력+드롭다운 / LocateButton / FilterChips 12+ 표면을 양 테마 일관 콘트라스트로 분기. snapshot `29-light-mode-polish/` (light · dark · light-search 3장).
 - [x] **P3.1b** markercluster 도입 — `leaflet.markercluster@1.5.3` + `@types/leaflet.markercluster`. `MarkerClusterGroup` 래퍼는 `@react-leaflet/core`의 `createLayerComponent` + `extendContext({ layerContainer })` 패턴 (LayerGroup과 동일). `disableClusteringAtZoom: 15` + `chunkedLoading` + `spiderfyOnMaxZoom: false` + `showCoverageOnHover: false`. HighlightRing/DistanceLine/RouteLine은 cluster 바깥 — Top-3/헤드업/즐겨찾기 줌 ≥15에서 회귀 없음. snapshot `30-markercluster/`.
 
+### Phase 4 — 데이터 확장
+- [x] **P4.3** 위치 힌트 텍스트 — 사진 원안 폐기. 운영자가 카카오·Naver 보면서 손으로 단 한 줄(≤80자) 큐레이션 텍스트로 재정의. `public/data/hints/<district>.json` 별도 파일(`{ version, hints: { binId: text } }`) + 자치구별 lazy fetch (`lib/hints.ts`의 `fetchHints` 404·네트워크 에러 EMPTY fallback) + `mergeHints` 순수 immutable 머지로 `TrashBin.locationHint?: string` 런타임 주입. transform.ts와 격리 — 데이터 갱신 시 hint 안 사라짐. BinPopup: hint 있으면 주소 위 primary(text-neutral-700, sm) + 주소가 secondary(text-neutral-500, xs)로 후퇴, 없으면 현 상태 유지(빈 placeholder 안 만듦). 중구 시드 3건 placeholder. 분업 구조: A(types+lib/hints+test) · B(BinPopup) · C(시드) 완전 병렬 / D(page.tsx 통합 3 site) · E(snapshot+docs) 통합 단계. snapshot `34-location-hint/` 4장. spec/plan: `docs/superpowers/specs/2026-05-08-...` & `docs/superpowers/plans/2026-05-08-...`.
+
 ---
 
 ## 🔜 Open — Phase 2 잔여 (nice-to-have)
@@ -109,7 +112,6 @@
 
 - [ ] **P4.1** 타 종류 통 합치기 — 담배꽁초·의류수거함·폐의약품함 (별도 공공 데이터셋). 필터 칩에 추가, transform 스크립트 확장
 - [ ] **P4.2** 사용자 제보 기능 — 없음/넘침/위치 오류. 익명, Vercel KV 또는 Postgres. 관리자 페이지(P3 결정 포인트) 트리거 가능
-- [ ] **P4.3** 휴지통 사진 1장 — Supabase Storage 또는 정적 추가. 골목 안쪽 통 식별용
 
 ---
 
@@ -191,6 +193,8 @@
 - **`markercluster`를 react-leaflet에 끼우는 법**: react-leaflet 5.0은 cluster 컴포넌트가 없다. `@react-leaflet/core`의 `createLayerComponent` + `createElementObject(group, extendContext(ctx, { layerContainer: group }))` 패턴이면 `<Marker>` 자식이 자동으로 cluster group에 attach된다 (LayerGroup 구현과 동일 메커니즘). `react-leaflet-cluster` 같은 3rd party 패키지 없이 8줄로 끝남.
 - **markercluster `disableClusteringAtZoom`은 "그 줌부터 cluster off"**: `disableClusteringAtZoom: 15` → 줌 ≥15에서 개별, <15에서 cluster. spec의 "줌 <15 cluster / 줌 ≥15 개별" 임계와 일치. 같은 임계가 P2.10 Top-3 dimming(BinMarker rank/dimmed)과 자연 정렬됨 — Top-3 강조는 줌 ≥15에서 마커가 풀려야 시각적으로 의미 있고, 그 이하 줌에서는 어차피 cluster bubble로 묶여 보이지 않음. README 문서가 "at this zoom level and below" 라고 적혀있으나 소스(`MarkerClusterGroup.js` `_generateInitialClusters`)는 `maxZoom = disableClusteringAtZoom - 1`로 맞춰 zoom ≥ X 에서만 클러스터링이 일어나지 않게 한다 (docs 문구는 misleading). `docs/snapshots/29-markercluster/zoom-13/14/15/16.png`로 4단계 시각 검증 보존.
 - **워크트리 별 dev 서버 포트 충돌은 캡처 결과를 통째로 망가뜨림**: 동일 머신에 여러 worktree가 있고 다른 워크트리의 dev 서버가 같은 포트(3001)를 점유 중이면, 우리 worktree에서 띄운 서버가 자동 fallback(3002)되거나 연결 실패하는데, 헛갈리면 여전히 3001로 navigate해서 **다른 worktree의 빌드를 검증하게 된다**. P3.1b 검증 시 `MarkerClusterGroup`이 안 붙어있다고 잘못 결론낼 뻔함. 디펜스: (1) 워크트리에서 dev 띄울 때 `PORT=3010 bun run dev`처럼 명시 포트, (2) `lsof -i :3001 -sTCP:LISTEN` + `ps aux | grep next.*dev`로 점유자가 우리 워크트리인지 확인, (3) 페이지 콘솔에서 `window.location.port` + `__map`의 layer 검증.
+- **transform.ts id 발번은 좌표 정렬 후 순차** (`<prefix>-<NNNN>`) — 새 통이 lat/lng 정렬 위치 사이에 끼면 뒷 통 id가 한 칸씩 밀려 hint(P4.3)·즐겨찾기(P2.14)·기타 id-keyed 메타데이터가 다른 통에 붙어버림(orphan). 공공 데이터 갱신은 연 1회 빈도라 수동 재키잉 5~10분으로 OK이지만, hint 50+ 또는 자동 transform CI 시 좌표 기반 stable id로 hardening 필요. P4.3 spec §10.1에 수용 명시.
+- **워크트리 부트스트랩에 `bun install` 빠지면 빌드만 실패하고 테스트는 통과**: vitest는 src/lib 순수 함수만 import해서 React/leaflet 의존성을 안 건드리는 반면, `bun run build`는 `leaflet.markercluster` 등을 실제 import 해 module-not-found로 fail. 워크트리 새로 만들었으면 build로 검증 전 항상 `ls node_modules/<key-pkg>` 한 번 확인. P4.3 작업 시 worktree에 `leaflet.markercluster` 미설치로 build 실패 → bun install 한 번에 복구.
 
 ---
 
