@@ -49,7 +49,7 @@
 ### Phase 2 — UX 다듬기
 - [x] **P2.1** Geolocation API + 가장 가까운 휴지통 강조 — `lib/geo.ts` (Haversine + Manhattan + DistanceMode), LocateButton/UserMarker, Map에 panTo + 픽셀 ring + 거리 선 (Polyline), `watchPosition`으로 실시간 갱신, 거리/이름 라벨. Manhattan UI 토글은 추후.
 - [x] **P2.1+ iPad fallback** — 🎯 지도 탭 모드 (한 번 클릭으로 위치 지정), 권한 거부/타임아웃/미지원 별 에러 메시지 분기, react-leaflet `MapContainer.className` 함정 회피 (wrapper div).
-- [x] **인프라 — Tier 2** — GitHub repo `jetsongdev/junggu-trash-map` (private), Vercel auto-deploy (push trigger), Vercel Analytics + Speed Insights 마운트.
+- [x] **인프라 — Tier 2** — GitHub repo `jetsongdev/junggu-trash-map`, Vercel auto-deploy (push trigger), Vercel Analytics + Speed Insights 마운트.
 - [x] **개발 환경 정체성** — `~/.gitconfig` global = jetsong.dev, `~/Documents/workspace/saluscare/` overlay = work. `includeIf`로 디렉토리별 자동 분기.
 - [x] **P2.6** Manhattan 거리 토글 UI — Codex 위임 작업, `page.tsx` 한 파일에서 setter 활성화 + amber 칩 + localStorage 영속화. 직선 121m → 격자 154m (명동성당 좌표).
 - [x] **P2.4** 다크 타일 — `<TileLayer>` URL을 CartoDB Dark Matter로 교체, 다크 헤더와 통일. subdomains 4-shard, maxZoom 20, retina 지원.
@@ -171,7 +171,7 @@
 - **react-leaflet 5.0 + React 19 dev StrictMode**: dev에서 `Map container is being reused by another instance` / `appendChild of undefined` 에러가 콘솔에 한 번씩 뜸. 더블 마운트 때문이고 prod 빌드/사용성엔 영향 없음. 무시.
 - **iOS Safari + Geolocation**: HTTP에서는 GPS 권한 prompt가 뜨지 않거나 거부된다. iPad 검증은 항상 Vercel HTTPS URL(`https://junggu-trash-map.vercel.app`)로. LAN IP(`http://192.168.x.x:3001`)은 UI 시각 확인엔 OK, GPS는 ❌.
 - **`vercel link` GitHub 자동 연결 실패**: 첫 시도에서 "Failed to connect ... private repo access" 메시지 후 두 번째 시도엔 메시지 없이 link만 됨. 추후 `vercel git connect`로 명시 연결 시도하면 "already connected" 응답 (한 번 설정되면 자동). push가 production/preview 자동 deploy를 트리거.
-- **Vercel commit-email-GitHub 매칭**: 커밋 author 이메일이 GitHub 계정에 등록 안 돼있으면 deploy block. CLI는 generic "Unexpected error"만 떨굼, dashboard에 사유. → git identity를 GitHub 계정 이메일로 맞추기 (이 repo는 jetsong.dev@gmail.com).
+- **Vercel commit-email-GitHub 매칭**: 커밋 author 이메일이 GitHub 계정에 등록 안 돼있으면 deploy block. CLI는 generic "Unexpected error"만 떨굼, dashboard에 사유. → git identity를 GitHub 계정에 등록된 이메일로 맞추기.
 - **Leaflet `divIcon` 캐시**: 같은 (단일타입/혼합) 키 마커들은 `L.divIcon` 인스턴스를 공유해도 안전 (Leaflet은 html을 템플릿으로만 쓰고 DOM은 마커별 생성). 59개 마커 × 매 렌더 → 3 인스턴스로 절감.
 - **localStorage 초기화 ≠ useState 초기화**: `useState(() => localStorage.getItem(...))` 패턴은 SSR(server) → 기본값, CSR(client) → 저장값으로 첫 렌더가 갈라져 hydration mismatch. 항상 기본값으로 useState → mount 후 useEffect에서 localStorage 읽어 setState. 첫 effect의 자동 persist는 hydratedRef로 가드해서 default가 saved를 덮어쓰지 않도록 할 것.
 - **divIcon `transform:scale()`은 레이아웃 변형 X**: 마커 크기를 진짜 줄이려면 `width/height/font-size`를 직접 곱해서 박을 것. 자세한 예시는 [TIL](./til/2026-05-04-leaflet-divicon-css-transform-scale.md).

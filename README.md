@@ -9,7 +9,7 @@
 ## 🚀 배포
 
 - **Production**: https://junggu-trash-map.vercel.app
-- **Repo**: https://github.com/jetsongdev/junggu-trash-map (private)
+- **Repo**: https://github.com/jetsongdev/junggu-trash-map
 - **Vercel 대시보드**: https://vercel.com/jetsongdev/junggu-trash-map
 - **자동 배포**: `git push` → 16~22초 빌드 → alias 자동 갱신
 - **자동 릴리스**: PR에 `release:patch/minor/major` 라벨 붙여 main으로 머지 → 자동 bump + tag + GitHub Release. 정책은 `CLAUDE.md` `## Release` 참고. 라벨 없으면 skip
