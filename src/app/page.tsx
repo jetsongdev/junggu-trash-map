@@ -3,8 +3,11 @@
 import dynamic from 'next/dynamic';
 import {
   BarChart3,
+  ChevronDown,
+  ChevronUp,
   Compass,
   Crosshair,
+  ExternalLink,
   Flag,
   Footprints,
   Grid3x3,
@@ -749,11 +752,11 @@ function PageContent() {
   const hudInactive =
     'bg-white/95 text-neutral-700 ring-1 ring-neutral-300 hover:bg-white dark:bg-neutral-900/95 dark:text-neutral-200 dark:ring-neutral-700 dark:hover:bg-neutral-800';
   const hudChip =
-    'min-h-[44px] rounded-md px-3 text-sm font-medium transition flex items-center gap-1.5 ring-1';
+    'flex h-9 items-center gap-1.5 rounded-md px-2.5 text-sm font-medium whitespace-nowrap transition ring-1';
   const hudIconBtn =
     'relative flex h-11 w-11 shrink-0 items-center justify-center rounded-md px-2 text-base font-medium transition ring-1';
   const routeSegmentBtn =
-    'relative flex h-11 w-14 shrink-0 flex-col items-center justify-center gap-0.5 px-2 text-xs font-medium leading-none transition';
+    'relative flex h-9 w-[74px] shrink-0 items-center justify-center gap-1 px-2 text-xs font-medium leading-none transition';
   const routeSegmentInactive =
     'text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800';
   const hudFloatingGroup =
@@ -828,12 +831,6 @@ function PageContent() {
         <div className="flex flex-wrap items-center gap-2">
           {/* 그룹 1: 위치/경로/속도 */}
           <div className="flex flex-wrap items-center gap-1.5">
-            <LocateButton
-              active={!!userLocation}
-              pending={locatePending}
-              onLocate={locate}
-              onClear={clearLocation}
-            />
             <div className="flex overflow-hidden rounded-md bg-white/95 ring-1 ring-neutral-300 dark:bg-neutral-900/95 dark:ring-neutral-700">
               <button
                 type="button"
@@ -847,7 +844,7 @@ function PageContent() {
                     : routeSegmentInactive
                 }`}
               >
-                <Crosshair size={20} aria-hidden="true" />
+                <Crosshair size={18} aria-hidden="true" />
                 <span className="text-xs">출발</span>
                 {userLocation && (
                   <span className="absolute right-0.5 top-0.5 rounded-sm bg-violet-500 px-1 text-[9px] leading-4 text-white ring-1 ring-white dark:ring-neutral-900">
@@ -871,7 +868,7 @@ function PageContent() {
                     : routeSegmentInactive
                 }`}
               >
-                <Flag size={20} aria-hidden="true" />
+                <Flag size={18} aria-hidden="true" />
                 <span className="text-xs">목적지</span>
                 {destination && (
                   <span className="absolute right-0.5 top-0.5 rounded-sm bg-rose-500 px-1 text-[9px] leading-4 text-white ring-1 ring-white dark:ring-neutral-900">
@@ -894,7 +891,7 @@ function PageContent() {
                 speedSliderOpen ? hudEmeraldActive : hudInactive
               }`}
             >
-              <Footprints size={20} aria-hidden="true" />
+              <Footprints size={18} aria-hidden="true" />
               <span>
                 <span className="font-mono">{formatKmh(walkingSpeed)}</span>km/h
               </span>
@@ -944,8 +941,18 @@ function PageContent() {
           walkingSpeed={walkingSpeed}
           onUse={handleUseBin}
         />
-        <div className={`absolute left-2 top-2 z-[1000] max-w-[60%] overflow-x-auto p-1.5 ${hudFloatingGroup}`}>
-          <FilterChips selected={selected} onToggle={toggle} />
+        <div className="absolute left-2 right-[4.75rem] top-2 z-[1000] flex items-start gap-2">
+          <div className={`min-w-0 overflow-x-auto p-1.5 ${hudFloatingGroup}`}>
+            <FilterChips selected={selected} onToggle={toggle} />
+          </div>
+          <div className={`shrink-0 p-1.5 ${hudFloatingGroup}`}>
+            <LocateButton
+              active={!!userLocation}
+              pending={locatePending}
+              onLocate={locate}
+              onClear={clearLocation}
+            />
+          </div>
         </div>
         <div className={`absolute right-2 top-2 z-[1000] flex flex-col gap-1.5 p-1.5 ${hudFloatingGroup}`}>
           <button
@@ -1150,8 +1157,37 @@ function PageContent() {
           <div className="absolute bottom-7 right-2 z-[1000] flex max-w-[80%] flex-col items-stretch overflow-hidden rounded-lg bg-white/45 text-neutral-800 ring-1 ring-neutral-200 backdrop-blur-sm dark:bg-neutral-900/45 dark:text-neutral-100 dark:ring-neutral-700">
             {!statusCollapsed && (
               <div className="border-b border-neutral-200/70 px-3 py-2 text-[11px] leading-relaxed dark:border-neutral-700/70">
+                <a
+                  href="https://www.data.go.kr/data/15129450/standard.do"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-[10px] text-neutral-500 underline underline-offset-2 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-200"
+                  aria-label={`데이터 출처: 공공데이터포털 전국휴지통표준데이터 v${manifest.version}`}
+                >
+                  <span>출처 → 공공데이터포털</span>
+                  <ExternalLink size={12} aria-hidden="true" className="shrink-0" />
+                </a>
+                {(bestRouteCandidate || bestNearestCandidate || savings.uses > 0 || locateError || error) && (
+                  <div className="mt-1.5 space-y-0.5 border-t border-neutral-200/70 pt-1.5 dark:border-neutral-700/70">
+                    {bestRouteCandidate && (
+                      <div className="text-cyan-700 dark:text-cyan-300">
+                        → {bestRouteCandidate.bin.name.split(',')[0]} {formatDistance(bestRouteCandidate.cost.total)} · {formatEta(etaSeconds(bestRouteCandidate.cost.total, walkingSpeed))}
+                      </div>
+                    )}
+                    {!bestRouteCandidate && bestNearestCandidate && (
+                      <div className="text-sky-700 dark:text-sky-300">
+                        가까운 {bestNearestCandidate.bin.name.split(',')[0]} · {formatDistance(bestNearestCandidate.meters)} · {formatEta(etaSeconds(bestNearestCandidate.meters, walkingSpeed))}
+                      </div>
+                    )}
+                    {savings.uses > 0 && (
+                      <div className="text-emerald-700 dark:text-emerald-300">{formatSavingsLine(savings)}</div>
+                    )}
+                    {locateError && <div className="text-red-600 dark:text-red-400">{locateError}</div>}
+                    {error && <div className="text-red-600 dark:text-red-400">{error}</div>}
+                  </div>
+                )}
                 {districtBreakdown.length >= 2 && (
-                  <ul className="space-y-0.5">
+                  <ul className="mt-1.5 space-y-0.5 border-t border-neutral-200/70 pt-1.5 dark:border-neutral-700/70">
                     {districtBreakdown.map((d) => {
                       const status = d.loaded
                         ? 'loaded'
@@ -1184,34 +1220,6 @@ function PageContent() {
                     })}
                   </ul>
                 )}
-                {(bestRouteCandidate || bestNearestCandidate || savings.uses > 0 || locateError || error) && (
-                  <div className="mt-1.5 space-y-0.5 border-t border-neutral-200/70 pt-1.5 dark:border-neutral-700/70">
-                    {bestRouteCandidate && (
-                      <div className="text-cyan-700 dark:text-cyan-300">
-                        → {bestRouteCandidate.bin.name.split(',')[0]} {formatDistance(bestRouteCandidate.cost.total)} · {formatEta(etaSeconds(bestRouteCandidate.cost.total, walkingSpeed))}
-                      </div>
-                    )}
-                    {!bestRouteCandidate && bestNearestCandidate && (
-                      <div className="text-sky-700 dark:text-sky-300">
-                        가까운 {bestNearestCandidate.bin.name.split(',')[0]} · {formatDistance(bestNearestCandidate.meters)} · {formatEta(etaSeconds(bestNearestCandidate.meters, walkingSpeed))}
-                      </div>
-                    )}
-                    {savings.uses > 0 && (
-                      <div className="text-emerald-700 dark:text-emerald-300">{formatSavingsLine(savings)}</div>
-                    )}
-                    {locateError && <div className="text-red-600 dark:text-red-400">{locateError}</div>}
-                    {error && <div className="text-red-600 dark:text-red-400">{error}</div>}
-                  </div>
-                )}
-                <a
-                  href="https://www.data.go.kr/data/15129450/standard.do"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-1.5 block border-t border-neutral-200/70 pt-1.5 text-[10px] text-neutral-500 hover:text-neutral-900 dark:border-neutral-700/70 dark:text-neutral-400 dark:hover:text-neutral-200"
-                  aria-label={`데이터 출처: 공공데이터포털 전국휴지통표준데이터 v${manifest.version}`}
-                >
-                  출처 → 공공데이터포털
-                </a>
               </div>
             )}
             <button
@@ -1222,7 +1230,7 @@ function PageContent() {
               }}
               aria-expanded={!statusCollapsed}
               aria-label={`데이터 현황 ${statusCollapsed ? '펼치기' : '접기'}`}
-              className="flex w-full items-center gap-1.5 px-3 py-1.5 text-[10px] font-medium hover:bg-neutral-100/40 dark:hover:bg-neutral-800/40"
+              className="flex w-full items-center gap-1.5 px-3 py-2 text-xs font-medium hover:bg-neutral-100/40 dark:hover:bg-neutral-800/40"
             >
               <BarChart3 size={20} aria-hidden="true" />
               <span className="text-neutral-600 dark:text-neutral-400">v{manifest.version}</span>
@@ -1239,8 +1247,12 @@ function PageContent() {
                   aria-live="polite"
                 />
               )}
-              <span aria-hidden className="ml-auto text-neutral-400 dark:text-neutral-500">
-                {statusCollapsed ? '▴' : '▾'}
+              <span aria-hidden className="ml-auto flex text-neutral-700 dark:text-neutral-200">
+                {statusCollapsed ? (
+                  <ChevronUp size={14} />
+                ) : (
+                  <ChevronDown size={14} />
+                )}
               </span>
             </button>
           </div>
