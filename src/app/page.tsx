@@ -776,6 +776,15 @@ function PageContent() {
 
   // 좌하단 통합 cycle: off → gps → gps+cone → gps+head-up → off
   // GPS가 없으면 방향 모드는 의미 없음 (의존). 이를 cycle 순서로 강제.
+  type CycleState = 'pending' | 'off' | 'gps' | 'cone' | 'head-up';
+  const cycleState: CycleState = locatePending
+    ? 'pending'
+    : !userLocation
+      ? 'off'
+      : compassMode === 'off'
+        ? 'gps'
+        : compassMode;
+
   const cycleLocate = async () => {
     vibrate(HAPTIC.TAP);
     if (locatePending) return;
@@ -1026,41 +1035,35 @@ function PageContent() {
           <button
             type="button"
             onClick={cycleLocate}
-            disabled={locatePending}
-            aria-pressed={!!userLocation || compassMode !== 'off'}
-            aria-label={
-              locatePending
-                ? '위치 찾는 중'
-                : !userLocation
-                  ? '내 위치 찾기'
-                  : compassMode === 'off'
-                    ? '방향 cone 켜기 (현재: 위치만)'
-                    : compassMode === 'cone'
-                      ? '헤드업 모드로 전환 (현재: cone)'
-                      : '위치/방향 끄기 (현재: 헤드업)'
-            }
-            title={
-              !userLocation
-                ? '위치'
-                : compassMode === 'off'
-                  ? '위치 ON'
-                  : compassMode === 'cone'
-                    ? '위치 + cone'
-                    : '헤드업'
-            }
-            className={`${hudIconBtn} ${
-              compassMode === 'head-up'
-                ? hudVioletActive
-                : compassMode === 'cone' || userLocation
-                  ? hudSkyActive
-                  : hudInactive
-            } disabled:opacity-60`}
+            disabled={cycleState === 'pending'}
+            aria-pressed={cycleState !== 'off' && cycleState !== 'pending'}
+            aria-label={{
+              pending: '위치 찾는 중',
+              off: '내 위치 찾기',
+              gps: '방향 cone 켜기 (현재: 위치만)',
+              cone: '헤드업 모드로 전환 (현재: cone)',
+              'head-up': '위치/방향 끄기 (현재: 헤드업)',
+            }[cycleState]}
+            title={{
+              pending: '위치 찾는 중',
+              off: '위치',
+              gps: '위치 ON',
+              cone: '위치 + cone',
+              'head-up': '헤드업',
+            }[cycleState]}
+            className={`${hudIconBtn} ${{
+              pending: hudInactive,
+              off: hudInactive,
+              gps: hudSkyActive,
+              cone: hudSkyActive,
+              'head-up': hudVioletActive,
+            }[cycleState]} disabled:opacity-60`}
           >
-            {locatePending ? (
+            {cycleState === 'pending' ? (
               <Loader2 size={20} aria-hidden="true" className="animate-spin" />
-            ) : compassMode === 'head-up' ? (
+            ) : cycleState === 'head-up' ? (
               <Navigation size={20} aria-hidden="true" fill="currentColor" />
-            ) : compassMode === 'cone' ? (
+            ) : cycleState === 'cone' ? (
               <Compass size={20} aria-hidden="true" />
             ) : (
               <Target size={20} aria-hidden="true" />
