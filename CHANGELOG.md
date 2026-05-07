@@ -25,6 +25,9 @@
 - 공유 버튼을 메뉴 칩 row 끝에서 검색박스 우측 같은 줄로 옮겼습니다. 검색 직후 공유 흐름이 더 자연스럽습니다.
 - 라이트/다크 테마 토글을 메뉴 영역에서 빼서 헤더 우측 끝(웹페이지 일반적 위치)으로 옮겼습니다. 다크 아이콘은 초승달(Moon) 모양이라 새 달(🌑)보다 훨씬 명확합니다.
 - 위치 추적(GPS) 버튼을 메뉴 칩 row에서 빼서 지도 좌하단 floating으로 옮겼습니다. Naver Map의 GPS 버튼 위치 패턴 — 줌 컨트롤(+/-) 바로 위에 단독 floating. 한 손으로 잡았을 때 엄지 닿는 영역과 가까워졌습니다.
+
+### Fixed
+- iPad Safari에서 지도 일부가 잘리고 페이지 자체가 세로 스크롤되던 문제를 해결했습니다. `<html>`/`<body>`에 `overflow: hidden` + `overscroll-behavior: none`을 박아 root viewport를 잠그고 dynamic viewport(`h-dvh`)와 충돌하지 않도록 했습니다. iOS pull-to-refresh 동작도 차단됩니다.
 - 메뉴 칩 row를 더 컴팩트하게: 높이 44px → 36px(`h-9`), 출발/목적지 segmented 안의 아이콘+텍스트가 세로 두 줄에서 가로 한 줄로 바뀌어 360px 모바일 폭에 두 칩(출발-목적지·속도)이 한 줄에 자연 fit됩니다.
 - 우하단 데이터 카드 토글 버튼 가독성을 키웠습니다: 폰트 10px → 12px(`text-xs`), padding 늘려 hit area 확보, 토글 화살표를 lucide ChevronUp/Down SVG로 교체해 시인성 ↑.
 - 데이터 카드를 펼쳤을 때 보이는 순서를 swap했습니다: 출처(공공데이터포털 + 외부 링크 아이콘 + underline) 맨 위 → status → 자치구 7행 분포 아래. 출처를 첫 줄로 올려 데이터 신뢰도 시그널을 강화했습니다.
