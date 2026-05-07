@@ -183,19 +183,21 @@ function RouteLine({
   via,
   destination,
   mode,
+  tileTheme,
 }: {
   origin: LatLng;
   via: LatLng;
   destination: LatLng;
   mode: DistanceMode;
+  tileTheme: TileTheme;
 }) {
   return (
     <Polyline
       positions={routePositions(origin, via, destination, mode)}
       pathOptions={{
-        color: '#22d3ee',
+        color: DISTANCE_LINE_STYLE[tileTheme][1].color,
         weight: 4,
-        opacity: 0.85,
+        opacity: 0.9,
         dashArray: '8 6',
       }}
       interactive={false}
@@ -309,6 +311,7 @@ export function Map({
           via={{ lat: primaryHighlight!.lat, lng: primaryHighlight!.lng }}
           destination={destination!}
           mode={distanceMode}
+          tileTheme={tileTheme}
         />
       )}
       {showRoute &&
