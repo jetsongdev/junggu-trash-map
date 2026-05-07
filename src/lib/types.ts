@@ -16,6 +16,7 @@ export type TrashBin = {
   manager?: string;
   managerTel?: string;
   updatedAt: string;
+  locationHint?: string;
 };
 
 export const TYPE_STYLE: Record<BinType, { color: string; emoji: string }> = {
