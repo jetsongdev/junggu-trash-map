@@ -1,6 +1,6 @@
 'use client';
 
-import { Loader2, MapPin } from 'lucide-react';
+import { Loader2, LocateFixed } from 'lucide-react';
 import { HAPTIC, vibrate } from '@/lib/haptic';
 
 type Props = {
@@ -35,7 +35,7 @@ export function LocateButton({ active, pending, onLocate, onClear }: Props) {
       {pending ? (
         <Loader2 size={20} aria-hidden="true" className="animate-spin" />
       ) : (
-        <MapPin size={20} aria-hidden="true" />
+        <LocateFixed size={20} aria-hidden="true" />
       )}
       {active && !pending && (
         <span className="absolute -right-1 -top-1 rounded-md bg-sky-500 px-1 text-[10px] leading-5 text-white ring-1 ring-white dark:ring-neutral-900">

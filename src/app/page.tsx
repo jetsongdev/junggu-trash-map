@@ -6,7 +6,6 @@ import {
   ChevronDown,
   ChevronUp,
   Compass,
-  Crosshair,
   ExternalLink,
   Flag,
   Footprints,
@@ -861,7 +860,7 @@ function PageContent() {
                     : routeSegmentInactive
                 }`}
               >
-                <Crosshair size={18} aria-hidden="true" />
+                <MapPin size={18} aria-hidden="true" />
                 <span className="text-xs">출발</span>
                 {userLocation && (
                   <span className="absolute right-0.5 top-0.5 rounded-sm bg-violet-500 px-1 text-[9px] leading-4 text-white ring-1 ring-white dark:ring-neutral-900">
