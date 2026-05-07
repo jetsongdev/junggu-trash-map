@@ -52,6 +52,7 @@ import {
   saveSavings as persistSavings,
   type Savings,
 } from '@/lib/savings';
+import { computeCycleState } from '@/lib/cycle-state';
 import {
   findTopDetours,
   findTopNearest,
@@ -776,14 +777,7 @@ function PageContent() {
 
   // 좌하단 통합 cycle: off → gps → gps+cone → gps+head-up → off
   // GPS가 없으면 방향 모드는 의미 없음 (의존). 이를 cycle 순서로 강제.
-  type CycleState = 'pending' | 'off' | 'gps' | 'cone' | 'head-up';
-  const cycleState: CycleState = locatePending
-    ? 'pending'
-    : !userLocation
-      ? 'off'
-      : compassMode === 'off'
-        ? 'gps'
-        : compassMode;
+  const cycleState = computeCycleState(locatePending, userLocation, compassMode);
 
   const cycleLocate = async () => {
     vibrate(HAPTIC.TAP);
