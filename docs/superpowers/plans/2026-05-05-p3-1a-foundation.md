@@ -52,7 +52,7 @@
 - [ ] **Confirm worktree**
 
 Run: `pwd && git rev-parse --abbrev-ref HEAD`
-Expected: `/Users/chsong/Documents/sidespace/projects/trash-map/junggu-trash-map/.worktrees/p3.1a-foundation` and `feat/p3.1a-data-partition-foundation`
+Expected: `<repo>/.worktrees/p3.1a-foundation` and `feat/p3.1a-data-partition-foundation`
 
 - [ ] **Confirm baseline tests**
 
