@@ -9,6 +9,8 @@
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-05-07
+
 ### Changed
 - 가까운/경유 휴지통 Top-3 거리선이 색·굵기뿐 아니라 패턴 자체로도 구분되도록 정리됐습니다. 1순위는 굵은 실선, 2순위는 대시(`8 6`), 3순위는 도트(`3 5`) — 색맹·고휘도 환경에서도 순위가 한눈에 보입니다. 라이트 모드에서는 거리선 색을 sky → **deep blue**(blue-800 `#1e40af`) 단일 톤으로 정착, sky 빈 마커·UserMarker와 hue가 분리되어 "경로선" 의미가 즉시 읽힙니다. rank 2/3 opacity·굵기를 함께 끌어올려 양 테마에서 또렷합니다. 목적지를 설정한 경유 경로 모드에서도 RouteLine이 rank 1 색을 따라가도록 통일되어 톤이 일관되며, 실선/대시/도트 패턴 차이로 활성 경로(RouteLine)와 후보(candidate)가 명확히 구분됩니다 (P2.20).
 
@@ -208,7 +210,8 @@
 - `~/.claude/skills/snapshot/` — 글로벌 스냅샷 스킬 (프레임워크 무관, config 기반)
 - `CLAUDE.md` — 세션 진입 가이드 (작업 큐 / 시각 히스토리 / CHANGELOG 포인터)
 
-[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.13.0...HEAD
+[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.14.0...HEAD
+[0.14.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.10.0...v0.11.0
