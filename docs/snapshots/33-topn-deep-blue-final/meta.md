@@ -3,7 +3,7 @@ index: 33
 slug: topn-deep-blue-final
 date: 2026-05-07
 phase: "P2.20 마무리 — Top-N 거리선 최종 색·패턴 (light deep blue + RouteLine 실선)"
-git_sha: 0d2955a2c0995b00d9063fad3c08ad7fb9c2968c (dirty)
+git_sha: f7ae715eac005f6b50fc5033f7c67acf5a1760a2
 viewport: 390x844
 ---
 
