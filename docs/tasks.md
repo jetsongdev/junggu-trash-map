@@ -95,6 +95,7 @@
 - [ ] **P2.19** hidden feature 발견 경로 — origin+dest 동시 set 시 공유 버튼 힌트, ☆/헤드업/격자 첫 사용 시 안내 (UX U5+U8)
 - [ ] **P2.20** Top-N 거리선 시각 분리 — rank 1 굵은 실선, 2/3 점선·굵기 차이로 색맹·소화면 가독성 보강 (UX U6 거리선 + U10)
 - [ ] **P2.21** 보행 속도 슬라이더 초기 안내 — 슬라이더 첫 토글 시 "현재 4 km/h (통상 보행)" 힌트 (UX U9)
+- [ ] **P2.24** Liquid Glass 디자인 언어 — Apple iOS/iPadOS 26 Liquid Glass 시각 언어를 floating HUD/우하단 카드/메뉴 칩에 반영. 핵심: heavy backdrop-blur(`backdrop-blur-xl ~24px`) + `backdrop-saturate-150~180` + 내부 highlight gradient(상단 lighter / 하단 darker) + 외부 soft shadow + 미세 lensing(가능하면 SVG turbulence, 성능 비싸면 CSS만). 다크/라이트 양 테마에서 마커 가독성 + Lighthouse perf ≥0.62 유지. 참고: [WidgetKit Liquid Glass](https://github.com/artemnovichkov/xcode-26-system-prompts/blob/main/AdditionalDocumentation/WidgetKit-Implementing-Liquid-Glass-Design.md) · [Apple TechnologyOverviews — Liquid Glass](https://developer.apple.com/documentation/TechnologyOverviews/liquid-glass) · [Adopting Liquid Glass](https://developer.apple.com/documentation/TechnologyOverviews/adopting-liquid-glass). 적용 대상: 좌상단 필터 박스 / 우상단 모드 stack / 메뉴 한 줄 칩 / 우하단 status 카드 / 검색박스 / 토스트.
 
 ---
 

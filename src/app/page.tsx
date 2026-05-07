@@ -563,9 +563,6 @@ function PageContent() {
       return next;
     });
   };
-  const clearTypes = () =>
-    setSelected((prev) => (prev.size === 0 ? prev : new Set()));
-
   const stopWatch = () => {
     if (watchIdRef.current !== null && 'geolocation' in navigator) {
       navigator.geolocation.clearWatch(watchIdRef.current);
@@ -936,7 +933,7 @@ function PageContent() {
           onUse={handleUseBin}
         />
         <div className={`absolute left-2 top-2 z-[1000] max-w-[60%] overflow-x-auto p-1.5 ${hudFloatingGroup}`}>
-          <FilterChips selected={selected} onToggle={toggle} onClear={clearTypes} />
+          <FilterChips selected={selected} onToggle={toggle} />
         </div>
         <div className={`absolute right-2 top-2 z-[1000] flex flex-col gap-1.5 p-1.5 ${hudFloatingGroup}`}>
           <button
