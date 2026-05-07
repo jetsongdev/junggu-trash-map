@@ -74,8 +74,21 @@ export function BinPopup({ bin, isFavorite = false, onToggleFavorite, onUse }: P
           </span>
         ))}
       </div>
-      {(bin.roadAddress || bin.jibunAddress) && (
-        <div className="mt-2 text-neutral-700">{bin.roadAddress || bin.jibunAddress}</div>
+      {bin.locationHint ? (
+        <>
+          <div className="mt-2 text-neutral-700">{bin.locationHint}</div>
+          {(bin.roadAddress || bin.jibunAddress) && (
+            <div className="mt-1 text-xs text-neutral-500">
+              {bin.roadAddress || bin.jibunAddress}
+            </div>
+          )}
+        </>
+      ) : (
+        (bin.roadAddress || bin.jibunAddress) && (
+          <div className="mt-2 text-neutral-700">
+            {bin.roadAddress || bin.jibunAddress}
+          </div>
+        )
       )}
       {bin.detail && <div className="mt-1 text-neutral-500">{bin.detail}</div>}
       {bin.manager && (
