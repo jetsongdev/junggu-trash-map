@@ -5,7 +5,7 @@
 
 ## 현재 상태 (2026-05-09)
 
-- **Phase**: 3 거의 마무리 + Phase 4 data 한 칸. P3.1a/b 머지(802 bins 클러스터링), P3.2 7개 자치구 데이터, P3.1c는 obsolete. P2.20 색맹 친화 거리선 v0.14.0 / P4.3 위치 힌트 v0.15.0 / P2.22+P2.23 모바일 툴바·HUD v0.16.0 / P2.24 ETA 인라인 v0.17.0. **P3.3 25구 셀렉터 그리드 머지 진행 중** (우상단 🗺 → 5x5 grid, populated/empty 시각 분리, flyToBounds + info 토스트). 다음 후보: I.6(a11y 라운드), P4.1(타 종류 통), P3.3-fix1(empty-toast 스냅샷 재캡처).
+- **Phase**: 3 마무리 + Phase 4 data 한 칸 + I.6 a11y 라운드 1차 진행 중. P3.1a/b 머지(802 bins 클러스터링), P3.2 7개 자치구 데이터, P3.1c는 obsolete. P2.20 색맹 친화 거리선 v0.14.0 / P4.3 위치 힌트 v0.15.0 / P2.22+P2.23 모바일 툴바·HUD v0.16.0 / P2.24 ETA 인라인 v0.17.0 / P3.3 25구 셀렉터 v0.18.0 (`feat/p3.3-district-selector` → main). **I.6 a11y 1차 + P3.3-fix1 empty-toast 스냅샷 머지 진행 중** (`feat/i6-a11y-p33-fix1`, axe 0 violations / 42 passes — region landmark + destination aria-label 정리 2건). 다음 후보: P4.1(타 종류 통), P3.4(자치구 폴리곤 outline), I.6 2차(키보드 forward/back ring·motion-reduce 등).
 - **사용자 환경 영속화** (`localStorage`): `distanceMode` (직선/격자), `tileTheme` (다크/라이트, **빈 값일 때 시스템 prefers-color-scheme 자동 감지**), `walkingSpeed` (km/h, 2~7 step 0.5), `favorites` (즐겨찾기 bin id), `savings` (누적 보행거리·시간·횟수)
 - **마커 색**: 일반 `#60a5fa` (blue-400), 재활용 `#34d399` (emerald-400), 혼합 `#c084fc` (violet-400) — 라이트/다크 양 타일에서 균형
 - **Roadmap 확장**: Phase 3 (25개 구) · Phase 4 (데이터 확장: 타 종류 통/사용자 제보/사진) · Phase 5 (실제 보행 경로 + TTS) · 인프라/품질 cross-cutting (i18n 남음)
@@ -107,7 +107,7 @@
 
 자치구별 정적 JSON + 클라이언트 point-in-polygon 판정으로 결정. spec: `docs/superpowers/specs/2026-05-05-p3-1-data-partitioning-design.md`. P3.1은 3-PR로 분할 (a foundation → b markercluster · c 인접 prefetch).
 
-- [ ] **P3.3-fix1** empty-toast 스냅샷 재캡처 — P3.3 본 세션에서 빠진 `screenshot-empty-toast.png`. dev 환경에서 토스트 3s duration이 Playwright `take_screenshot` 내부 폰트 wait(~5s)와 충돌해 캡처 시점에 토스트 이미 사라짐. 옵션: 임시 duration 6~10s로 늘려 캡처 후 revert / setTimeout monkey-patch / 별도 capture mode prop. 별도 세션에서 처리.
+- [x] **P3.3-fix1** empty-toast 스냅샷 재캡처 — Playwright `evaluate`에서 `window.setTimeout`을 가로채 `delay === 3000`만 무시하도록 monkey-patch → 토스트가 사라지지 않는 동안 `browser_take_screenshot`. 코드는 안 건드림. `docs/snapshots/40-district-selector/screenshot-empty-toast.png` (다크 테마, 동대문구 탭 → flyTo + 하단 안내 토스트).
 - [ ] **P3.4** 자치구 폴리곤 outline — P3.3 셀렉터 탭 시 / panning 시 현재 viewing district 폴리곤 outline 표시. `public/data/seoul-districts.geojson` 이미 25구 폴리곤 보유 (P3.2). `react-leaflet`의 `<GeoJSON>` 컴포넌트로 ~15줄. 결정 포인트: (1) 영구 표시 vs 탭 직후 fade, (2) outline only vs fill 약하게. P3.3 머지 후 별도 브랜치에서.
 
 ---
@@ -137,6 +137,7 @@
 - [x] **I.1** 테스트 인프라 — vitest 도입, `lib/geo.ts`·`lib/eta.ts`·`lib/url-share.ts` 순수 함수 59개 커버
 - [ ] **I.4** i18n (en/ja/zh) — `next-intl`. 명동·남대문 외국인 관광객 시나리오
 - [ ] **I.6** a11y 라운드 — 색맹 친화 패턴(굵기/대시 보강은 P2.20에 포함), aria-label 점검, 키보드 탐색, 빈 자치구(미발행 18구) `aria-label` 명시
+  - [x] **I.6-1차** axe-core baseline (4.10.2, wcag2a+aa+21+best-practice) → 1 moderate violation(검색·필터 `<section>` aria-label 누락) + destination 버튼 aria-label에 P2.23에서 빠진 1️⃣/2️⃣ 시각 뱃지가 음성으로 잔존하던 1건 surgical fix. axe 0 violations / 42 passes. 패널 오픈 상태도 0 violations. DistrictSelector grid 키보드(Tab + focus ring + Esc + outside-click)는 P3.3에서 이미 만족. 미발행 18구 aria-label("{name} 공공데이터 미발행")도 P3.3에서 이미 명시됨 — 이번 라운드 추가 변경 없음.
 
 ---
 

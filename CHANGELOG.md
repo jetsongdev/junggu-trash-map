@@ -9,6 +9,13 @@
 
 ## [Unreleased]
 
+### Fixed
+- 검색박스를 감싸는 영역이 어떤 landmark에도 속하지 않아 스크린리더가 페이지 구조를 짚어주지 못하던 문제를 고쳤습니다. 헤더 아래 검색·필터 영역에 "검색 및 컨트롤" 라벨을 붙여 region landmark로 명시했습니다 (I.6).
+- 목적지 버튼의 스크린리더 이름에서 시각 뱃지로 쓰던 "2️⃣ 🏁" 이모지를 제거했습니다. 1️⃣/2️⃣ 시각 뱃지는 P2.23에서 이미 빠졌는데 aria-label에는 남아 있어 스크린리더가 "two-emoji flag-emoji 목적지"처럼 음성으로 읽던 상태였습니다. 출발 버튼("출발 위치 지정")과 톤이 일치하도록 "목적지 지정"·"목적지 탭하세요"·"목적지 해제"로 단순화했습니다 (I.6).
+
+### Added
+- `docs/snapshots/40-district-selector/screenshot-empty-toast.png` — P3.3 셀렉터에서 미발행 자치구(예: 동대문)를 탭했을 때 뜨는 안내 토스트의 모바일 다크 캡처. P3.3 본 세션에서 빠졌던 한 장이 채워져 visual history가 default · opened · empty-toast 3장으로 완결됩니다 (P3.3-fix1).
+
 ## [0.18.0] - 2026-05-09
 
 ### Added
