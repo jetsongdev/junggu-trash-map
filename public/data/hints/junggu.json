@@ -1,0 +1,14 @@
+{
+  "version": "2026-05-09",
+  "hints": {
+    "JG-0009": { "text": "롯데ATM 세븐일레븐 충정로2호", "source": "kakao" },
+    "JG-0019": { "text": "이마트24 밀리오레호텔명동점", "source": "kakao" },
+    "JG-0029": { "text": "GS25 씨티스퀘어점", "source": "kakao" },
+    "JG-0031": { "text": "서소문한화빌딩 주차장", "source": "kakao" },
+    "JG-0045": { "text": "하나은행365 영업부 ATM", "source": "kakao" },
+    "JG-0047": { "text": "GS25 동대문패션점", "source": "kakao" },
+    "JG-0052": { "text": "제주은행 강북더존금융센터", "source": "kakao" },
+    "JG-0056": { "text": "NH농협은행 광화문금융센터", "source": "kakao" },
+    "JG-0059": { "text": "CU 청계베네치아점", "source": "kakao" }
+  }
+}
