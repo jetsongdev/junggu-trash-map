@@ -6,6 +6,7 @@ import { BIN_TYPES, TYPE_STYLE, type BinType } from '@/lib/types';
 type Props = {
   selected: Set<BinType>;
   onToggle: (type: BinType) => void;
+  layout?: 'horizontal' | 'vertical';
 };
 
 const INACTIVE =
@@ -13,9 +14,9 @@ const INACTIVE =
 const CHIP =
   'flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-lg font-semibold transition';
 
-export function FilterChips({ selected, onToggle }: Props) {
+export function FilterChips({ selected, onToggle, layout = 'horizontal' }: Props) {
   return (
-    <div className="flex flex-nowrap items-center gap-1.5">
+    <div className={layout === 'vertical' ? 'flex flex-col gap-1.5' : 'flex flex-nowrap items-center gap-1.5'}>
       {BIN_TYPES.map((type) => {
         const active = selected.has(type);
         const style = TYPE_STYLE[type];

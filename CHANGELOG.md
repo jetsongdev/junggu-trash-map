@@ -34,6 +34,7 @@
 - 좌하단을 한 박스로 통합했습니다: [+] [−] [위치/방향 cycle] 세로 stack. Leaflet 내장 ZoomControl을 폐기하고 lucide Plus/Minus 커스텀 버튼으로 교체했습니다. 위치와 방향 버튼은 4-state cycle로 통합됐습니다 — off → GPS(Target/sky) → GPS+cone(Compass/sky) → GPS+head-up(Navigation/violet) → off. GPS가 켜져있어야 방향 모드를 켤 수 있는 의존 관계가 cycle 순서로 자연스럽게 표현됩니다. 우상단 stack에서 나침반 버튼이 빠져 즐겨찾기/거리모드 2개로 더 컴팩트해졌습니다.
 - 우상단 모드 stack(즐겨찾기 + 거리모드)을 좌상단으로 옮겨 필터 박스 옆에 가로로 정렬했습니다. 우상단은 비워져 검색 드롭다운/마커 시야가 더 깨끗합니다.
 - 좌하단 통합 박스를 viewport 가장자리에서 더 떨어뜨렸습니다(`bottom-2 left-2` → `bottom-4 left-4`). 한 손으로 잡았을 때 엄지 닿는 영역과 자연스럽게 떨어집니다.
+- floating 컴포넌트를 다시 재배치했습니다: 좌상단은 거리모드(Ruler/Grid3x3)만, 우상단은 필터(🗑️/♻️) 세로 stack, 즐겨찾기는 메뉴 칩 row(검색 아래)로. FilterChips에 `layout="vertical"` 옵션 추가.
 - 메뉴 칩 row를 더 컴팩트하게: 높이 44px → 36px(`h-9`), 출발/목적지 segmented 안의 아이콘+텍스트가 세로 두 줄에서 가로 한 줄로 바뀌어 360px 모바일 폭에 두 칩(출발-목적지·속도)이 한 줄에 자연 fit됩니다.
 - 우하단 데이터 카드 토글 버튼 가독성을 키웠습니다: 폰트 10px → 12px(`text-xs`), padding 늘려 hit area 확보, 토글 화살표를 lucide ChevronUp/Down SVG로 교체해 시인성 ↑.
 - 데이터 카드를 펼쳤을 때 보이는 순서를 swap했습니다: 출처(공공데이터포털 + 외부 링크 아이콘 + underline) 맨 위 → status → 자치구 7행 분포 아래. 출처를 첫 줄로 올려 데이터 신뢰도 시그널을 강화했습니다.

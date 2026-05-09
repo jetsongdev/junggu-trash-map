@@ -964,6 +964,37 @@ function PageContent() {
                 <span className="font-mono">{formatKmh(walkingSpeed)}</span>km/h
               </span>
             </button>
+            <button
+              type="button"
+              onClick={() => {
+                vibrate(HAPTIC.TAP);
+                setFavoritesOnly((prev) => !prev);
+              }}
+              disabled={!favoritesOnly && favorites.size === 0}
+              aria-pressed={favoritesOnly}
+              aria-label={
+                favorites.size === 0
+                  ? '즐겨찾기 없음 (마커 팝업의 ☆ 클릭)'
+                  : favoritesOnly
+                    ? '즐겨찾기 필터 끄기'
+                    : `즐겨찾기 ${favorites.size}개만 보기`
+              }
+              title={favorites.size === 0 ? '즐겨찾기' : `즐겨찾기 ${favorites.size}개`}
+              className={`relative flex h-9 w-9 shrink-0 items-center justify-center rounded-md ring-1 transition ${
+                favoritesOnly ? hudAmberActive : hudInactive
+              } ${!favoritesOnly && favorites.size === 0 ? 'opacity-40 cursor-not-allowed' : ''}`}
+            >
+              <Star
+                size={18}
+                aria-hidden="true"
+                fill={favoritesOnly ? 'currentColor' : 'none'}
+              />
+              {favorites.size > 0 && (
+                <span className="absolute -right-1 -top-1 min-w-4 rounded-md bg-amber-500 px-1 text-center font-mono text-[9px] leading-4 text-white ring-1 ring-white dark:ring-neutral-900">
+                  {favorites.size}
+                </span>
+              )}
+            </button>
           </div>
         </div>
         {speedSliderOpen && (
@@ -1010,70 +1041,33 @@ function PageContent() {
           onUse={handleUseBin}
           onMapReady={onMapReady}
         />
-        {/* 좌상단: 필터 박스 + 모드 stack (즐겨찾기 + 직선/격자) 가로 정렬 */}
-        <div className="absolute left-2 top-2 z-[1000] flex items-start gap-1.5">
-          <div className={`max-w-[60%] overflow-x-auto p-1.5 ${hudFloatingGroup}`}>
-            <FilterChips selected={selected} onToggle={toggle} />
-          </div>
-          <div className={`flex flex-col gap-1.5 p-1.5 ${hudFloatingGroup}`}>
-            <button
-              type="button"
-              onClick={() => {
-                vibrate(HAPTIC.TAP);
-                setFavoritesOnly((prev) => !prev);
-              }}
-              disabled={!favoritesOnly && favorites.size === 0}
-              aria-pressed={favoritesOnly}
-              aria-label={
-                favorites.size === 0
-                  ? '즐겨찾기 없음 (마커 팝업의 ☆ 클릭)'
-                  : favoritesOnly
-                    ? '즐겨찾기 필터 끄기'
-                    : `즐겨찾기 ${favorites.size}개만 보기`
-              }
-              title={favorites.size === 0 ? '즐겨찾기' : `즐겨찾기 ${favorites.size}개`}
-              className={`${hudIconBtn} ${
-                favoritesOnly ? hudAmberActive : hudInactive
-              } ${!favoritesOnly && favorites.size === 0 ? 'opacity-40 cursor-not-allowed' : ''}`}
-            >
-              <Star
-                size={20}
-                aria-hidden="true"
-                fill={favoritesOnly ? 'currentColor' : 'none'}
-              />
-              {favoritesOnly && (
-                <span className="absolute -bottom-1 -left-1 rounded-md bg-amber-500 px-1 text-[10px] leading-5 text-white ring-1 ring-white dark:ring-neutral-900">
-                  ✓
-                </span>
-              )}
-              {favorites.size > 0 && (
-                <span className="absolute -right-1 -top-1 min-w-5 rounded-md bg-amber-500 px-1 text-center font-mono text-[10px] leading-5 text-white ring-1 ring-white dark:ring-neutral-900">
-                  {favorites.size}
-                </span>
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                vibrate(HAPTIC.TAP);
-                setDistanceMode((prev) =>
-                  prev === 'euclidean' ? 'manhattan' : 'euclidean',
-                );
-              }}
-              aria-pressed={distanceMode === 'manhattan'}
-              aria-label={distanceMode === 'manhattan' ? '격자 거리 (탭하면 직선)' : '직선 거리 (탭하면 격자)'}
-              title={distanceMode === 'manhattan' ? '격자 거리' : '직선 거리'}
-              className={`${hudIconBtn} ${
-                distanceMode === 'manhattan' ? hudAmberActive : hudInactive
-              }`}
-            >
-              {distanceMode === 'euclidean' ? (
-                <Ruler size={20} aria-hidden="true" />
-              ) : (
-                <Grid3x3 size={20} aria-hidden="true" />
-              )}
-            </button>
-          </div>
+        {/* 좌상단: 거리모드 (직선/격자) 단독 */}
+        <div className={`absolute left-2 top-2 z-[1000] p-1.5 ${hudFloatingGroup}`}>
+          <button
+            type="button"
+            onClick={() => {
+              vibrate(HAPTIC.TAP);
+              setDistanceMode((prev) =>
+                prev === 'euclidean' ? 'manhattan' : 'euclidean',
+              );
+            }}
+            aria-pressed={distanceMode === 'manhattan'}
+            aria-label={distanceMode === 'manhattan' ? '격자 거리 (탭하면 직선)' : '직선 거리 (탭하면 격자)'}
+            title={distanceMode === 'manhattan' ? '격자 거리' : '직선 거리'}
+            className={`${hudIconBtn} ${
+              distanceMode === 'manhattan' ? hudAmberActive : hudInactive
+            }`}
+          >
+            {distanceMode === 'euclidean' ? (
+              <Ruler size={20} aria-hidden="true" />
+            ) : (
+              <Grid3x3 size={20} aria-hidden="true" />
+            )}
+          </button>
+        </div>
+        {/* 우상단: 필터 (휴지통/재활용) 세로 stack */}
+        <div className={`absolute right-2 top-2 z-[1000] p-1.5 ${hudFloatingGroup}`}>
+          <FilterChips selected={selected} onToggle={toggle} layout="vertical" />
         </div>
         {/* 좌하단 통합: 줌 + 위치/방향 cycle */}
         <div className={`absolute bottom-4 left-4 z-[1000] flex flex-col gap-1.5 p-1.5 ${hudFloatingGroup}`}>
