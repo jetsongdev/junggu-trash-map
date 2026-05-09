@@ -1010,9 +1010,21 @@ function PageContent() {
               className="flex-1 accent-emerald-500"
               aria-label="보행 속도 km/h"
             />
-            <span className="min-w-[64px] text-right font-mono text-sm text-emerald-700 dark:text-emerald-300">
-              {formatKmh(walkingSpeed)} km/h
-            </span>
+            <div className="min-w-[88px] text-right font-mono leading-tight">
+              <div className="text-sm text-emerald-700 dark:text-emerald-300">
+                {formatKmh(walkingSpeed)} km/h
+              </div>
+              {(bestRouteCandidate || bestNearestCandidate) && (
+                <div
+                  className="text-[11px] text-neutral-600 dark:text-neutral-400"
+                  aria-live="polite"
+                >
+                  {bestRouteCandidate
+                    ? `경유 경로 ${formatEta(etaSeconds(bestRouteCandidate.cost.total, walkingSpeed))}`
+                    : `가까운 통 ${formatEta(etaSeconds(bestNearestCandidate!.meters, walkingSpeed))}`}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </section>
