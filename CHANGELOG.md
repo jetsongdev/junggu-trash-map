@@ -9,6 +9,8 @@
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-05-09
+
 ### Changed
 - 모바일에서 메뉴 영역이 화면의 거의 절반을 차지하던 문제를 정리했습니다. 칩이 의미 단위(필터·경로·보기)로 3개 그룹으로 묶여 시각 경계가 생겼고, 위치/직선/출발/목적지/방향/테마/공유 칩은 텍스트를 빼고 아이콘만 유지해 줄 수가 한 단계 줄었습니다. 즐겨찾기 칩은 ★ 옆 숫자만 보입니다 (P2.22).
 - 지도 줌 컨트롤(+ / -)을 우상단 기본 위치에서 좌하단으로 옮겼습니다. 한 손으로 잡았을 때 엄지 닿는 영역과 가까워집니다.
@@ -248,7 +250,8 @@
 - `~/.claude/skills/snapshot/` — 글로벌 스냅샷 스킬 (프레임워크 무관, config 기반)
 - `CLAUDE.md` — 세션 진입 가이드 (작업 큐 / 시각 히스토리 / CHANGELOG 포인터)
 
-[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.15.0...HEAD
+[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.16.0...HEAD
+[0.16.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.15.0...v0.16.0
 [0.15.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.14.0...v0.15.0
 [0.14.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.12.0...v0.13.0
