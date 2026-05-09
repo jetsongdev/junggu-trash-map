@@ -24,6 +24,11 @@
 - 키보드로 지도 HUD, 검색, 팝업, 마커와 클러스터를 이동할 때 포커스 링이 더 명확하게 보입니다. `=`/`-` 키로 지도 확대·축소도 가능해졌습니다. 마커와 클러스터의 스크린리더 이름도 숫자·이모지 대신 위치명 또는 "휴지통 N개 그룹"으로 읽히며, `prefers-reduced-motion` 사용자는 지도 이동·줌과 반복 애니메이션이 줄어듭니다 (I.6 2차).
 - 휴지통 마커 popup이 열린 상태에서 다른 토스트(첫-사용 힌트, onboarding 등)가 발사되면 popup이 깜빡이던 문제를 해결했습니다. 토스트 state 변경 → 페이지 리렌더 → marker/popup props 참조 변경 → react-leaflet이 Leaflet Marker/Popup을 update하면서 발생했던 시각 깜빡임. 마커/콜백 참조를 `useCallback`/`useMemo`로 안정화해 토스트만 변경되는 리렌더에서는 마커 트리가 영향받지 않습니다.
 
+## [0.19.2] - 2026-05-09
+
+### Fixed
+- 키보드로 지도 HUD, 검색, 팝업, 마커와 클러스터를 이동할 때 포커스 링이 더 명확하게 보입니다. `=`/`-` 키로 지도 확대·축소도 가능해졌습니다. 마커와 클러스터의 스크린리더 이름도 숫자·이모지 대신 위치명 또는 "휴지통 N개 그룹"으로 읽히며, `prefers-reduced-motion` 사용자는 지도 이동·줌과 반복 애니메이션이 줄어듭니다 (I.6 2차).
+
 ## [0.19.1] - 2026-05-09
 
 ### Added
@@ -289,8 +294,8 @@
 - `~/.claude/skills/snapshot/` — 글로벌 스냅샷 스킬 (프레임워크 무관, config 기반)
 - `CLAUDE.md` — 세션 진입 가이드 (작업 큐 / 시각 히스토리 / CHANGELOG 포인터)
 
-[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.20.0...HEAD
-[0.20.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.19.1...v0.20.0
+[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.19.2...HEAD
+[0.19.2]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.19.1...v0.19.2
 [0.19.1]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.19.0...v0.19.1
 [0.19.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.18.1...v0.19.0
 [0.18.1]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.18.0...v0.18.1
