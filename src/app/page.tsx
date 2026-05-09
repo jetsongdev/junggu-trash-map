@@ -129,7 +129,12 @@ function PageContent() {
   const [activeFetches, setActiveFetches] = useState<Set<DistrictCode>>(() => new Set());
   const [failedDistricts, setFailedDistricts] = useState<Set<DistrictCode>>(() => new Set());
   type ToastVariant = 'info' | 'emphatic' | 'error';
-  const [toast, setToast] = useState<{ text: string; variant: ToastVariant } | null>(null);
+  type ToastPosition = 'center' | 'top';
+  const [toast, setToast] = useState<{
+    text: string;
+    variant: ToastVariant;
+    position: ToastPosition;
+  } | null>(null);
   const toastTimerRef = useRef<number | null>(null);
   const [selected, setSelected] = useState<Set<BinType>>(() => new Set());
   const [error, setError] = useState<string | null>(null);
@@ -498,8 +503,13 @@ function PageContent() {
     return flat;
   }, [districtsCache, activeDistricts]);
 
-  const showToast = (text: string, durationMs = 1800, variant: ToastVariant = 'info') => {
-    setToast({ text, variant });
+  const showToast = (
+    text: string,
+    durationMs = 1800,
+    variant: ToastVariant = 'info',
+    position: ToastPosition = 'center',
+  ) => {
+    setToast({ text, variant, position });
     if (toastTimerRef.current != null) {
       window.clearTimeout(toastTimerRef.current);
     }
@@ -519,6 +529,7 @@ function PageContent() {
       `전체 ${populatedDistrictCount}개 자치구 ${bins.length}개 휴지통 로드 완료`,
       4000,
       'emphatic',
+      'top',
     );
     // showToast 는 매 render 새로 만드는 closure지만 ref guard 덕에 1회 실행 보장.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1285,17 +1296,19 @@ function PageContent() {
         )}
         {toast && (
           <div
-            className="pointer-events-none absolute inset-0 z-[1001] flex items-center justify-center px-6"
+            className={`pointer-events-none absolute inset-x-0 z-[1001] flex justify-center px-6 ${
+              toast.position === 'top' ? 'top-16' : 'inset-y-0 items-center'
+            }`}
             role={toast.variant === 'error' ? 'alert' : 'status'}
             aria-live={toast.variant === 'error' ? 'assertive' : 'polite'}
           >
             <div
               className={
                 toast.variant === 'error'
-                  ? 'max-w-sm rounded-2xl bg-red-600/70 px-6 py-4 text-center text-sm font-semibold text-white shadow-2xl ring-1 ring-red-300/50 backdrop-blur-lg'
+                  ? 'max-w-sm rounded-2xl bg-red-600/85 px-6 py-4 text-center text-sm font-semibold text-white shadow-2xl ring-1 ring-red-300/70 backdrop-blur-lg'
                   : toast.variant === 'emphatic'
-                    ? 'max-w-sm rounded-2xl bg-emerald-600/70 px-6 py-4 text-center text-sm font-semibold text-white shadow-2xl ring-1 ring-emerald-300/50 backdrop-blur-lg'
-                    : 'max-w-sm rounded-2xl bg-white/55 px-6 py-4 text-center text-sm text-neutral-900 shadow-xl ring-1 ring-neutral-300/50 backdrop-blur-lg dark:bg-neutral-900/55 dark:text-neutral-50 dark:ring-neutral-700/50'
+                    ? 'max-w-sm rounded-2xl bg-emerald-600/85 px-6 py-4 text-center text-sm font-semibold text-white shadow-2xl ring-1 ring-emerald-300/70 backdrop-blur-lg'
+                    : 'max-w-sm rounded-2xl bg-white/70 px-6 py-4 text-center text-sm text-neutral-900 shadow-2xl ring-1 ring-neutral-300/70 backdrop-blur-lg dark:bg-neutral-900/70 dark:text-neutral-50 dark:ring-neutral-700/60'
               }
             >
               {toast.variant === 'error' && <span aria-hidden className="mr-1.5">⚠</span>}
