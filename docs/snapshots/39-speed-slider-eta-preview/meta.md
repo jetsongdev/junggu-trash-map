@@ -3,7 +3,7 @@ index: 39
 slug: speed-slider-eta-preview
 date: 2026-05-09
 phase: "Phase 2 보강 (P2.9 후속, 보행 속도 슬라이더; P2.22+P2.23 HUD 재배치 후)"
-git_sha: 48a9836 (dirty, pre-rebase onto 083fba8 / v0.16.0)
+git_sha: db6e271
 viewport: 390x844
 ---
 
