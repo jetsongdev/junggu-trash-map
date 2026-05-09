@@ -3,7 +3,7 @@ index: 41
 slug: district-outline
 date: 2026-05-09
 phase: "P3.4"
-git_sha: 8a5cc71cd7 (dirty)
+git_sha: b56efbaa3b
 viewport: 390x844
 ---
 
