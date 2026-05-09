@@ -150,6 +150,8 @@ function PageContent() {
   const [locatePending, setLocatePending] = useState(false);
   const [locateError, setLocateError] = useState<string | null>(null);
   const [tapTarget, setTapTarget] = useState<TapTarget>(null);
+  const [tapBannerShown, setTapBannerShown] = useState(false);
+  const [displayedTapTarget, setDisplayedTapTarget] = useState<"origin" | "destination" | null>(null);
   const [searchDropdownOpen, setSearchDropdownOpen] = useState(false);
   const [distanceMode, setDistanceMode] = useState<DistanceMode>('euclidean');
   const [tileTheme, setTileTheme] = useState<TileTheme>('dark');
@@ -549,6 +551,20 @@ function PageContent() {
     const id = window.requestAnimationFrame(() => setToastShown(true));
     return () => window.cancelAnimationFrame(id);
   }, [toast]);
+
+  useEffect(() => {
+    if (tapTarget) {
+      setDisplayedTapTarget(tapTarget);
+      setTapBannerShown(false);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setTapBannerShown(true));
+      });
+    } else {
+      setTapBannerShown(false);
+      const t = setTimeout(() => setDisplayedTapTarget(null), 300);
+      return () => clearTimeout(t);
+    }
+  }, [tapTarget]);
 
   const allLoadedToastFiredRef = useRef(false);
   useEffect(() => {
@@ -1312,20 +1328,21 @@ function PageContent() {
             </div>
           </div>
         )}
-        {tapTarget && (
+        {displayedTapTarget && (
           <div
-            className="pointer-events-none absolute inset-x-0 bottom-20 z-[1001] flex justify-center px-4"
+            className="pointer-events-none absolute inset-0 z-[1001] flex items-center justify-center px-6"
             role="status"
             aria-live="polite"
+            style={{ opacity: tapBannerShown ? 1 : 0, transition: "opacity 300ms ease-out" }}
           >
             <div
-              className={`rounded-full px-5 py-3 text-sm font-semibold text-white shadow-2xl ring-2 ${
-                tapTarget === 'origin'
-                  ? 'bg-violet-600 ring-violet-300'
-                  : 'bg-rose-600 ring-rose-300'
+              className={`rounded-2xl max-w-sm px-6 py-4 text-center text-sm font-semibold text-white shadow-lg ring-1 ring-white/25 backdrop-blur-xl ${
+                displayedTapTarget === "origin"
+                  ? "bg-violet-500/20"
+                  : "bg-rose-500/20"
               }`}
             >
-              {tapTarget === 'origin'
+              {displayedTapTarget === "origin"
                 ? '🎯 지도에서 출발 위치를 탭하거나 검색하세요'
                 : '🏁 지도에서 목적지를 탭하거나 검색하세요'}
             </div>
