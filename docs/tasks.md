@@ -137,6 +137,7 @@
 - [x] **I.1** 테스트 인프라 — vitest 도입, `lib/geo.ts`·`lib/eta.ts`·`lib/url-share.ts` 순수 함수 59개 커버
 - [ ] **I.4** i18n (en/ja/zh) — `next-intl`. 명동·남대문 외국인 관광객 시나리오
 - [ ] **I.6** a11y 라운드 — 색맹 친화 패턴(굵기/대시 보강은 P2.20에 포함), aria-label 점검, 키보드 탐색, 빈 자치구(미발행 18구) `aria-label` 명시
+- [x] **I.7** 릴리스 자동화 prebump on PR — `.github/workflows/version-bump.yml` 도입, `release-on-merge.yml` 폐기. `release:patch|minor|major` 라벨이 붙은 PR이 open/sync/label 시점에 PR head로 `chore(release): vX.Y.Z (PR #N)` commit을 force-push (멱등, main 기준 version 재계산으로 동시 PR race 회피). squash merge 1회에 사용자 변경 + version bump가 함께 들어가 prod에 footer 버전이 즉시 반영됨. main merge 후 finalize job이 `merge_commit_sha` 기준으로 annotated tag + GitHub Release + PR 코멘트만 추가 (rebuild 없음). `scripts/bump-version.ts` 인터페이스·vitest 17개 그대로 재활용. Vercel Ignored Build Step은 `.md only skip` 가드로 교체 운영. 첫 cut: v0.18.1 (PR #37).
 
 ---
 
