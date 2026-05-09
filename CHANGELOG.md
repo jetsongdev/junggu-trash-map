@@ -9,6 +9,9 @@
 
 ## [Unreleased]
 
+### Infrastructure
+- 릴리스 자동화 finalize job에 `release:*` 라벨 게이트를 추가했습니다. 라벨 없는 PR(예: docs-only)이 머지될 때 finalize가 같은 tag를 다시 push하려다 실패하던 노이즈가 사라집니다. prebump 게이트와 일관성 유지.
+
 ## [0.18.1] - 2026-05-09
 
 ### Infrastructure
