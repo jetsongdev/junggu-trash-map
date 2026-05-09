@@ -108,6 +108,7 @@
 자치구별 정적 JSON + 클라이언트 point-in-polygon 판정으로 결정. spec: `docs/superpowers/specs/2026-05-05-p3-1-data-partitioning-design.md`. P3.1은 3-PR로 분할 (a foundation → b markercluster · c 인접 prefetch).
 
 - [ ] **P3.3-fix1** empty-toast 스냅샷 재캡처 — P3.3 본 세션에서 빠진 `screenshot-empty-toast.png`. dev 환경에서 토스트 3s duration이 Playwright `take_screenshot` 내부 폰트 wait(~5s)와 충돌해 캡처 시점에 토스트 이미 사라짐. 옵션: 임시 duration 6~10s로 늘려 캡처 후 revert / setTimeout monkey-patch / 별도 capture mode prop. 별도 세션에서 처리.
+- [ ] **P3.4** 자치구 폴리곤 outline — P3.3 셀렉터 탭 시 / panning 시 현재 viewing district 폴리곤 outline 표시. `public/data/seoul-districts.geojson` 이미 25구 폴리곤 보유 (P3.2). `react-leaflet`의 `<GeoJSON>` 컴포넌트로 ~15줄. 결정 포인트: (1) 영구 표시 vs 탭 직후 fade, (2) outline only vs fill 약하게. P3.3 머지 후 별도 브랜치에서.
 
 ---
 
