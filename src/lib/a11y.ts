@@ -1,5 +1,19 @@
 import type { TrashBin } from './types';
 
+type ShortcutTarget = {
+  tagName?: string;
+  isContentEditable?: boolean;
+};
+
+type MapZoomShortcutOptions = {
+  altKey?: boolean;
+  ctrlKey?: boolean;
+  metaKey?: boolean;
+  target?: ShortcutTarget | null;
+};
+
+export type MapZoomShortcut = 'in' | 'out';
+
 export const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
 
 export const FOCUS_VISIBLE_CLASS =
@@ -22,4 +36,40 @@ export function binMarkerLabel(bin: TrashBin): string {
 
 export function clusterMarkerLabel(count: number): string {
   return `휴지통 ${count}개 그룹`;
+}
+
+export function mapZoomShortcutForKey(
+  key: string,
+  options: MapZoomShortcutOptions = {},
+): MapZoomShortcut | null {
+  if (options.altKey || options.ctrlKey || options.metaKey) {
+    return null;
+  }
+
+  const tagName = options.target?.tagName?.toUpperCase();
+  if (
+    options.target?.isContentEditable ||
+    tagName === 'INPUT' ||
+    tagName === 'TEXTAREA' ||
+    tagName === 'SELECT'
+  ) {
+    return null;
+  }
+
+  if (key === '=') return 'in';
+  if (key === '-') return 'out';
+  return null;
+}
+
+export function shortcutTargetFromEventTarget(
+  target: EventTarget | null,
+): ShortcutTarget | null {
+  if (typeof HTMLElement === 'undefined' || !(target instanceof HTMLElement)) {
+    return null;
+  }
+
+  return {
+    tagName: target.tagName,
+    isContentEditable: target.isContentEditable,
+  };
 }

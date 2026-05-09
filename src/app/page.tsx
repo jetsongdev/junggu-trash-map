@@ -29,7 +29,13 @@ import { DistrictSelector } from '@/components/DistrictSelector';
 import { SearchBox } from '@/components/SearchBox';
 import { ShareButton } from '@/components/ShareButton';
 import type { TileTheme } from '@/components/Map';
-import { FOCUS_VISIBLE_CLASS, prefersReducedMotion } from '@/lib/a11y';
+import {
+  FOCUS_VISIBLE_CLASS,
+  mapZoomShortcutForKey,
+  prefersReducedMotion,
+  shortcutTargetFromEventTarget,
+  type MapZoomShortcut,
+} from '@/lib/a11y';
 import { fetchDistrict, filterByTypes } from '@/lib/data';
 import { boundsForDistrict } from '@/lib/district-grid';
 import { fetchHints, mergeHints } from '@/lib/hints';
@@ -156,7 +162,35 @@ function PageContent() {
     mapRef.current = m;
   }, []);
 
+  const zoomMap = useCallback((shortcut: MapZoomShortcut) => {
+    const map = mapRef.current;
+    if (!map) return;
+    const options = prefersReducedMotion() ? { animate: false } : undefined;
+    if (shortcut === 'in') {
+      map.zoomIn(1, options);
+    } else {
+      map.zoomOut(1, options);
+    }
+  }, []);
+
   const compass = useDeviceHeading(compassMode !== 'off');
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const shortcut = mapZoomShortcutForKey(event.key, {
+        altKey: event.altKey,
+        ctrlKey: event.ctrlKey,
+        metaKey: event.metaKey,
+        target: shortcutTargetFromEventTarget(event.target),
+      });
+      if (!shortcut) return;
+      event.preventDefault();
+      zoomMap(shortcut);
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [zoomMap]);
 
   useEffect(() => {
     if (prefsHydratedRef.current) return;
@@ -1139,10 +1173,7 @@ function PageContent() {
             type="button"
             onClick={() => {
               vibrate(HAPTIC.TAP);
-              mapRef.current?.zoomIn(
-                1,
-                prefersReducedMotion() ? { animate: false } : undefined,
-              );
+              zoomMap('in');
             }}
             aria-label="확대"
             title="확대"
@@ -1154,10 +1185,7 @@ function PageContent() {
             type="button"
             onClick={() => {
               vibrate(HAPTIC.TAP);
-              mapRef.current?.zoomOut(
-                1,
-                prefersReducedMotion() ? { animate: false } : undefined,
-              );
+              zoomMap('out');
             }}
             aria-label="축소"
             title="축소"
