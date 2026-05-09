@@ -9,6 +9,8 @@
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-05-09
+
 ### Added
 - 우상단 🗺 칩으로 서울 25구 셀렉터 패널을 열 수 있습니다. 5x5 그리드에 모든 자치구가 지리 위치에 가깝게 배치되며, 데이터가 있는 7개 구는 sky 톤 + 휴지통 개수, 미발행 18개 구는 dim 처리됩니다. populated 구를 탭하면 그 구의 외곽 영역으로 부드럽게 이동하며 자동으로 마커가 로드되고, empty 구를 탭하면 "{자치구}는 아직 공공데이터가 발행되지 않았어요" 안내가 뜹니다 (P3.3).
 
@@ -258,7 +260,8 @@
 - `~/.claude/skills/snapshot/` — 글로벌 스냅샷 스킬 (프레임워크 무관, config 기반)
 - `CLAUDE.md` — 세션 진입 가이드 (작업 큐 / 시각 히스토리 / CHANGELOG 포인터)
 
-[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.17.0...HEAD
+[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.18.0...HEAD
+[0.18.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.15.0...v0.16.0
 [0.15.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.14.0...v0.15.0
