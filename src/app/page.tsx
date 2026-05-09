@@ -892,10 +892,10 @@ function PageContent() {
   };
 
   const destButtonLabel = destination
-    ? '2️⃣ 🏁 목적지 해제'
+    ? '목적지 해제'
     : tapTarget === 'destination'
-      ? '2️⃣ 🏁 목적지 탭하세요'
-      : '2️⃣ 🏁 목적지';
+      ? '목적지 탭하세요'
+      : '목적지 지정';
 
   // 좌하단 통합 cycle: off → gps → gps+cone → gps+head-up → off
   // GPS가 없으면 방향 모드는 의미 없음 (의존). 이를 cycle 순서로 강제.
@@ -991,7 +991,10 @@ function PageContent() {
         </div>
       </header>
 
-      <section className="relative z-[1000] border-b border-neutral-200 bg-neutral-100 px-4 py-3 dark:border-neutral-800 dark:bg-neutral-900">
+      <section
+        aria-label="검색 및 컨트롤"
+        className="relative z-[1000] border-b border-neutral-200 bg-neutral-100 px-4 py-3 dark:border-neutral-800 dark:bg-neutral-900"
+      >
         <div className="mb-3 flex gap-2">
           <div className="flex-1">
             <SearchBox
@@ -1167,6 +1170,13 @@ function PageContent() {
           walkingSpeed={walkingSpeed}
           onUse={handleUseBin}
           onMapReady={onMapReady}
+          viewingDistrict={viewingDistrict}
+          viewingDistrictName={
+            viewingDistrict && manifest
+              ? findDistrictMeta(manifest, viewingDistrict)?.name ?? null
+              : null
+          }
+          districtsGeo={districtsGeo}
         />
         {/* 좌상단: 거리모드 (직선/격자) 단독 */}
         <div className={`absolute left-2 top-2 z-[1000] p-1.5 ${hudFloatingGroup}`}>

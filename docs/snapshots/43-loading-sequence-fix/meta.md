@@ -1,5 +1,5 @@
 ---
-index: 42
+index: 43
 slug: loading-sequence-fix
 date: 2026-05-09
 phase: P2.19+P2.21 (toast sequencing fix)
@@ -7,7 +7,7 @@ git_sha: 1953f30
 viewport: 390x844 (mobile)
 ---
 
-# 42 — 첫 로딩 토스트 시퀀스 검증 (overlay → top → center)
+# 43 — 첫 로딩 토스트 시퀀스 검증 (overlay → top → center)
 
 사용자가 첫 방문 시 자치구 로드 오버레이(중앙)와 onboarding 토스트(중앙)가 같은 자리에 겹쳐 뜨는 시각 버그를 보고. fix는 onboarding `useEffect`에 `showLoadingOverlay === true || toast !== null` 가드 두 개 추가 — 로드 진행 + 802 완료 토스트가 끝날 때까지 onboarding 보류. 이 스냅샷은 fix 후 세 phase가 어느 시점에도 시각적으로 겹치지 않음을 검증.
 

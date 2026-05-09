@@ -3,7 +3,7 @@ index: 40
 slug: district-selector
 date: 2026-05-09
 phase: P3.3
-git_sha: 5b1a45c
+git_sha: 55deece
 viewport: 390x844 (mobile, dark)
 ---
 
@@ -15,14 +15,11 @@ viewport: 390x844 (mobile, dark)
 
 - `screenshot-default.png` (390×844 dark) — 패널 닫힘 상태. 우상단 stack에 🗺 칩이 필터 위에 배치된 기본 화면.
 - `screenshot-opened.png` (390×844 dark) — 🗺 칩 탭 → 5x5 grid 패널 펼쳐짐. populated 7구는 sky 톤 + binCount 숫자(노원128 / 성북119 / 중랑27 / 중구59 / 마포198 / 서초83 / 구로188), empty 18구는 neutral dim + 자치구명만.
+- `screenshot-empty-toast.png` (390×844 dark) — empty 자치구(동대문구) 탭 후 `flyTo(centroid, 14)` + 하단 info 토스트 "동대문구는 아직 공공데이터가 발행되지 않았어요" 표시. P3.3-fix1.
 
-## 빠진 것 — empty-toast
+## empty-toast 캡처 후기 (P3.3-fix1)
 
-`empty-toast` 캡처는 별도 세션으로 미룸. 현재 setup에서 토스트 3s duration이 Playwright `take_screenshot` 내부 폰트 로드 대기(~5s)와 충돌해 캡처 시점에 이미 사라짐. evaluate로 토스트 텍스트 ("동대문구는 아직 공공데이터가 발행되지 않았어요") 노출은 확인됨. 재캡처 옵션:
-
-- 임시로 toast duration 6~10s로 늘려 캡처 후 revert
-- setTimeout monkey-patch로 timer 무효화
-- 별도 capture mode prop 추가
+본 세션에서 못 잡은 이유는 코드 문제가 아니라 캡처 도구 타이밍이었음 — `take_screenshot` 내부 폰트 로드 대기(~5s)가 토스트 3s duration보다 길어 캡처 시점에 토스트는 이미 사라진 뒤. P3.3-fix1에서는 코드 수정 없이 Playwright `evaluate`로 `window.setTimeout`을 가로채 `delay === 3000`인 호출만 no-op으로 만들고, 토스트가 사라지지 않는 동안 `browser_take_screenshot` 실행. 다른 timer(map updates 등)는 영향 없도록 3000ms exact match만 무시. 캡처 후 `__origST`로 복원했지만 캡처 직후 페이지를 떠나므로 잔존 영향 없음.
 
 ## 동작 요약
 
