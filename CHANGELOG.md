@@ -12,6 +12,14 @@
 ### Added
 - 현재 보고 있는 자치구의 외곽선을 지도에 점선으로 띄우고, 폴리곤 중앙에 자치구 이름을 함께 표시합니다. 외곽선은 halo + 점선 두 겹으로 그려 라이트·다크 양 테마의 어떤 도로·배경 위에서도 명확히 보입니다(라이트 = 흰 halo + deep blue 점선, 다크 = 검정 halo + amber 점선). 라이트 모드 외곽선 색은 Top-3 거리선 톤(blue-800)과 동일해 시각 일관성을 유지합니다. 자치구 이름은 지도 위 폴리곤 중앙에 큰 글씨로 떠서 HUD 너비를 흔들지 않고 패닝 따라 자연스럽게 이동합니다 (P3.4).
 
+### Infrastructure
+- 릴리스 자동화 finalize job에 `release:*` 라벨 게이트를 추가했습니다. 라벨 없는 PR(예: docs-only)이 머지될 때 finalize가 같은 tag를 다시 push하려다 실패하던 노이즈가 사라집니다. prebump 게이트와 일관성 유지.
+
+## [0.18.1] - 2026-05-09
+
+### Infrastructure
+- 릴리스 자동화가 라벨 달린 PR branch에서 version/CHANGELOG prebump commit을 먼저 만들고, main merge 후에는 merge commit 기준 tag/GitHub Release/PR 코멘트만 생성합니다. squash merge 1회로 사용자 변경 + version bump가 함께 prod에 반영돼 footer 버전이 즉시 갱신됩니다. Vercel Ignored Build Step은 `.md only skip` 가드로 운영합니다.
+
 ## [0.18.0] - 2026-05-09
 
 ### Added
@@ -263,7 +271,8 @@
 - `~/.claude/skills/snapshot/` — 글로벌 스냅샷 스킬 (프레임워크 무관, config 기반)
 - `CLAUDE.md` — 세션 진입 가이드 (작업 큐 / 시각 히스토리 / CHANGELOG 포인터)
 
-[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.18.0...HEAD
+[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.18.1...HEAD
+[0.18.1]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.18.0...v0.18.1
 [0.18.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.17.0...v0.18.0
 [0.17.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.15.0...v0.16.0

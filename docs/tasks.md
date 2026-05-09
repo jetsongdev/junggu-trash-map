@@ -14,7 +14,7 @@
 - **Dev**: `bun run dev` → http://localhost:3000 (점유 시 자동 3001)
 - **Build**: `bun run build` 통과
 - **Deploy**: `git push` → 자동 Vercel build → https://junggu-trash-map.vercel.app (16~22초). 수동 `vercel deploy`는 hotfix 시에만
-- **Release**: 현재 `v0.10.0` (P3.2 7개 자치구 + 802 bins, 자동 release-on-merge 첫 운영 검증 완료). PR에 `release:patch/minor/major` 라벨 붙여 main 머지하면 `.github/workflows/release-on-merge.yml`이 bump + tag + release notes + PR 코멘트 자동 처리. **Vercel Ignored Build Step**(Build and Deployment 설정)이 `chore(release): vX.Y.Z` 패턴을 skip해 hobby plan에서 production build 1회만 발생. 정책 본체는 `CLAUDE.md` `## Release`. 라벨 없으면 skip (인프라·docs PR은 그대로)
+- **Release**: 현재 `v0.17.0`. PR에 `release:patch/minor/major` 라벨을 붙이면 `.github/workflows/version-bump.yml`이 PR head에 `chore(release): vX.Y.Z (PR #N)` prebump commit을 미리 붙이고, main merge 후 merge commit에 annotated tag + GitHub Release + PR 코멘트를 생성한다. 기존 **Vercel Ignored Build Step** guard는 Mr. Song이 수동 제거해야 한다. 정책 본체는 `CLAUDE.md` `## Release`. 라벨 없으면 skip (인프라·docs PR은 그대로)
 - **PWA**: `app/manifest.ts` + 동적 `icon.tsx`/`apple-icon.tsx` (next/og), iOS 풀스크린 메타 — Safari "홈 화면에 추가"로 풀스크린
 - **Data**: `public/data/seoul-manifest.json` (25구 메타, version `2026-05-05`) + `public/data/seoul-districts.geojson` (25구 폴리곤, ~56KB) + `public/data/districts/<code>.json` (**7개 자치구 802 그룹**: 중구 59 / 서초 83 / 중랑 27 / 성북 119 / 마포 198 / 구로 188 / 노원 128). 18개 구는 `binCount: 0` 자리 표시자 (공공데이터 미발행).
 - **Geolocation**: `watchPosition` 실시간 + Haversine/Manhattan `findNearest`/`findOptimalDetour` + sky/cyan 점선. 출발 + 목적지 모두 set 시 경유 휴지통 detour 알고리즘
@@ -137,6 +137,7 @@
 - [x] **I.1** 테스트 인프라 — vitest 도입, `lib/geo.ts`·`lib/eta.ts`·`lib/url-share.ts` 순수 함수 59개 커버
 - [ ] **I.4** i18n (en/ja/zh) — `next-intl`. 명동·남대문 외국인 관광객 시나리오
 - [ ] **I.6** a11y 라운드 — 색맹 친화 패턴(굵기/대시 보강은 P2.20에 포함), aria-label 점검, 키보드 탐색, 빈 자치구(미발행 18구) `aria-label` 명시
+- [x] **I.7** 릴리스 자동화 prebump on PR — `.github/workflows/version-bump.yml` 도입, `release-on-merge.yml` 폐기. `release:patch|minor|major` 라벨이 붙은 PR이 open/sync/label 시점에 PR head로 `chore(release): vX.Y.Z (PR #N)` commit을 force-push (멱등, main 기준 version 재계산으로 동시 PR race 회피). squash merge 1회에 사용자 변경 + version bump가 함께 들어가 prod에 footer 버전이 즉시 반영됨. main merge 후 finalize job이 `merge_commit_sha` 기준으로 annotated tag + GitHub Release + PR 코멘트만 추가 (rebuild 없음). `scripts/bump-version.ts` 인터페이스·vitest 17개 그대로 재활용. Vercel Ignored Build Step은 `.md only skip` 가드로 교체 운영. 첫 cut: v0.18.1 (PR #37).
 
 ---
 
