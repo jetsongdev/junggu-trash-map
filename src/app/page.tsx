@@ -540,6 +540,12 @@ function PageContent() {
     if (onboardingFiredRef.current) return;
     if (!manifest) return;
     if (typeof window === 'undefined') return;
+    // 로딩 오버레이(중앙)와 onboarding 토스트(중앙)가 같은 자리에서 겹치는
+    // 시각 충돌 회피 — 자치구 로드가 끝나야 발사. 그 직후 firing되는
+    // 802 자치구 완료 토스트(top, 4s)가 끝날 때까지도 toast 슬롯이 점유돼
+    // 있으므로 둘 다 클리어된 시점에 onboarding 차례.
+    if (showLoadingOverlay) return;
+    if (toast !== null) return;
     onboardingFiredRef.current = true;
     if (window.localStorage.getItem('onboarded') === 'true') return;
     window.localStorage.setItem('onboarded', 'true');
@@ -549,7 +555,7 @@ function PageContent() {
       'emphatic',
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [manifest]);
+  }, [manifest, showLoadingOverlay, toast]);
 
   const maybeShowHint = (key: HintKey) => {
     if (typeof window === 'undefined') return;
