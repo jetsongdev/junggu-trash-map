@@ -5,7 +5,7 @@
 
 ## 현재 상태 (2026-05-09)
 
-- **Phase**: 3 마무리 + Phase 4 data 한 칸 + I.6 a11y 라운드 1차 진행 중. P3.1a/b 머지(802 bins 클러스터링), P3.2 7개 자치구 데이터, P3.1c는 obsolete. P2.20 색맹 친화 거리선 v0.14.0 / P4.3 위치 힌트 v0.15.0 / P2.22+P2.23 모바일 툴바·HUD v0.16.0 / P2.24 ETA 인라인 v0.17.0 / P3.3 25구 셀렉터 그리드 v0.18.0 / **P3.4 자치구 폴리곤 outline merged** (viewing district outline + 중앙 라벨, light/dark/selector-open 3장 캡처). **I.6 a11y 1차 + P3.3-fix1 empty-toast 스냅샷 머지 진행 중** (`feat/i6-a11y-p33-fix1`, axe 0 violations / 42 passes — region landmark + destination aria-label 정리 2건). **I.7 release prebump running** (prebump on PR + finalize `release:*` 라벨 게이트 운영). 다음 후보: P4.1(타 종류 통), I.6 2차(키보드 forward/back ring·motion-reduce 등).
+- **Phase**: 3 마무리 + Phase 4 data 한 칸 + I.6 a11y 라운드 진행 중. P3.1a/b 머지(802 bins 클러스터링), P3.2 7개 자치구 데이터, P3.1c는 obsolete. P2.20 색맹 친화 거리선 v0.14.0 / P4.3 위치 힌트 v0.15.0 / P2.22+P2.23 모바일 툴바·HUD v0.16.0 / P2.24 ETA 인라인 v0.17.0 / P3.3 25구 셀렉터 그리드 v0.18.0 / **P3.4 자치구 폴리곤 outline merged** (viewing district outline + 중앙 라벨, light/dark/selector-open 3장 캡처). **I.6 a11y 2차 완료** (focus-visible ring 공통화, Leaflet 마커/클러스터 스크린리더 라벨, prefers-reduced-motion에서 fly/zoom·pulse/spin 감속). **I.7 release prebump running** (prebump on PR + finalize `release:*` 라벨 게이트 운영). 다음 후보: P4.1(타 종류 통).
 - **사용자 환경 영속화** (`localStorage`): `distanceMode` (직선/격자), `tileTheme` (다크/라이트, **빈 값일 때 시스템 prefers-color-scheme 자동 감지**), `walkingSpeed` (km/h, 2~7 step 0.5), `favorites` (즐겨찾기 bin id), `savings` (누적 보행거리·시간·횟수)
 - **마커 색**: 일반 `#60a5fa` (blue-400), 재활용 `#34d399` (emerald-400), 혼합 `#c084fc` (violet-400) — 라이트/다크 양 타일에서 균형
 - **Roadmap 확장**: Phase 3 (25개 구) · Phase 4 (데이터 확장: 타 종류 통/사용자 제보/사진) · Phase 5 (실제 보행 경로 + TTS) · 인프라/품질 cross-cutting (i18n 남음)
@@ -137,6 +137,7 @@
 - [ ] **I.4** i18n (en/ja/zh) — `next-intl`. 명동·남대문 외국인 관광객 시나리오
 - [ ] **I.6** a11y 라운드 — 색맹 친화 패턴(굵기/대시 보강은 P2.20에 포함), aria-label 점검, 키보드 탐색, 빈 자치구(미발행 18구) `aria-label` 명시
   - [x] **I.6-1차** axe-core baseline (4.10.2, wcag2a+aa+21+best-practice) → 1 moderate violation(검색·필터 `<section>` aria-label 누락) + destination 버튼 aria-label에 P2.23에서 빠진 1️⃣/2️⃣ 시각 뱃지가 음성으로 잔존하던 1건 surgical fix. axe 0 violations / 42 passes. 패널 오픈 상태도 0 violations. DistrictSelector grid 키보드(Tab + focus ring + Esc + outside-click)는 P3.3에서 이미 만족. 미발행 18구 aria-label("{name} 공공데이터 미발행")도 P3.3에서 이미 명시됨 — 이번 라운드 추가 변경 없음.
+  - [x] **I.6-2차** 키보드 forward/back focus ring + motion-reduce — HUD/검색/팝업/셀렉터/필터/공유/상태 토글에 공통 `focus-visible` 링 적용, Leaflet 마커 focus outline 추가, 마커/클러스터 accessible name을 위치명·"휴지통 N개 그룹"으로 정리. `prefers-reduced-motion`에서 Leaflet fly/zoom/pan animation은 즉시 이동으로 대체하고, user/highlight pulse·spinner/pulse·cone transition을 감속. snapshot: `docs/snapshots/2026-05-09/i6-a11y-focus-ring.png`, `i6-a11y-shift-tab-ring.png`.
 - [x] **I.7** 릴리스 자동화 prebump on PR — `.github/workflows/version-bump.yml` 도입, `release-on-merge.yml` 폐기. `release:patch|minor|major` 라벨이 붙은 PR이 open/sync/label 시점에 PR head로 `chore(release): vX.Y.Z (PR #N)` commit을 force-push (멱등, main 기준 version 재계산으로 동시 PR race 회피). squash merge 1회에 사용자 변경 + version bump가 함께 들어가 prod에 footer 버전이 즉시 반영됨. main merge 후 finalize job이 `merge_commit_sha` 기준으로 annotated tag + GitHub Release + PR 코멘트만 추가 (rebuild 없음). `scripts/bump-version.ts` 인터페이스·vitest 17개 그대로 재활용. Vercel Ignored Build Step은 `.md only skip` 가드로 교체 운영. 첫 cut: v0.18.1 (PR #37).
 
 ---

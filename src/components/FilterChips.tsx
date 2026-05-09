@@ -1,5 +1,6 @@
 'use client';
 
+import { FOCUS_VISIBLE_CLASS } from '@/lib/a11y';
 import { HAPTIC, vibrate } from '@/lib/haptic';
 import { BIN_TYPES, TYPE_STYLE, type BinType } from '@/lib/types';
 
@@ -12,7 +13,7 @@ type Props = {
 const INACTIVE =
   'bg-white/70 text-neutral-700 ring-1 ring-neutral-300 hover:bg-white dark:bg-neutral-900/70 dark:text-neutral-200 dark:ring-neutral-700 dark:hover:bg-neutral-800';
 const CHIP =
-  'flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-lg font-semibold transition';
+  `flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-lg font-semibold transition ${FOCUS_VISIBLE_CLASS}`;
 
 export function FilterChips({ selected, onToggle, layout = 'horizontal' }: Props) {
   return (

@@ -144,6 +144,12 @@ body {
   cursor: crosshair !important;
 }
 
+.leaflet-marker-icon:focus-visible {
+  outline: 3px solid #0ea5e9;
+  outline-offset: 3px;
+  border-radius: 9999px;
+}
+
 .highlight-ring {
   animation: highlight-pulse 1.4s ease-in-out infinite;
 }
@@ -152,6 +158,22 @@ body {
   0%   { stroke-width: 4; stroke-opacity: 1;    fill-opacity: 0.45; }
   50%  { stroke-width: 9; stroke-opacity: 0.55; fill-opacity: 0.25; }
   100% { stroke-width: 4; stroke-opacity: 1;    fill-opacity: 0.45; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .user-dot::after,
+  .highlight-ring {
+    animation: none;
+  }
+
+  .user-cone,
+  .leaflet-zoom-animated,
+  .leaflet-marker-icon,
+  .leaflet-marker-shadow,
+  .leaflet-popup,
+  .leaflet-tile {
+    transition: none !important;
+  }
 }
 
 .district-name-tooltip {

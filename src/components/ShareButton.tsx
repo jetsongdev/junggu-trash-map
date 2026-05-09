@@ -2,6 +2,7 @@
 
 import { Check, Share2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { FOCUS_VISIBLE_CLASS } from '@/lib/a11y';
 import { HAPTIC, vibrate } from '@/lib/haptic';
 import { buildShareUrl, type AppState } from '@/lib/url-share';
 
@@ -12,7 +13,7 @@ type Props = {
 };
 
 const DEFAULT_CLASSNAME =
-  'relative flex h-11 w-11 items-center justify-center rounded-md px-3 text-base transition ring-1 bg-white/95 text-neutral-700 ring-neutral-300 hover:bg-white dark:bg-neutral-900/95 dark:text-neutral-200 dark:ring-neutral-700 dark:hover:bg-neutral-800';
+  `relative flex h-11 w-11 items-center justify-center rounded-md px-3 text-base transition ring-1 bg-white/95 text-neutral-700 ring-neutral-300 hover:bg-white dark:bg-neutral-900/95 dark:text-neutral-200 dark:ring-neutral-700 dark:hover:bg-neutral-800 ${FOCUS_VISIBLE_CLASS}`;
 
 export function ShareButton({ state, defaults, className }: Props) {
   const [copied, setCopied] = useState(false);

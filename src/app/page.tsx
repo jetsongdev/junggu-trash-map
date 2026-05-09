@@ -29,6 +29,7 @@ import { DistrictSelector } from '@/components/DistrictSelector';
 import { SearchBox } from '@/components/SearchBox';
 import { ShareButton } from '@/components/ShareButton';
 import type { TileTheme } from '@/components/Map';
+import { FOCUS_VISIBLE_CLASS, prefersReducedMotion } from '@/lib/a11y';
 import { fetchDistrict, filterByTypes } from '@/lib/data';
 import { boundsForDistrict } from '@/lib/district-grid';
 import { fetchHints, mergeHints } from '@/lib/hints';
@@ -95,7 +96,7 @@ const DEFAULT_APP_STATE: AppState = {
 
 const STATUS_VIS = {
   loaded:   { icon: '✓', cls: 'text-emerald-400' },
-  inFlight: { icon: '⟳', cls: 'text-amber-400 animate-pulse' },
+  inFlight: { icon: '⟳', cls: 'text-amber-400 animate-pulse motion-reduce:animate-none' },
   pending:  { icon: '⏳', cls: 'text-neutral-500' },
   failed:   { icon: '✗', cls: 'text-rose-400' },
 } as const;
@@ -752,12 +753,25 @@ function PageContent() {
   );
 
   const handleDistrictSelectPopulated = (meta: DistrictMeta) => {
+    const map = mapRef.current;
+    if (!map) return;
     const bounds = boundsForDistrict(meta);
-    mapRef.current?.flyToBounds(bounds, { maxZoom: 15 });
+    if (prefersReducedMotion()) {
+      map.fitBounds(bounds, { maxZoom: 15, animate: false });
+      return;
+    }
+    map.flyToBounds(bounds, { maxZoom: 15 });
   };
 
   const handleDistrictSelectEmpty = (meta: DistrictMeta) => {
-    mapRef.current?.flyTo([meta.centroid[1], meta.centroid[0]], 14);
+    const map = mapRef.current;
+    if (prefersReducedMotion()) {
+      map?.setView([meta.centroid[1], meta.centroid[0]], 14, {
+        animate: false,
+      });
+    } else {
+      map?.flyTo([meta.centroid[1], meta.centroid[0]], 14);
+    }
     showToast(
       `${meta.name}는 아직 공공데이터가 발행되지 않았어요`,
       3000,
@@ -839,11 +853,11 @@ function PageContent() {
   const hudInactive =
     'bg-white/95 text-neutral-700 ring-1 ring-neutral-300 hover:bg-white dark:bg-neutral-900/95 dark:text-neutral-200 dark:ring-neutral-700 dark:hover:bg-neutral-800';
   const hudChip =
-    'flex h-9 items-center gap-1.5 rounded-md px-2.5 text-sm font-medium whitespace-nowrap transition ring-1';
+    `flex h-9 items-center gap-1.5 rounded-md px-2.5 text-sm font-medium whitespace-nowrap transition ring-1 ${FOCUS_VISIBLE_CLASS}`;
   const hudIconBtn =
-    'relative flex h-11 w-11 shrink-0 items-center justify-center rounded-md px-2 text-base font-medium transition ring-1';
+    `relative flex h-11 w-11 shrink-0 items-center justify-center rounded-md px-2 text-base font-medium transition ring-1 ${FOCUS_VISIBLE_CLASS}`;
   const routeSegmentBtn =
-    'relative flex h-9 w-[74px] shrink-0 items-center justify-center gap-1 px-2 text-xs font-medium leading-none transition';
+    `relative flex h-9 w-[74px] shrink-0 items-center justify-center gap-1 px-2 text-xs font-medium leading-none transition ${FOCUS_VISIBLE_CLASS}`;
   const routeSegmentInactive =
     'text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800';
   const hudFloatingGroup =
@@ -889,7 +903,7 @@ function PageContent() {
             }}
             aria-label={`테마 ${tileTheme === 'dark' ? '라이트로 전환' : '다크로 전환'}`}
             title={tileTheme === 'dark' ? '다크 테마 (탭하면 라이트)' : '라이트 테마 (탭하면 다크)'}
-            className="ml-auto flex h-9 w-9 items-center justify-center rounded-md text-neutral-600 ring-1 ring-neutral-200 transition hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:ring-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
+            className={`ml-auto flex h-9 w-9 items-center justify-center rounded-md text-neutral-600 ring-1 ring-neutral-200 transition hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:ring-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-100 ${FOCUS_VISIBLE_CLASS}`}
           >
             {tileTheme === 'dark' ? (
               <Moon size={18} aria-hidden="true" />
@@ -1002,7 +1016,7 @@ function PageContent() {
                     : `즐겨찾기 ${favorites.size}개만 보기`
               }
               title={favorites.size === 0 ? '즐겨찾기' : `즐겨찾기 ${favorites.size}개`}
-              className={`relative flex h-9 w-9 shrink-0 items-center justify-center rounded-md ring-1 transition ${
+              className={`relative flex h-9 w-9 shrink-0 items-center justify-center rounded-md ring-1 transition ${FOCUS_VISIBLE_CLASS} ${
                 favoritesOnly ? hudAmberActive : hudInactive
               } ${!favoritesOnly && favorites.size === 0 ? 'opacity-40 cursor-not-allowed' : ''}`}
             >
@@ -1029,7 +1043,7 @@ function PageContent() {
               step={STEP_KMH}
               value={walkingSpeed}
               onChange={(e) => setWalkingSpeed(clampKmh(Number.parseFloat(e.target.value)))}
-              className="flex-1 accent-emerald-500"
+              className={`flex-1 accent-emerald-500 ${FOCUS_VISIBLE_CLASS}`}
               aria-label="보행 속도 km/h"
             />
             <div className="min-w-[88px] text-right font-mono leading-tight">
@@ -1125,7 +1139,10 @@ function PageContent() {
             type="button"
             onClick={() => {
               vibrate(HAPTIC.TAP);
-              mapRef.current?.zoomIn();
+              mapRef.current?.zoomIn(
+                1,
+                prefersReducedMotion() ? { animate: false } : undefined,
+              );
             }}
             aria-label="확대"
             title="확대"
@@ -1137,7 +1154,10 @@ function PageContent() {
             type="button"
             onClick={() => {
               vibrate(HAPTIC.TAP);
-              mapRef.current?.zoomOut();
+              mapRef.current?.zoomOut(
+                1,
+                prefersReducedMotion() ? { animate: false } : undefined,
+              );
             }}
             aria-label="축소"
             title="축소"
@@ -1173,7 +1193,7 @@ function PageContent() {
             }[cycleState]} disabled:opacity-60`}
           >
             {cycleState === 'pending' ? (
-              <Loader2 size={20} aria-hidden="true" className="animate-spin" />
+              <Loader2 size={20} aria-hidden="true" className="animate-spin motion-reduce:animate-none" />
             ) : cycleState === 'head-up' ? (
               <Navigation size={20} aria-hidden="true" fill="currentColor" />
             ) : cycleState === 'cone' ? (
@@ -1194,7 +1214,7 @@ function PageContent() {
               <div className="mb-2 flex items-center gap-2 font-semibold">
                 <span
                   aria-hidden
-                  className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-neutral-300 border-t-amber-500 dark:border-neutral-600 dark:border-t-amber-400"
+                  className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-neutral-300 border-t-amber-500 motion-reduce:animate-none dark:border-neutral-600 dark:border-t-amber-400"
                 />
                 <span>
                   자치구 로드 ({loadedPopulatedCount}/{populatedDistrictCount})
@@ -1283,7 +1303,7 @@ function PageContent() {
                   href="https://www.data.go.kr/data/15129450/standard.do"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-[10px] text-neutral-500 underline underline-offset-2 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-200"
+                  className={`flex items-center gap-1 text-[10px] text-neutral-500 underline underline-offset-2 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-200 ${FOCUS_VISIBLE_CLASS}`}
                   aria-label={`데이터 출처: 공공데이터포털 전국휴지통표준데이터 v${manifest.version}`}
                 >
                   <span>출처 → 공공데이터포털</span>
@@ -1350,7 +1370,7 @@ function PageContent() {
               }}
               aria-expanded={!statusCollapsed}
               aria-label={`데이터 현황 ${statusCollapsed ? '펼치기' : '접기'}`}
-              className="flex w-full items-center gap-1.5 px-3 py-2 text-xs font-medium hover:bg-neutral-100/40 dark:hover:bg-neutral-800/40"
+              className={`flex w-full items-center gap-1.5 px-3 py-2 text-xs font-medium hover:bg-neutral-100/40 dark:hover:bg-neutral-800/40 ${FOCUS_VISIBLE_CLASS}`}
             >
               <BarChart3 size={20} aria-hidden="true" />
               <span className="text-neutral-600 dark:text-neutral-400">v{manifest.version}</span>
@@ -1362,7 +1382,7 @@ function PageContent() {
               {activeFetches.size > 0 && (
                 <span
                   aria-hidden
-                  className="ml-0.5 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-amber-400"
+                  className="ml-0.5 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-amber-400 motion-reduce:animate-none"
                   role="status"
                   aria-live="polite"
                 />
