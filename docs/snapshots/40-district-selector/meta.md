@@ -1,5 +1,5 @@
 ---
-index: 39
+index: 40
 slug: district-selector
 date: 2026-05-09
 phase: P3.3
@@ -7,7 +7,7 @@ git_sha: 5b1a45c
 viewport: 390x844 (mobile, dark)
 ---
 
-# 39 — P3.3 25구 셀렉터 그리드
+# 40 — P3.3 25구 셀렉터 그리드
 
 우상단 floating stack에 🗺 칩 추가 → 25구 5x5 grid 패널 → 한 탭으로 자치구 이동. populated 7구 / empty 18구 시각 분리.
 
