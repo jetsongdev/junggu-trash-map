@@ -14,6 +14,8 @@ Update it as you work — see "운영 규칙" at the bottom of that file.
 
 Each major milestone gets one mobile screenshot in `docs/snapshots/NN-slug/`. After finishing a phase or shipping a visible UX change, invoke the user-level `snapshot` skill (installed at `~/.claude/skills/snapshot/`) to capture and update the index.
 
+**Snapshot pipeline (이 프로젝트 한정)**: 글로벌 `snapshot` 스킬이 캡처·meta·README 갱신을 끝낸 직후 자동으로 `trash-snapshot-commit` 프로젝트 스킬로 이어진다 — 추가 사용자 확인 없이 두 commit (1차: snapshot 본체, 2차: SHA 정합) + push까지 한 파이프라인. snapshot 산출물이 단독 변경인 경우만 적용. 코드 변경이 같이 staged면 `trash-feature-merge-flow`가 흡수. 빠뜨리기 쉬운 SHA 정합을 자동화하는 게 핵심.
+
 Project-specific overrides live in `.snapshot.config.json` at the repo root — viewport, dev URL, wait text, etc. The skill reads it automatically.
 
 ## 작업 워크플로 (P*.* 단위)

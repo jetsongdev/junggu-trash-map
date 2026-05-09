@@ -225,6 +225,7 @@
 `.claude/skills/`에 자주 반복되는 워크플로우를 스킬로 박아둠. 다음 세션부터 사용자 발화에 따라 자동 트리거.
 
 - **`trash-feature-merge-flow`** — `P*.*` feature 작업 → main 머지 9단계 (snapshot → tasks/CHANGELOG → commit/push → SHA 정합 → main 머지). "마무리", "머지 ㄱㄱ", "main으로" 같은 발화에 트리거.
+- **`trash-snapshot-commit`** — 글로벌 `snapshot` 캡처 직후 자동 chain되는 좁은 파이프라인 — 1차 commit (snapshot 본체) → push → meta.md `git_sha` 정합 갱신 → 2차 commit + push. 두 commit + 빠뜨리기 쉬운 SHA 정합을 사용자 확인 없이 한 번에. snapshot 산출물이 단독 변경일 때만 발사 — 코드 변경이 같이 staged면 `trash-feature-merge-flow`로 위임.
 - **`trash-codex-integrate`** — Codex 위임 작업이 sandbox 제약으로 vendor shim/uncommit 상태로 끝났을 때 실제 패키지 설치 + import 경로 정리(next.config/tsconfig/vitest/사용자 코드) + commit·push. Codex 완료 알림 직후 워크트리에 `vendor/` 또는 `file:vendor/*` 발견 시 트리거.
 - **`trash-lighthouse-pr-watch`** — PR Lighthouse CI 결과 Monitor 폴링 → 점수 표 출력 → 통과 시 머지 + main sync. `gh pr create` 직후 또는 "lighthouse 점수", "PR 머지" 같은 발화에 트리거.
 
