@@ -25,10 +25,12 @@ import type { Map as LeafletMap } from 'leaflet';
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { FilterChips } from '@/components/FilterChips';
+import { DistrictSelector } from '@/components/DistrictSelector';
 import { SearchBox } from '@/components/SearchBox';
 import { ShareButton } from '@/components/ShareButton';
 import type { TileTheme } from '@/components/Map';
 import { fetchDistrict, filterByTypes } from '@/lib/data';
+import { boundsForDistrict } from '@/lib/district-grid';
 import { fetchHints, mergeHints } from '@/lib/hints';
 import {
   fetchDistrictsGeoJson,
@@ -74,7 +76,7 @@ import {
 import { HAPTIC, vibrate } from '@/lib/haptic';
 import { captureGeolocationError } from '@/lib/monitoring';
 import { useDeviceHeading } from '@/lib/orientation';
-import type { BinType, DistrictCode, Manifest, TrashBin } from '@/lib/types';
+import type { BinType, DistrictCode, DistrictMeta, Manifest, TrashBin } from '@/lib/types';
 import {
   parseUrlParams,
   type AppState,
@@ -128,6 +130,7 @@ function PageContent() {
   const [userLocation, setUserLocation] = useState<LatLng | null>(null);
   const [destination, setDestination] = useState<LatLng | null>(null);
   const [mapFocusTarget, setMapFocusTarget] = useState<LatLng | null>(null);
+  const [viewingDistrict, setViewingDistrict] = useState<DistrictCode | null>(null);
   const [locatePending, setLocatePending] = useState(false);
   const [locateError, setLocateError] = useState<string | null>(null);
   const [tapTarget, setTapTarget] = useState<TapTarget>(null);
@@ -269,6 +272,7 @@ function PageContent() {
 
         const meta = findDistrictMeta(m, initialCode);
         if (!meta) throw new Error(`Unknown district code: ${initialCode}`);
+        setViewingDistrict(initialCode);
         if (meta.binCount === 0) {
           setActiveDistricts((prev) => new Set([...prev, initialCode!]));
           return;
@@ -699,6 +703,7 @@ function PageContent() {
     async (latlng: LatLng) => {
       if (!manifest || !districtsGeo) return;
       const code = findDistrictForPoint(latlng, districtsGeo);
+      setViewingDistrict(code);
       if (!code) return;
       if (activeDistrictsRef.current.has(code)) return;
       if (activeFetchesRef.current.has(code)) return;
@@ -745,6 +750,20 @@ function PageContent() {
     },
     [manifest, districtsGeo],
   );
+
+  const handleDistrictSelectPopulated = (meta: DistrictMeta) => {
+    const bounds = boundsForDistrict(meta);
+    mapRef.current?.flyToBounds(bounds, { maxZoom: 15 });
+  };
+
+  const handleDistrictSelectEmpty = (meta: DistrictMeta) => {
+    mapRef.current?.flyTo([meta.centroid[1], meta.centroid[0]], 14);
+    showToast(
+      `${meta.name}는 아직 공공데이터가 발행되지 않았어요`,
+      3000,
+      'info',
+    );
+  };
 
   const handleSearchSelect = (
     lat: number,
@@ -1077,8 +1096,17 @@ function PageContent() {
             )}
           </button>
         </div>
-        {/* 우상단: 필터 (휴지통/재활용) 세로 stack */}
-        <div className={`absolute right-2 top-2 z-[1000] p-1.5 ${hudFloatingGroup}`}>
+        {/* 우상단: 자치구 셀렉터 + 필터 (휴지통/재활용) 세로 stack */}
+        <div className={`absolute right-2 top-2 z-[1000] flex flex-col items-end gap-1.5 p-1.5 ${hudFloatingGroup}`}>
+          {manifest && (
+            <DistrictSelector
+              manifest={manifest}
+              viewingDistrict={viewingDistrict}
+              tileTheme={tileTheme}
+              onSelectPopulated={handleDistrictSelectPopulated}
+              onSelectEmpty={handleDistrictSelectEmpty}
+            />
+          )}
           <FilterChips selected={selected} onToggle={toggle} layout="vertical" />
         </div>
         {/* 좌하단 통합: 줌 + 위치/방향 cycle */}
