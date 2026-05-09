@@ -3,7 +3,7 @@ index: 44
 slug: toast-tap-banner-unified
 date: 2026-05-10
 phase: P2.19+P2.21 (toast/tap-banner unification)
-git_sha: 65e5b9c (dirty)
+git_sha: 465dcb5
 viewport: 390x844 (mobile)
 ---
 
