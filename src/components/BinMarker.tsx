@@ -4,6 +4,7 @@ import { memo, useMemo } from 'react';
 import L from 'leaflet';
 import { Marker, Popup } from 'react-leaflet';
 import { BinPopup } from './BinPopup';
+import { binMarkerLabel } from '@/lib/a11y';
 import { HAPTIC, vibrate } from '@/lib/haptic';
 import type { TrashBin } from '@/lib/types';
 import { styleFor } from '@/lib/types';
@@ -33,7 +34,7 @@ function makeIcon(types: TrashBin['types'], rank?: Rank, dimmed?: boolean): L.Di
   const iconHeight = Math.round(baseHeight * scale);
   const fontSize = Math.round(baseFontSize * scale);
   const opacity = dimmed ? 0.25 : 1;
-  const html = `<span style="
+  const html = `<span aria-hidden="true" style="
     display:inline-flex;align-items:center;justify-content:center;
     width:${iconWidth}px;height:${iconHeight}px;border-radius:9999px;
     background:${color};color:#fff;font-size:${fontSize}px;line-height:1;
@@ -78,11 +79,14 @@ function BinMarkerImpl({ bin, rank, dimmed, isFavorite, onToggleFavorite, onUse 
     }),
     [],
   );
+  const label = binMarkerLabel(bin);
 
   return (
     <Marker
       position={position}
       icon={getIcon(bin.types, rank, dimmed)}
+      title={label}
+      alt={label}
       eventHandlers={eventHandlers}
     >
       <Popup>
