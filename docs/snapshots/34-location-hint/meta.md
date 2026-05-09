@@ -3,7 +3,7 @@ index: 34
 slug: location-hint
 date: 2026-05-08
 phase: "P4.3 위치 힌트 — 운영자 큐레이션 한 줄 텍스트가 popup에서 주소 위 primary로"
-git_sha: 3ac19e6
+git_sha: 45090b5
 viewport: 390x844
 ---
 
