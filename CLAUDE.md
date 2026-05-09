@@ -58,35 +58,37 @@ Group by Keep a Changelog category: `Added` / `Changed` / `Deprecated` / `Remove
 
 ## Release (자동 cut)
 
-버전 cut은 PR 라벨로 자동. 사람이 직접 `[Unreleased]`를 옮기거나 `package.json`을 bump하지 않는다 — 라벨 붙은 PR이 main으로 머지되면 `.github/workflows/release-on-merge.yml` 이 처리한다.
+버전 cut은 PR 라벨로 자동. 사람이 직접 `[Unreleased]`를 옮기거나 `package.json`을 bump하지 않는다 — 라벨 붙은 PR이 main 대상 PR로 열려 있으면 `.github/workflows/version-bump.yml` 의 prebump job이 PR head에 release commit을 미리 붙인다.
 
 라벨 → bump 매핑:
 - `release:patch` — bug fix·미세 조정 (0.9.0 → 0.9.1)
 - `release:minor` — 새 기능·사용자 가시 변화 (0.9.0 → 0.10.0). **기본값**, 새 P*.* 머지 시 거의 항상 이쪽
 - `release:major` — 호환성 깨는 변화 (0.9.0 → 1.0.0). 1.0 가기 전엔 거의 안 씀
 
-라벨이 없으면 워크플로 skip — telegram routing·lighthouse 임계 조정·docs-only 같은 인프라 PR은 자연스럽게 우회된다.
+라벨이 없으면 prebump skip — telegram routing·lighthouse 임계 조정·docs-only 같은 인프라 PR은 자연스럽게 우회된다.
 
 PR 만들 때 라벨 붙이기:
 ```bash
 gh pr edit <num> --add-label release:minor
 ```
 
-자동으로 일어나는 일 (라벨 머지 시):
-1. `package.json` 버전 bump
-2. `CHANGELOG.md` `[Unreleased]` → `[X.Y.Z] - YYYY-MM-DD` + 새 빈 `[Unreleased]` + compare link 갱신
-3. main에 `chore(release): vX.Y.Z` 직접 push
-4. annotated tag `vX.Y.Z` push
-5. GitHub Release 생성 (해당 버전 CHANGELOG 섹션이 release notes)
-6. 머지된 PR에 release 링크 코멘트
+자동으로 일어나는 일:
+1. PR open / push / reopen / edit / label 변경 시 release 라벨을 읽는다.
+2. 기존 PR head 마지막 commit이 `chore(release):` 이면 `HEAD~1`로 되돌리고 다시 계산한다.
+3. `CHANGELOG.md` `[Unreleased]` 가 비어 있으면 warning 후 skip한다.
+4. `origin/main`의 `package.json` version을 기준으로 `scripts/bump-version.ts`를 실행해 동시 PR version 충돌을 피한다.
+5. PR head에 `chore(release): vX.Y.Z (PR #N)` commit을 `--force-with-lease`로 push한다. `release_notes.md`는 commit하지 않는다.
+6. PR이 main에 merge되면 finalize job이 `merge_commit_sha`를 checkout하고, tag가 없을 때만 annotated tag `vX.Y.Z` push + GitHub Release 생성 + PR release 링크 코멘트를 남긴다.
 
 **Vercel 배포 동작** (hobby plan, 동시 1 슬롯):
-- 머지 commit이 main에 들어올 때 Vercel이 production build → 사용자 가시 변경 반영
-- 그 직후 bump commit이 push되지만 **Vercel project Settings → Build and Deployment → Ignored Build Step**의 `git log -1 --pretty=%B | grep -qE '^chore\(release\): v[0-9]+\.[0-9]+\.[0-9]+' && exit 0 || exit 1` 가드로 deployment registration 자체를 거부 → 큐 슬롯 안 잡음. 결과적으로 release cut 1회 = production build 1회.
-- 정규식이 `v[0-9]+\.[0-9]+\.[0-9]+`까지 요구하므로 일반 `chore(release):` prefix(예: 워크플로 정리 commit)에는 매치 안 됨 — 그런 commit은 정상 빌드된다.
+- release commit이 PR branch에 미리 들어가므로 squash merge commit 하나에 사용자 변경 + version bump + CHANGELOG cut이 같이 들어간다.
+- main merge commit이 production build 1회를 트리거한다. merge 후 추가 bump commit은 없다.
+- **Vercel Ignored Build Step**은 `.md` only skip 가드로 운영 중 — `if git diff --name-only HEAD^ HEAD | grep -qvE '\.md$'; then exit 1; else exit 0; fi`. release 라벨 PR은 prebump이 `package.json` + `CHANGELOG.md`를 squash commit에 포함시켜 grep이 매치하므로 정상 빌드. 라벨 없는 docs-only PR은 `.md`만 들어가 자연 skip돼 hobby plan 큐 슬롯을 안 잡는다. 이전 `chore(release):` 차단 가드는 prebump 도입과 함께 폐기됨.
 
-**전제 조건**: `[Unreleased]` 가 비어있지 않아야 함 — 비었는데 라벨이 붙으면 워크플로 fail (의도적; release 의미 없음). 따라서 PR 작성 시 CHANGELOG `[Unreleased]` 갱신은 필수.
+**전제 조건**: `[Unreleased]` 가 비어있지 않아야 함 — 비었는데 라벨이 붙으면 prebump가 warning 후 skip한다. 따라서 release 라벨을 붙일 PR은 CHANGELOG `[Unreleased]` 갱신이 필수.
 
-partial-fail 복구: workflow_dispatch escape hatch 있음 — Actions 탭 → "Release on merge" → "Run workflow" → kind 선택. 라벨 단계 우회하고 직접 bump.
+partial-fail 복구: workflow_dispatch escape hatch 있음 — Actions 탭 → "Version bump on PR (pre-merge)" → "Run workflow" → `pr_number` 입력. PR 라벨을 다시 읽고 prebump만 재실행한다.
+
+자기 트리거 회피: prebump push는 `GITHUB_TOKEN`으로 실행된다. GitHub 기본 동작상 `GITHUB_TOKEN` push는 workflow를 다시 트리거하지 않으므로 무한 loop가 없다.
 
 bump 로직은 `scripts/bump-version.ts` 순수 함수(`nextVersion` / `transformChangelog` / `extractReleaseNotes`) + vitest 17개로 회귀 방어. 변경 시 같이 갱신.

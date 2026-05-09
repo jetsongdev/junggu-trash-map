@@ -1,0 +1,291 @@
+# Prebump pushes use GITHUB_TOKEN. GitHub suppresses workflow re-triggers from
+# GITHUB_TOKEN pushes, which prevents a release-bump loop.
+
+name: Version bump on PR (pre-merge)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited, labeled, unlabeled, closed]
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number to prebump again'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  prebump:
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event_name == 'pull_request' &&
+        github.event.pull_request.merged != true &&
+        github.event.pull_request.base.ref == 'main' &&
+        github.event.action != 'closed'
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: version-bump-pr-${{ github.event.pull_request.number || inputs.pr_number }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Resolve PR and release label
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EVENT_NAME: ${{ github.event_name }}
+          PR_NUM_INPUT: ${{ inputs.pr_number }}
+          PR_NUM_EVENT: ${{ github.event.pull_request.number }}
+          PR_HEAD_REF_EVENT: ${{ github.event.pull_request.head.ref }}
+          PR_BASE_REF_EVENT: ${{ github.event.pull_request.base.ref }}
+          LABELS_EVENT: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            PR_NUM="$PR_NUM_INPUT"
+            if ! [[ "$PR_NUM" =~ ^[0-9]+$ ]]; then
+              echo "::error::pr_number must be numeric, got: $PR_NUM"
+              exit 1
+            fi
+
+            JSON=$(gh pr view "$PR_NUM" --json number,headRefName,baseRefName,labels)
+            HEAD_REF=$(jq -r '.headRefName' <<<"$JSON")
+            BASE_REF=$(jq -r '.baseRefName' <<<"$JSON")
+            LABELS=$(jq -c '[.labels[].name]' <<<"$JSON")
+          else
+            PR_NUM="$PR_NUM_EVENT"
+            HEAD_REF="$PR_HEAD_REF_EVENT"
+            BASE_REF="$PR_BASE_REF_EVENT"
+            LABELS="$LABELS_EVENT"
+          fi
+
+          if [[ "$BASE_REF" != "main" ]]; then
+            echo "::notice::PR #$PR_NUM targets $BASE_REF, not main; skipping prebump"
+            KIND=""
+          else
+            KIND=$(jq -r '
+              if index("release:major") then "major"
+              elif index("release:minor") then "minor"
+              elif index("release:patch") then "patch"
+              else ""
+              end
+            ' <<<"$LABELS")
+          fi
+
+          if [[ -z "$KIND" ]]; then
+            echo "::notice::No release:patch/minor/major label found; skipping prebump"
+          else
+            echo "::notice::Release label resolved to $KIND"
+          fi
+
+          {
+            echo "number=$PR_NUM"
+            echo "head_ref=$HEAD_REF"
+            echo "base_ref=$BASE_REF"
+            echo "kind=$KIND"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Checkout PR head
+        if: steps.pr.outputs.kind != ''
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ steps.pr.outputs.head_ref }}
+          fetch-depth: 2
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Bun
+        if: steps.pr.outputs.kind != ''
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.8
+
+      - name: Reset existing release commit
+        if: steps.pr.outputs.kind != ''
+        run: |
+          set -euo pipefail
+
+          LAST_MSG=$(git log -1 --format=%s)
+          if printf '%s' "$LAST_MSG" | grep -qE '^chore.release.:'; then
+            echo "::notice::Existing chore(release): commit found; resetting HEAD~1 before recalculating"
+            git reset --hard HEAD~1
+          fi
+
+      - name: Guard non-empty CHANGELOG Unreleased section
+        id: changelog
+        if: steps.pr.outputs.kind != ''
+        run: |
+          set -euo pipefail
+
+          if ! grep -qE '^## \[Unreleased\]$' CHANGELOG.md; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::CHANGELOG.md has no [Unreleased] section; skipping prebump"
+            exit 0
+          fi
+
+          BODY=$(
+            awk '
+              /^## \[Unreleased\]$/ { in_unreleased = 1; next }
+              /^## \[/ && in_unreleased { exit }
+              in_unreleased { print }
+            ' CHANGELOG.md
+          )
+
+          if printf '%s\n' "$BODY" | grep -qE '[^[:space:]]'; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::CHANGELOG.md [Unreleased] has release notes; continuing"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::CHANGELOG.md [Unreleased] is empty; skipping prebump"
+          fi
+
+      - name: Overwrite package version from origin/main
+        if: steps.changelog.outputs.ready == 'true'
+        run: |
+          set -euo pipefail
+
+          git fetch origin main --depth=1
+          MAIN_VERSION=$(git show origin/main:package.json | bun -e 'const input = await new Response(Bun.stdin.stream()).text(); console.log(JSON.parse(input).version);')
+          MAIN_VERSION="$MAIN_VERSION" bun -e '
+            import { readFileSync, writeFileSync } from "node:fs";
+            const pkg = JSON.parse(readFileSync("package.json", "utf8"));
+            pkg.version = process.env.MAIN_VERSION;
+            writeFileSync("package.json", JSON.stringify(pkg, null, 2) + "\n");
+          '
+          echo "::notice::package.json version reset to origin/main v$MAIN_VERSION"
+
+      - name: Bump version and changelog
+        id: bump
+        if: steps.changelog.outputs.ready == 'true'
+        env:
+          KIND: ${{ steps.pr.outputs.kind }}
+        run: bun run scripts/bump-version.ts "$KIND"
+
+      - name: Commit and push release prebump
+        if: steps.changelog.outputs.ready == 'true'
+        env:
+          VERSION: ${{ steps.bump.outputs.version }}
+          PR_NUM: ${{ steps.pr.outputs.number }}
+          PR_HEAD_REF: ${{ steps.pr.outputs.head_ref }}
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add package.json CHANGELOG.md
+          if git diff --cached --quiet; then
+            echo "::warning::No staged package.json/CHANGELOG.md diff; skipping commit"
+            exit 0
+          fi
+
+          git commit -m "chore(release): v$VERSION (PR #$PR_NUM)"
+          git push --force-with-lease origin "HEAD:$PR_HEAD_REF"
+          echo "::notice::Pushed chore(release): v$VERSION to $PR_HEAD_REF"
+
+  finalize:
+    if: |
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.base.ref == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: version-bump-pr-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout merged commit
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 1
+          fetch-tags: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.8
+
+      - name: Read package version
+        id: ver
+        run: |
+          set -euo pipefail
+
+          V=$(bun -e 'const pkg = await Bun.file("package.json").json(); console.log(pkg.version);')
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          echo "::notice::Merged commit package.json version: v$V"
+
+      - name: Check tag
+        id: tag
+        env:
+          V: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          if git rev-parse "refs/tags/v$V" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Tag v$V already exists; skipping release finalization"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Regenerate release notes
+        if: steps.tag.outputs.exists != 'true'
+        env:
+          V: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          bun -e '
+            import { readFileSync, writeFileSync } from "node:fs";
+            import { extractReleaseNotes } from "./scripts/bump-version.ts";
+            const version = process.env.V;
+            const changelog = readFileSync("CHANGELOG.md", "utf8");
+            writeFileSync("release_notes.md", extractReleaseNotes(changelog, version));
+          '
+
+      - name: Create and push annotated tag
+        if: steps.tag.outputs.exists != 'true'
+        env:
+          V: ${{ steps.ver.outputs.version }}
+          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "v$V" -m "v$V (auto release)" "$MERGE_SHA"
+          git push origin "v$V"
+          echo "::notice::Pushed annotated tag v$V to $MERGE_SHA"
+
+      - name: Create GitHub Release
+        if: steps.tag.outputs.exists != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          V: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          gh release create "v$V" \
+            --title "v$V" \
+            --notes-file release_notes.md
+
+      - name: Comment release link on merged PR
+        if: steps.tag.outputs.exists != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+          V: ${{ steps.ver.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          gh pr comment "$PR" --body "Released as **v$V** -> https://github.com/${{ github.repository }}/releases/tag/v$V"
