@@ -9,6 +9,8 @@
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-05-09
+
 ### Added
 - 처음 사용하는 기능 5종(공유 버튼 / ☆ 즐겨찾기 / 헤드업 모드 / 격자 거리 / 보행 속도 슬라이더)에 대해 한 번씩만 짧은 안내 토스트가 뜹니다. 출발과 목적지를 모두 정하면 공유 버튼이 있다는 걸 알려주고, ☆를 처음 누르면 즐겨찾기 칩으로 모아볼 수 있다는 안내가, 헤드업·격자 모드와 속도 슬라이더는 첫 활성화 시점에 그 의미를 한 줄로 설명합니다. 한 번 본 안내는 다시 뜨지 않습니다 (P2.19, P2.21).
 
@@ -288,7 +290,8 @@
 - `~/.claude/skills/snapshot/` — 글로벌 스냅샷 스킬 (프레임워크 무관, config 기반)
 - `CLAUDE.md` — 세션 진입 가이드 (작업 큐 / 시각 히스토리 / CHANGELOG 포인터)
 
-[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.19.1...HEAD
+[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.20.0...HEAD
+[0.20.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.19.1...v0.20.0
 [0.19.1]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.19.0...v0.19.1
 [0.19.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.18.1...v0.19.0
 [0.18.1]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.18.0...v0.18.1
