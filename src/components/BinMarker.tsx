@@ -1,6 +1,6 @@
 'use client';
 
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import L from 'leaflet';
 import { Marker, Popup } from 'react-leaflet';
 import { BinPopup } from './BinPopup';
@@ -71,13 +71,19 @@ type Props = {
 };
 
 function BinMarkerImpl({ bin, rank, dimmed, isFavorite, onToggleFavorite, onUse }: Props) {
+  const position = useMemo<[number, number]>(() => [bin.lat, bin.lng], [bin.lat, bin.lng]);
+  const eventHandlers = useMemo(
+    () => ({
+      click: () => vibrate(HAPTIC.SELECT),
+    }),
+    [],
+  );
+
   return (
     <Marker
-      position={[bin.lat, bin.lng]}
+      position={position}
       icon={getIcon(bin.types, rank, dimmed)}
-      eventHandlers={{
-        click: () => vibrate(HAPTIC.SELECT),
-      }}
+      eventHandlers={eventHandlers}
     >
       <Popup>
         <BinPopup

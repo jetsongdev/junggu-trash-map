@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import '@/lib/leaflet-globals';
 import 'leaflet-rotate/dist/leaflet-rotate.js';
 import {
@@ -237,12 +237,22 @@ export function Map({
   const primaryHighlight = highlights[0] ?? null;
   const showRoute = !!(userLocation && destination && primaryHighlight);
   const showDistanceOnly = !!(userLocation && primaryHighlight && !destination);
-  const highlightRanks = new globalThis.Map(
-    highlights.map((bin, index) => [bin.id, (index + 1) as 1 | 2 | 3]),
+  const highlightRanks = useMemo(
+    () =>
+      new globalThis.Map(
+        highlights.map((bin, index) => [bin.id, (index + 1) as 1 | 2 | 3]),
+      ),
+    [highlights],
   );
   const hasCandidates = highlights.length > 0;
+  const binsById = useMemo(
+    () => new globalThis.Map(bins.map((bin) => [bin.id, bin])),
+    [bins],
+  );
 
-  const handleUse = (bin: TrashBin) => {
+  const handleUse = useCallback((binId: string) => {
+    const bin = binsById.get(binId);
+    if (!bin) return;
     if (!onUse || !userLocation) return;
 
     if (destination) {
@@ -256,7 +266,7 @@ export function Map({
     const nearest = findNearest([bin], userLocation, distanceMode);
     if (!nearest) return;
     onUse(bin.id, nearest.meters, etaSeconds(nearest.meters, walkingSpeed));
-  };
+  }, [binsById, destination, distanceMode, onUse, userLocation, walkingSpeed]);
 
   return (
     <div
@@ -300,7 +310,7 @@ export function Map({
               dimmed={hasCandidates && !rank}
               isFavorite={favorites?.has(bin.id) ?? false}
               onToggleFavorite={onToggleFavorite}
-              onUse={onUse && userLocation ? () => handleUse(bin) : undefined}
+              onUse={onUse && userLocation ? handleUse : undefined}
             />
           );
         })}

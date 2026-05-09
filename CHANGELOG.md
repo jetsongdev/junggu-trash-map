@@ -20,6 +20,9 @@
 - 모든 토스트 배경 투명도를 `/20`으로 통일해 더 가벼운 모달 느낌으로 다듬었습니다. info/error/emphatic 모두 동일한 톤. `backdrop-blur-xl` + 글자 굵기로 가독성은 유지됩니다.
 - 출발/목적지 탭 모드 배너(🎯/🏁 ... 탭하거나 검색하세요)도 토스트와 동일한 시각 언어로 통일했습니다. 화면 정중앙에 violet/rose 톤 투명 모달(`/20` + `backdrop-blur-xl` + `rounded-2xl`)로, 탭 모드 진입/해제 시 부드럽게 fade in/out 합니다(300ms). 기존 화면 하단 둥근 pill 형태에서 변경.
 
+### Fixed
+- 휴지통 마커 popup이 열린 상태에서 다른 토스트(첫-사용 힌트, onboarding 등)가 발사되면 popup이 깜빡이던 문제를 해결했습니다. 토스트 state 변경 → 페이지 리렌더 → marker/popup props 참조 변경 → react-leaflet이 Leaflet Marker/Popup을 update하면서 발생했던 시각 깜빡임. 마커/콜백 참조를 `useCallback`/`useMemo`로 안정화해 토스트만 변경되는 리렌더에서는 마커 트리가 영향받지 않습니다.
+
 ## [0.18.0] - 2026-05-09
 
 ### Added

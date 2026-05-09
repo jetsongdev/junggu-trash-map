@@ -513,7 +513,7 @@ function PageContent() {
     return flat;
   }, [districtsCache, activeDistricts]);
 
-  const showToast = (
+  const showToast = useCallback((
     text: string,
     durationMs = 1800,
     variant: ToastVariant = 'info',
@@ -538,7 +538,7 @@ function PageContent() {
       setToast(null);
       toastTimerRef.current = null;
     }, durationMs);
-  };
+  }, [TOAST_FADE_MS]);
 
   // 토스트 fade-in: mount 시점에 opacity 0 → 다음 paint에 opacity 1.
   // exiting=true 또는 toast=null이면 다시 0으로 복귀해 unmount 전 fade-out.
@@ -578,9 +578,7 @@ function PageContent() {
       'emphatic',
       'top',
     );
-    // showToast 는 매 render 새로 만드는 closure지만 ref guard 덕에 1회 실행 보장.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loadedPopulatedCount, populatedDistrictCount, bins.length]);
+  }, [loadedPopulatedCount, populatedDistrictCount, bins.length, showToast]);
 
   const onboardingFiredRef = useRef(false);
   useEffect(() => {
@@ -601,10 +599,9 @@ function PageContent() {
       6000,
       'emphatic',
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [manifest, showLoadingOverlay, toast]);
+  }, [manifest, showLoadingOverlay, toast, showToast]);
 
-  const maybeShowHint = (key: HintKey) => {
+  const maybeShowHint = useCallback((key: HintKey) => {
     if (typeof window === 'undefined') return;
     // 다른 토스트(onboarding · 802 자치구 완료 · 에러)가 활성 중이면 skip.
     // markSeen 도 안 해서 다음 트리거에서 다시 시도. URL-driven origin+dest로
@@ -614,26 +611,23 @@ function PageContent() {
     if (hasSeenHint(key, window.localStorage)) return;
     markHintSeen(key, window.localStorage);
     showToast(HINT_MESSAGES[key], HINT_DURATION_MS);
-  };
+  }, [showToast]);
 
   // P2.19: origin+dest 동시 set 첫 진입 시 공유 버튼 힌트
   useEffect(() => {
     if (!userLocation || !destination) return;
     maybeShowHint('share');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userLocation, destination]);
+  }, [userLocation, destination, maybeShowHint]);
 
   // 에러는 collapsed/expanded 무관하게 카드 밖 토스트로 항상 노출.
   // GPS 권한 거부, 자치구 fetch 실패 등은 즉시 사용자에게 보여야 함.
   useEffect(() => {
     if (locateError) showToast(locateError, 6000, 'error');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [locateError]);
+  }, [locateError, showToast]);
 
   useEffect(() => {
     if (error) showToast(error, 6000, 'error');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [error]);
+  }, [error, showToast]);
 
   type DistrictRow = {
     code: DistrictCode;
@@ -672,7 +666,7 @@ function PageContent() {
     return favoritesOnly ? filterByFavorites(byType, favorites) : byType;
   }, [bins, selected, favoritesOnly, favorites]);
 
-  const handleToggleFavorite = (binId: string) => {
+  const handleToggleFavorite = useCallback((binId: string) => {
     vibrate(HAPTIC.SELECT);
     setFavorites((prev) => {
       const next = toggleFavorite(prev, binId);
@@ -680,15 +674,15 @@ function PageContent() {
       if (next.size > prev.size) maybeShowHint('favorite');
       return next;
     });
-  };
+  }, [maybeShowHint]);
 
-  const handleUseBin = (_binId: string, meters: number, seconds: number) => {
+  const handleUseBin = useCallback((_binId: string, meters: number, seconds: number) => {
     setSavings((prev) => {
       const next = addUse(prev, meters, seconds);
       persistSavings(next);
       return next;
     });
-  };
+  }, []);
 
   const routeCandidates = useMemo(() => {
     if (!userLocation || !destination) return null;
@@ -702,7 +696,10 @@ function PageContent() {
 
   const bestRouteCandidate = routeCandidates?.[0] ?? null;
   const bestNearestCandidate = nearestCandidates[0] ?? null;
-  const highlights = routeCandidates?.map(({ bin }) => bin) ?? nearestCandidates.map(({ bin }) => bin);
+  const highlights = useMemo(
+    () => routeCandidates?.map(({ bin }) => bin) ?? nearestCandidates.map(({ bin }) => bin),
+    [routeCandidates, nearestCandidates],
+  );
 
   const toggle = (type: BinType) => {
     setSelected((prev) => {
@@ -712,12 +709,12 @@ function PageContent() {
       return next;
     });
   };
-  const stopWatch = () => {
+  const stopWatch = useCallback(() => {
     if (watchIdRef.current !== null && 'geolocation' in navigator) {
       navigator.geolocation.clearWatch(watchIdRef.current);
       watchIdRef.current = null;
     }
-  };
+  }, []);
 
   const locate = () => {
     if (!('geolocation' in navigator)) {
@@ -758,7 +755,7 @@ function PageContent() {
     setLocateError(null);
   };
 
-  const handleMapClick = (latlng: LatLng) => {
+  const handleMapClick = useCallback((latlng: LatLng) => {
     // 검색 드롭다운이 열려 있으면 사용자가 결과를 누르려는 중. 맵 빈 영역 클릭으로
     // origin/destination이 잘못 잡히는 걸 막는다.
     if (searchDropdownOpen) return;
@@ -771,7 +768,7 @@ function PageContent() {
       vibrate(HAPTIC.CONFIRM);
     }
     setTapTarget(null);
-  };
+  }, [searchDropdownOpen, tapTarget, stopWatch]);
 
   // Refs syncing latest state — let handleCenterChange be useCallback-stable so
   // MapMoveHandler doesn't rebind the leaflet `moveend` listener on every render.
@@ -840,10 +837,8 @@ function PageContent() {
           return next;
         });
       }
-      // showToast은 매 render 새 closure지만 부수효과만 일으키므로 deps 누락 안전.
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     },
-    [manifest, districtsGeo],
+    [manifest, districtsGeo, showToast],
   );
 
   const handleDistrictSelectPopulated = (meta: DistrictMeta) => {
