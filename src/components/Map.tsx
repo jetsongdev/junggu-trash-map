@@ -80,6 +80,7 @@ type Props = {
   onUse?: (binId: string, extraMeters: number, extraSeconds: number) => void;
   onMapReady?: (map: LeafletMap) => void;
   viewingDistrict?: DistrictCode | null;
+  viewingDistrictName?: string | null;
   districtsGeo?: DistrictsGeoJson | null;
 };
 
@@ -238,6 +239,7 @@ export function Map({
   onUse,
   onMapReady,
   viewingDistrict,
+  viewingDistrictName,
   districtsGeo,
 }: Props) {
   const preset = TILE_PRESETS[tileTheme];
@@ -291,10 +293,11 @@ export function Map({
         subdomains={preset.subdomains}
         maxZoom={preset.maxZoom}
       />
-      {viewingDistrict && districtsGeo && (
+      {viewingDistrict && viewingDistrictName && districtsGeo && (
         <DistrictOutline
           geoJson={districtsGeo}
           code={viewingDistrict}
+          name={viewingDistrictName}
           tileTheme={tileTheme}
         />
       )}

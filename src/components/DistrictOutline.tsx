@@ -2,6 +2,7 @@
 
 import { GeoJSON } from 'react-leaflet';
 import type { Feature } from 'geojson';
+import type { Layer } from 'leaflet';
 import type { DistrictsGeoJson } from '@/lib/point-in-district';
 import type { DistrictCode } from '@/lib/types';
 import type { TileTheme } from './Map';
@@ -9,6 +10,7 @@ import type { TileTheme } from './Map';
 type Props = {
   geoJson: DistrictsGeoJson;
   code: DistrictCode;
+  name: string;
   tileTheme: TileTheme;
 };
 
@@ -17,11 +19,21 @@ const STYLE: Record<TileTheme, { halo: string; inner: string; haloOpacity: numbe
   light: { halo: '#ffffff', inner: '#1e293b', haloOpacity: 0.85 },
 };
 
-export function DistrictOutline({ geoJson, code, tileTheme }: Props) {
+export function DistrictOutline({ geoJson, code, name, tileTheme }: Props) {
   const feature = geoJson.features.find((f) => f.properties.code === code);
   if (!feature) return null;
   const data = feature as unknown as Feature;
   const { halo, inner, haloOpacity } = STYLE[tileTheme];
+
+  const bindName = (_: Feature, layer: Layer) => {
+    layer.bindTooltip(name, {
+      permanent: true,
+      direction: 'center',
+      className: `district-name-tooltip district-name-tooltip-${tileTheme}`,
+      sticky: false,
+      interactive: false,
+    });
+  };
 
   return (
     <>
@@ -47,6 +59,7 @@ export function DistrictOutline({ geoJson, code, tileTheme }: Props) {
           fill: false,
           interactive: false,
         }}
+        onEachFeature={bindName}
       />
     </>
   );
