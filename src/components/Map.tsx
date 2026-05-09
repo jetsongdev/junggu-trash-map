@@ -14,8 +14,11 @@ import {
 import type { Map as LeafletMap } from 'leaflet';
 import { BinMarker } from './BinMarker';
 import { DestinationMarker } from './DestinationMarker';
+import { DistrictOutline } from './DistrictOutline';
 import { MarkerClusterGroup } from './MarkerClusterGroup';
 import { UserMarker } from './UserMarker';
+import type { DistrictsGeoJson } from '@/lib/point-in-district';
+import type { DistrictCode } from '@/lib/types';
 import {
   findOptimalDetour,
   findNearest,
@@ -76,6 +79,8 @@ type Props = {
   walkingSpeed?: number;
   onUse?: (binId: string, extraMeters: number, extraSeconds: number) => void;
   onMapReady?: (map: LeafletMap) => void;
+  viewingDistrict?: DistrictCode | null;
+  districtsGeo?: DistrictsGeoJson | null;
 };
 
 const JUNGGU_CENTER: [number, number] = [37.5635, 126.987];
@@ -232,6 +237,8 @@ export function Map({
   walkingSpeed = 4,
   onUse,
   onMapReady,
+  viewingDistrict,
+  districtsGeo,
 }: Props) {
   const preset = TILE_PRESETS[tileTheme];
   const primaryHighlight = highlights[0] ?? null;
@@ -284,6 +291,13 @@ export function Map({
         subdomains={preset.subdomains}
         maxZoom={preset.maxZoom}
       />
+      {viewingDistrict && districtsGeo && (
+        <DistrictOutline
+          geoJson={districtsGeo}
+          code={viewingDistrict}
+          tileTheme={tileTheme}
+        />
+      )}
       <MarkerClusterGroup
         disableClusteringAtZoom={15}
         spiderfyOnMaxZoom={false}
