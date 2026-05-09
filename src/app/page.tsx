@@ -1100,6 +1100,14 @@ function PageContent() {
         </div>
         {/* 우상단: 자치구 셀렉터 + 필터 (휴지통/재활용) 세로 stack */}
         <div className={`absolute right-2 top-2 z-[1000] flex flex-col items-end gap-1.5 p-1.5 ${hudFloatingGroup}`}>
+          {manifest && viewingDistrict && (
+            <div
+              className="rounded-md px-2 py-0.5 text-xs font-medium leading-tight text-neutral-700 dark:text-neutral-200"
+              aria-label={`현재 보고 있는 자치구: ${findDistrictMeta(manifest, viewingDistrict)?.name ?? viewingDistrict}`}
+            >
+              📍 {findDistrictMeta(manifest, viewingDistrict)?.name ?? viewingDistrict}
+            </div>
+          )}
           {manifest && (
             <DistrictSelector
               manifest={manifest}

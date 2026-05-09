@@ -12,28 +12,43 @@ type Props = {
   tileTheme: TileTheme;
 };
 
-const STROKE: Record<TileTheme, string> = {
-  dark: '#fbbf24',
-  light: '#b45309',
+const STYLE: Record<TileTheme, { halo: string; inner: string; haloOpacity: number }> = {
+  dark: { halo: '#000000', inner: '#fbbf24', haloOpacity: 0.55 },
+  light: { halo: '#ffffff', inner: '#1e293b', haloOpacity: 0.85 },
 };
 
 export function DistrictOutline({ geoJson, code, tileTheme }: Props) {
   const feature = geoJson.features.find((f) => f.properties.code === code);
   if (!feature) return null;
+  const data = feature as unknown as Feature;
+  const { halo, inner, haloOpacity } = STYLE[tileTheme];
 
   return (
-    <GeoJSON
-      key={code}
-      data={feature as unknown as Feature}
-      pathOptions={{
-        color: STROKE[tileTheme],
-        weight: 1.5,
-        dashArray: '6 4',
-        opacity: 0.7,
-        fill: false,
-        interactive: false,
-      }}
-    />
+    <>
+      <GeoJSON
+        key={`${code}-halo-${tileTheme}`}
+        data={data}
+        pathOptions={{
+          color: halo,
+          weight: 4,
+          opacity: haloOpacity,
+          fill: false,
+          interactive: false,
+        }}
+      />
+      <GeoJSON
+        key={`${code}-inner-${tileTheme}`}
+        data={data}
+        pathOptions={{
+          color: inner,
+          weight: 1.5,
+          dashArray: '6 4',
+          opacity: 0.95,
+          fill: false,
+          interactive: false,
+        }}
+      />
+    </>
   );
 }
 
