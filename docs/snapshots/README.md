@@ -46,6 +46,7 @@
 | 38 | 2026-05-09 | ✅ P2.22 + P2.23 branch final — mobile light/dark + iPad scroll lock 검수 | [38-p222-p223-final](./38-p222-p223-final/) |
 | 39 | 2026-05-09 | 🚶 속도 슬라이더 우측에 ETA 인라인 프리뷰 — `km/h` 아래 "가까운 통 약 2분" 한 줄 (with·without 2장) | [39-speed-slider-eta-preview](./39-speed-slider-eta-preview/) |
 | 40 | 2026-05-09 | 🗺 25구 셀렉터 그리드 — 우상단 🗺 칩 → 5x5 grid (populated/empty 시각 분리, P3.3) | [40-district-selector](./40-district-selector/) |
+| 41 | 2026-05-09 | 💡 첫-사용 힌트 5종 + 토스트 모달 재배치 — share/favorite/headsUp/grid/speed 정중앙 투명 모달 (P2.19+P2.21) | [41-first-use-hints](./41-first-use-hints/) |
 
 ## 새 스냅샷 찍는 법
 
