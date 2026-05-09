@@ -1,5 +1,5 @@
 ---
-index: 34
+index: 38
 slug: p222-p223-final
 date: 2026-05-09
 phase: "P2.22 + P2.23 (branch final)"
@@ -7,7 +7,7 @@ git_sha: 29d7f52
 viewport: 390x844 (mobile) / 1024x1366 (iPad)
 ---
 
-# 34 — P2.22 + P2.23 branch final state
+# 38 — P2.22 + P2.23 branch final state
 
 `feat/p2.22-mobile-toolbar-compact` 브랜치의 모든 작업(P2.22 모바일 툴바 압축 → P2.23 HUD 재배치 → 9 라운드 fix → P2.18 카드 default 접힘 + 에러 토스트 분리 → cycleState 리팩터)이 끝난 최종 상태. PR / main 머지 직전 시각 검수용 마커.
 

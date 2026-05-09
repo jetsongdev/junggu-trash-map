@@ -1,6 +1,6 @@
 {
   "name": "junggu-trash-map",
-  "version": "0.13.0",
+  "version": "0.15.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -8,7 +8,8 @@
     "start": "next start",
     "lighthouse": "lhci autorun",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "hint:scan": "bun scripts/hint-scan.ts"
   },
   "dependencies": {
     "@sentry/nextjs": "^10.51.0",

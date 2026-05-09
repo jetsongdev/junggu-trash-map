@@ -36,10 +36,14 @@
 | 28 | 2026-05-05 | 1️⃣2️⃣ onboarding & 모드 명확화 — 첫 방문 토스트 + 칩 뱃지 + tap mode 배너 (P2.17) | [28-onboarding-mode-clarity](./28-onboarding-mode-clarity/) |
 | 29 | 2026-05-05 | ☀️🌑 라이트 모드 일관 전환 — 헤더·필터·칩·통계·오버레이·검색·핀까지 양 테마 (I.5) | [29-light-mode-polish](./29-light-mode-polish/) |
 | 30 | 2026-05-05 | 🔵 markercluster — 802 bins 줌-아웃 클러스터링, ≥15 개별 마커 (P3.1b) | [30-markercluster](./30-markercluster/) |
-| 31 | 2026-05-06 | 📱 모바일 툴바 압축 — 3그룹 / 아이콘 only / 줌 좌하단 / 출처 우하단 (P2.22) | [31-mobile-toolbar-compact](./31-mobile-toolbar-compact/) |
-| 32 | 2026-05-06 | 📊 데이터 현황 + 출처 통합 토글 — 우하단 한 카드, 펼침=자치구 리스트+링크 (P2.22+) | [32-status-overlay-toggle](./32-status-overlay-toggle/) |
-| 33 | 2026-05-07 | 🎯 HUD 재배치 — 좌상단 필터 / 우상단 모드 stack / 출발-목적지 segmented (P2.23) | [33-hud-rearrange](./33-hud-rearrange/) |
-| 34 | 2026-05-09 | ✅ P2.22 + P2.23 branch final — mobile light/dark + iPad scroll lock 검수 | [34-p222-p223-final](./34-p222-p223-final/) |
+| 31 | 2026-05-06 | 〰️ Top-N 거리선 패턴 분리 — rank 1 실선 / 2 대시 / 3 도트 (P2.20, light+dark) | [31-topn-distance-pattern](./31-topn-distance-pattern/) |
+| 32 | 2026-05-06 | 〰️ 라이트 거리선 slate 폴리싱 — sky→slate-8/6/5 + opacity 보강 (P2.20 후속) | [32-topn-light-slate-polish](./32-topn-light-slate-polish/) |
+| 33 | 2026-05-07 | 〰️ Top-N 거리선 P2.20 최종 — light deep blue 단일 톤 + RouteLine 실선화 (light·dark·destination 3장) | [33-topn-deep-blue-final](./33-topn-deep-blue-final/) |
+| 34 | 2026-05-08 | 📍 위치 힌트 텍스트 — popup에 운영자 큐레이션 한 줄, 주소 위 primary (P4.3, light·dark·with·without 4장) | [34-location-hint](./34-location-hint/) |
+| 35 | 2026-05-06 | 📱 모바일 툴바 압축 — 3그룹 / 아이콘 only / 줌 좌하단 / 출처 우하단 (P2.22) | [35-mobile-toolbar-compact](./35-mobile-toolbar-compact/) |
+| 36 | 2026-05-06 | 📊 데이터 현황 + 출처 통합 토글 — 우하단 한 카드, 펼침=자치구 리스트+링크 (P2.22+) | [36-status-overlay-toggle](./36-status-overlay-toggle/) |
+| 37 | 2026-05-07 | 🎯 HUD 재배치 — 좌상단 필터 / 우상단 모드 stack / 출발-목적지 segmented (P2.23) | [37-hud-rearrange](./37-hud-rearrange/) |
+| 38 | 2026-05-09 | ✅ P2.22 + P2.23 branch final — mobile light/dark + iPad scroll lock 검수 | [38-p222-p223-final](./38-p222-p223-final/) |
 
 ## 새 스냅샷 찍는 법
 

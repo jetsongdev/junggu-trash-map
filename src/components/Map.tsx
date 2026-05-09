@@ -142,18 +142,21 @@ function HighlightRing({ bin }: { bin: TrashBin }) {
   );
 }
 
-// Light tile uses darker sky scale so rank 2/3 don't wash out on white-ish bg.
-// Dark tile keeps the original lighter scale that pops on CartoDB Dark Matter.
-const DISTANCE_LINE_STYLE: Record<TileTheme, Record<1 | 2 | 3, { color: string; weight: number; opacity: number }>> = {
+// Dark: sky scale that pops on CartoDB Dark Matter (P2.11 baseline).
+// Light: deep blue scale (blue-800/700/600) — cool tone that reads as a "navigation path" and stays clearly darker than the blue-400 general marker.
+const DISTANCE_LINE_STYLE: Record<
+  TileTheme,
+  Record<1 | 2 | 3, { color: string; weight: number; opacity: number; dashArray?: string }>
+> = {
   dark: {
-    1: { color: '#0ea5e9', weight: 3, opacity: 0.85 },
-    2: { color: '#7dd3fc', weight: 2, opacity: 0.6 },
-    3: { color: '#bae6fd', weight: 1.5, opacity: 0.4 },
+    1: { color: '#0ea5e9', weight: 4, opacity: 0.85 },
+    2: { color: '#7dd3fc', weight: 2.5, opacity: 0.75, dashArray: '8 6' },
+    3: { color: '#bae6fd', weight: 2, opacity: 0.7, dashArray: '3 5' },
   },
   light: {
-    1: { color: '#0284c7', weight: 3, opacity: 0.85 },
-    2: { color: '#0ea5e9', weight: 2, opacity: 0.7 },
-    3: { color: '#38bdf8', weight: 1.5, opacity: 0.6 },
+    1: { color: '#1e40af', weight: 4, opacity: 0.9 },
+    2: { color: '#1e40af', weight: 3, opacity: 0.85, dashArray: '8 6' },
+    3: { color: '#1e40af', weight: 2.5, opacity: 0.85, dashArray: '3 5' },
   },
 };
 
@@ -178,7 +181,7 @@ function DistanceLine({
         color: style.color,
         weight: style.weight,
         opacity: style.opacity,
-        dashArray: '6 6',
+        dashArray: style.dashArray,
       }}
       interactive={false}
     />
@@ -190,20 +193,21 @@ function RouteLine({
   via,
   destination,
   mode,
+  tileTheme,
 }: {
   origin: LatLng;
   via: LatLng;
   destination: LatLng;
   mode: DistanceMode;
+  tileTheme: TileTheme;
 }) {
   return (
     <Polyline
       positions={routePositions(origin, via, destination, mode)}
       pathOptions={{
-        color: '#22d3ee',
+        color: DISTANCE_LINE_STYLE[tileTheme][1].color,
         weight: 4,
-        opacity: 0.85,
-        dashArray: '8 6',
+        opacity: 0.9,
       }}
       interactive={false}
     />
@@ -319,6 +323,7 @@ export function Map({
           via={{ lat: primaryHighlight!.lat, lng: primaryHighlight!.lng }}
           destination={destination!}
           mode={distanceMode}
+          tileTheme={tileTheme}
         />
       )}
       {showRoute &&

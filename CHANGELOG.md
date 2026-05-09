@@ -38,6 +38,19 @@
 - 우하단 데이터 카드 토글 버튼 가독성을 키웠습니다: 폰트 10px → 12px(`text-xs`), padding 늘려 hit area 확보, 토글 화살표를 lucide ChevronUp/Down SVG로 교체해 시인성 ↑.
 - 데이터 카드를 펼쳤을 때 보이는 순서를 swap했습니다: 출처(공공데이터포털 + 외부 링크 아이콘 + underline) 맨 위 → status → 자치구 7행 분포 아래. 출처를 첫 줄로 올려 데이터 신뢰도 시그널을 강화했습니다.
 
+## [0.15.0] - 2026-05-09
+
+### Added
+- 휴지통 popup에 위치 힌트가 한 줄로 표시됩니다. 힌트는 **출처별로 시각이 다릅니다** — 운영자(curated)가 손으로 단 hint는 주소 위 primary 라인(`text-neutral-700`)으로 뜨고, Kakao Local API에서 자동 추출한 hint는 `📍 근처: <랜드마크>` 형식에 우측 끝 작은 ` · KAKAO` 라벨로 표시되어 검증된 사람 hint와 구분됩니다. 힌트가 없는 통은 기존과 동일하게 주소가 primary 그대로 — 빈 슬롯이 추가로 만들어지지 않습니다. 중구 첫 출시 9건(서소문·을지로입구·을지로6가·황학동 등)은 카카오 API 0~3m 반경 단일 랜드마크 케이스로 한정 (`public/data/hints/<district>.json`). 다른 자치구·중구 추가 통·운영자 curated hint는 점진적으로 채웁니다 (P4.3).
+
+### Infrastructure
+- 운영자가 hint를 효율적으로 큐레이션하도록 `bun run hint:scan <district>` 스크립트가 추가됐습니다. Kakao Local API로 각 통 좌표 50m 반경에 있는 관광명소·지하철·은행·주차장·편의점을 거리순으로 묶어 hint 초안과 함께 출력 — 매 통마다 카카오맵 검색 + 좌표 확인을 반복하지 않고 한 번에 후보를 본 뒤 선별합니다 (`KAKAO_REST_API_KEY` env 필요, 1Password CLI 연동 가능).
+
+## [0.14.0] - 2026-05-07
+
+### Changed
+- 가까운/경유 휴지통 Top-3 거리선이 색·굵기뿐 아니라 패턴 자체로도 구분되도록 정리됐습니다. 1순위는 굵은 실선, 2순위는 대시(`8 6`), 3순위는 도트(`3 5`) — 색맹·고휘도 환경에서도 순위가 한눈에 보입니다. 라이트 모드에서는 거리선 색을 sky → **deep blue**(blue-800 `#1e40af`) 단일 톤으로 정착, sky 빈 마커·UserMarker와 hue가 분리되어 "경로선" 의미가 즉시 읽힙니다. rank 2/3 opacity·굵기를 함께 끌어올려 양 테마에서 또렷합니다. 목적지를 설정한 경유 경로 모드에서도 RouteLine이 rank 1 색을 따라가도록 통일되어 톤이 일관되며, 실선/대시/도트 패턴 차이로 활성 경로(RouteLine)와 후보(candidate)가 명확히 구분됩니다 (P2.20).
+
 ## [0.13.0] - 2026-05-06
 
 ### Added
@@ -234,7 +247,9 @@
 - `~/.claude/skills/snapshot/` — 글로벌 스냅샷 스킬 (프레임워크 무관, config 기반)
 - `CLAUDE.md` — 세션 진입 가이드 (작업 큐 / 시각 히스토리 / CHANGELOG 포인터)
 
-[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.13.0...HEAD
+[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.15.0...HEAD
+[0.15.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.14.0...v0.15.0
+[0.14.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.10.0...v0.11.0

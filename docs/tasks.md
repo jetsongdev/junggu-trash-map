@@ -5,7 +5,7 @@
 
 ## 현재 상태 (2026-05-07)
 
-- **Phase**: 3 진행 중. P3.1a Foundation + P3.2 데이터 transform + P3.1b markercluster 완료. 다음 P3.1c (인접 prefetch).
+- **Phase**: 3 거의 마무리. P3.1a/b 머지(802 bins 클러스터링), P3.2 7개 자치구 데이터, P3.1c는 obsolete. P2.20 색맹 친화 거리선 패턴 분리 v0.14.0 cut. **P4.3 위치 힌트 텍스트 — 사진 원안 폐기, 운영자 큐레이션 한 줄로 재정의해 머지 진행 중** (별도 hints/<district>.json + lazy fetch + runtime 머지). 다음 후보: P3.3(자치구 선택 UI), I.6(a11y 라운드), P4.1(타 종류 통).
 - **사용자 환경 영속화** (`localStorage`): `distanceMode` (직선/격자), `tileTheme` (다크/라이트, **빈 값일 때 시스템 prefers-color-scheme 자동 감지**), `walkingSpeed` (km/h, 2~7 step 0.5), `favorites` (즐겨찾기 bin id), `savings` (누적 보행거리·시간·횟수)
 - **마커 색**: 일반 `#60a5fa` (blue-400), 재활용 `#34d399` (emerald-400), 혼합 `#c084fc` (violet-400) — 라이트/다크 양 타일에서 균형
 - **Roadmap 확장**: Phase 3 (25개 구) · Phase 4 (데이터 확장: 타 종류 통/사용자 제보/사진) · Phase 5 (실제 보행 경로 + TTS) · 인프라/품질 cross-cutting (i18n 남음)
@@ -49,7 +49,7 @@
 ### Phase 2 — UX 다듬기
 - [x] **P2.1** Geolocation API + 가장 가까운 휴지통 강조 — `lib/geo.ts` (Haversine + Manhattan + DistanceMode), LocateButton/UserMarker, Map에 panTo + 픽셀 ring + 거리 선 (Polyline), `watchPosition`으로 실시간 갱신, 거리/이름 라벨. Manhattan UI 토글은 추후.
 - [x] **P2.1+ iPad fallback** — 🎯 지도 탭 모드 (한 번 클릭으로 위치 지정), 권한 거부/타임아웃/미지원 별 에러 메시지 분기, react-leaflet `MapContainer.className` 함정 회피 (wrapper div).
-- [x] **인프라 — Tier 2** — GitHub repo `jetsongdev/junggu-trash-map` (private), Vercel auto-deploy (push trigger), Vercel Analytics + Speed Insights 마운트.
+- [x] **인프라 — Tier 2** — GitHub repo `jetsongdev/junggu-trash-map`, Vercel auto-deploy (push trigger), Vercel Analytics + Speed Insights 마운트.
 - [x] **개발 환경 정체성** — `~/.gitconfig` global = jetsong.dev, `~/Documents/workspace/saluscare/` overlay = work. `includeIf`로 디렉토리별 자동 분기.
 - [x] **P2.6** Manhattan 거리 토글 UI — Codex 위임 작업, `page.tsx` 한 파일에서 setter 활성화 + amber 칩 + localStorage 영속화. 직선 121m → 격자 154m (명동성당 좌표).
 - [x] **P2.4** 다크 타일 — `<TileLayer>` URL을 CartoDB Dark Matter로 교체, 다크 헤더와 통일. subdomains 4-shard, maxZoom 20, retina 지원.
@@ -69,6 +69,7 @@
 - [x] **I.2** 에러 모니터링 — Sentry 연동, production-only 초기화, geolocation/fetch 에러 캡처, global-error 추가
 - [x] **I.3** Lighthouse CI — PR마다 PWA/접근성/성능 점수 회귀 차단
 - [x] **P2.14** 즐겨찾기 — popup ☆/★ 토글로 휴지통 표시, 칩 필터로 즐겨찾기만 보기. localStorage `favorites` 영속화 (comma-separated id), `lib/favorites.ts` 순수 함수 + vitest 13개
+- [x] **P2.20** Top-N 거리선 시각 분리 — rank 1 굵은 실선(weight 4) / rank 2 대시(`8 6` weight 3) / rank 3 도트(`3 5` weight 2.5). `DISTANCE_LINE_STYLE`에 옵셔널 `dashArray` 필드 추가, 라이트는 **blue-800 `#1e40af` 단일 톤**(sky 마커류와 hue 분리), 다크는 P2.11 sky 톤 유지. `RouteLine`도 `tileTheme` prop 받아 rank 1 색 따라가면서 **실선화** → destination 모드에서도 색 일관 + candidate(dash/dot)와 패턴 분리. 색맹·소화면 가독성 보강(I.6 a11y 일부 흡수). snapshot `31-topn-distance-pattern/`(1차) → `32-topn-light-slate-polish/`(slate 시도) → `33-topn-deep-blue-final/`(최종, light·dark·destination 3장).
 
 ### Phase 3 — 25개 구 확장
 - [x] **P3.1** 데이터 분할 전략 결정 — 자치구 단위 정적 JSON + GeoJSON 폴리곤 클라이언트 판정 + 3-PR 분할 (foundation → cluster · prefetch). spec: `docs/superpowers/specs/2026-05-05-p3-1-data-partitioning-design.md`.
@@ -84,6 +85,9 @@
 - [x] **P2.22+** 데이터 현황 + 출처 통합 토글 — 메뉴의 합계/자치구 분포를 우하단 출처 카드에 통합. 접힘=한 줄 (`📊 v2026-05-05 · 📍 802/802 ▴`), 펼침=자치구 7행 + status + 출처 링크. `bg-white/70` 더 투명. `localStorage.statusOverlayCollapsed`로 영속화. 메뉴 영역 ~33% → ~30% 추가 압축. snapshot `32-status-overlay-toggle/`.
 - [x] **P2.23** HUD 재배치 — 필터를 좌상단 floating row(✓/🗑️/♻️ 아이콘 only)로, 즐겨찾기/직선·격자/나침반을 우상단 floating stack으로, 출발/목적지를 segmented 한 박스로 통합(1️⃣/2️⃣ 뱃지 제거, 슬롯 위치로 순서 시사). 칩 형태 `rounded-full` → `rounded-md` HUD 스타일, 5색 accent state(amber/sky/violet/rose/emerald) + 15% fill + ring + ✓ corner badge. 우하단 카드 투명도 `/70` → `/45`. 메뉴 영역 ~30% → ~20% (검색 + 한 줄 칩). HUD 헬퍼: `hudInactive`/`hudChip`/`hudIconBtn`/`hudFloatingGroup`. snapshot `33-hud-rearrange/` (default → fix1 → fix2 → fix3 4 라운드 누적).
 
+### Phase 4 — 데이터 확장
+- [x] **P4.3** 위치 힌트 텍스트 — 사진 원안 폐기. 운영자가 카카오·Naver 보면서 손으로 단 한 줄(≤80자) 큐레이션 텍스트로 재정의. `public/data/hints/<district>.json` 별도 파일(`{ version, hints: { binId: text } }`) + 자치구별 lazy fetch (`lib/hints.ts`의 `fetchHints` 404·네트워크 에러 EMPTY fallback) + `mergeHints` 순수 immutable 머지로 `TrashBin.locationHint?: string` 런타임 주입. transform.ts와 격리 — 데이터 갱신 시 hint 안 사라짐. BinPopup: hint 있으면 주소 위 primary(text-neutral-700, sm) + 주소가 secondary(text-neutral-500, xs)로 후퇴, 없으면 현 상태 유지(빈 placeholder 안 만듦). 출시는 hints 빈 객체로 ship — 운영자가 카카오맵 검증 후 점진적 추가. 분업 구조: A(types+lib/hints+test) · B(BinPopup) · C(시드 인프라) 완전 병렬 / D(page.tsx 통합 3 site) · E(snapshot+docs) 통합 단계. snapshot `34-location-hint/` 4장은 dev 세션에서 placeholder 시드로 캡처 — 시각 검증 기록용. spec/plan: `docs/superpowers/specs/2026-05-08-...` & `docs/superpowers/plans/2026-05-08-...`.
+
 ---
 
 ## 🔜 Open — Phase 2 잔여 (nice-to-have)
@@ -93,7 +97,6 @@
 - [ ] **P2.3** 클러스터링 — `leaflet.markercluster`. 마커 100+ 시 lag 방지. **25구 확장(Phase 3) 전엔 ø**
 - [x] **P2.18** 통계바 정보 분리 — `locateError`/`error`를 우하단 카드(접힘 시 숨겨짐) 안에서 빼서 빨간 토스트(`variant: 'error'`, role=alert, ⚠ prefix, 6초)로 렌더. 통계바(우하단 카드 펼침 영역)는 route/savings 등 성공 상태만 표시. P2.23-fix5 status overlay 통합 후 발견된 회귀(접힘 시 에러 미노출)와 함께 한 라운드에 처리. (UX U4)
 - [ ] **P2.19** hidden feature 발견 경로 — origin+dest 동시 set 시 공유 버튼 힌트, ☆/헤드업/격자 첫 사용 시 안내 (UX U5+U8)
-- [ ] **P2.20** Top-N 거리선 시각 분리 — rank 1 굵은 실선, 2/3 점선·굵기 차이로 색맹·소화면 가독성 보강 (UX U6 거리선 + U10)
 - [ ] **P2.21** 보행 속도 슬라이더 초기 안내 — 슬라이더 첫 토글 시 "현재 4 km/h (통상 보행)" 힌트 (UX U9)
 - [ ] **P2.24** Liquid Glass 디자인 언어 — Apple iOS/iPadOS 26 Liquid Glass 시각 언어를 floating HUD/우하단 카드/메뉴 칩에 반영. 핵심: heavy backdrop-blur(`backdrop-blur-xl ~24px`) + `backdrop-saturate-150~180` + 내부 highlight gradient(상단 lighter / 하단 darker) + 외부 soft shadow + 미세 lensing(가능하면 SVG turbulence, 성능 비싸면 CSS만). 다크/라이트 양 테마에서 마커 가독성 + Lighthouse perf ≥0.62 유지. 참고: [WidgetKit Liquid Glass](https://github.com/artemnovichkov/xcode-26-system-prompts/blob/main/AdditionalDocumentation/WidgetKit-Implementing-Liquid-Glass-Design.md) · [Apple TechnologyOverviews — Liquid Glass](https://developer.apple.com/documentation/TechnologyOverviews/liquid-glass) · [Adopting Liquid Glass](https://developer.apple.com/documentation/TechnologyOverviews/adopting-liquid-glass). 적용 대상: 좌상단 필터 박스 / 우상단 모드 stack / 메뉴 한 줄 칩 / 우하단 status 카드 / 검색박스 / 토스트.
 
@@ -113,7 +116,6 @@
 
 - [ ] **P4.1** 타 종류 통 합치기 — 담배꽁초·의류수거함·폐의약품함 (별도 공공 데이터셋). 필터 칩에 추가, transform 스크립트 확장
 - [ ] **P4.2** 사용자 제보 기능 — 없음/넘침/위치 오류. 익명, Vercel KV 또는 Postgres. 관리자 페이지(P3 결정 포인트) 트리거 가능
-- [ ] **P4.3** 휴지통 사진 1장 — Supabase Storage 또는 정적 추가. 골목 안쪽 통 식별용
 
 ---
 
@@ -175,7 +177,7 @@
 - **react-leaflet 5.0 + React 19 dev StrictMode**: dev에서 `Map container is being reused by another instance` / `appendChild of undefined` 에러가 콘솔에 한 번씩 뜸. 더블 마운트 때문이고 prod 빌드/사용성엔 영향 없음. 무시.
 - **iOS Safari + Geolocation**: HTTP에서는 GPS 권한 prompt가 뜨지 않거나 거부된다. iPad 검증은 항상 Vercel HTTPS URL(`https://junggu-trash-map.vercel.app`)로. LAN IP(`http://192.168.x.x:3001`)은 UI 시각 확인엔 OK, GPS는 ❌.
 - **`vercel link` GitHub 자동 연결 실패**: 첫 시도에서 "Failed to connect ... private repo access" 메시지 후 두 번째 시도엔 메시지 없이 link만 됨. 추후 `vercel git connect`로 명시 연결 시도하면 "already connected" 응답 (한 번 설정되면 자동). push가 production/preview 자동 deploy를 트리거.
-- **Vercel commit-email-GitHub 매칭**: 커밋 author 이메일이 GitHub 계정에 등록 안 돼있으면 deploy block. CLI는 generic "Unexpected error"만 떨굼, dashboard에 사유. → git identity를 GitHub 계정 이메일로 맞추기 (이 repo는 jetsong.dev@gmail.com).
+- **Vercel commit-email-GitHub 매칭**: 커밋 author 이메일이 GitHub 계정에 등록 안 돼있으면 deploy block. CLI는 generic "Unexpected error"만 떨굼, dashboard에 사유. → git identity를 GitHub 계정에 등록된 이메일로 맞추기.
 - **Leaflet `divIcon` 캐시**: 같은 (단일타입/혼합) 키 마커들은 `L.divIcon` 인스턴스를 공유해도 안전 (Leaflet은 html을 템플릿으로만 쓰고 DOM은 마커별 생성). 59개 마커 × 매 렌더 → 3 인스턴스로 절감.
 - **localStorage 초기화 ≠ useState 초기화**: `useState(() => localStorage.getItem(...))` 패턴은 SSR(server) → 기본값, CSR(client) → 저장값으로 첫 렌더가 갈라져 hydration mismatch. 항상 기본값으로 useState → mount 후 useEffect에서 localStorage 읽어 setState. 첫 effect의 자동 persist는 hydratedRef로 가드해서 default가 saved를 덮어쓰지 않도록 할 것.
 - **divIcon `transform:scale()`은 레이아웃 변형 X**: 마커 크기를 진짜 줄이려면 `width/height/font-size`를 직접 곱해서 박을 것. 자세한 예시는 [TIL](./til/2026-05-04-leaflet-divicon-css-transform-scale.md).
@@ -195,6 +197,8 @@
 - **`markercluster`를 react-leaflet에 끼우는 법**: react-leaflet 5.0은 cluster 컴포넌트가 없다. `@react-leaflet/core`의 `createLayerComponent` + `createElementObject(group, extendContext(ctx, { layerContainer: group }))` 패턴이면 `<Marker>` 자식이 자동으로 cluster group에 attach된다 (LayerGroup 구현과 동일 메커니즘). `react-leaflet-cluster` 같은 3rd party 패키지 없이 8줄로 끝남.
 - **markercluster `disableClusteringAtZoom`은 "그 줌부터 cluster off"**: `disableClusteringAtZoom: 15` → 줌 ≥15에서 개별, <15에서 cluster. spec의 "줌 <15 cluster / 줌 ≥15 개별" 임계와 일치. 같은 임계가 P2.10 Top-3 dimming(BinMarker rank/dimmed)과 자연 정렬됨 — Top-3 강조는 줌 ≥15에서 마커가 풀려야 시각적으로 의미 있고, 그 이하 줌에서는 어차피 cluster bubble로 묶여 보이지 않음. README 문서가 "at this zoom level and below" 라고 적혀있으나 소스(`MarkerClusterGroup.js` `_generateInitialClusters`)는 `maxZoom = disableClusteringAtZoom - 1`로 맞춰 zoom ≥ X 에서만 클러스터링이 일어나지 않게 한다 (docs 문구는 misleading). `docs/snapshots/29-markercluster/zoom-13/14/15/16.png`로 4단계 시각 검증 보존.
 - **워크트리 별 dev 서버 포트 충돌은 캡처 결과를 통째로 망가뜨림**: 동일 머신에 여러 worktree가 있고 다른 워크트리의 dev 서버가 같은 포트(3001)를 점유 중이면, 우리 worktree에서 띄운 서버가 자동 fallback(3002)되거나 연결 실패하는데, 헛갈리면 여전히 3001로 navigate해서 **다른 worktree의 빌드를 검증하게 된다**. P3.1b 검증 시 `MarkerClusterGroup`이 안 붙어있다고 잘못 결론낼 뻔함. 디펜스: (1) 워크트리에서 dev 띄울 때 `PORT=3010 bun run dev`처럼 명시 포트, (2) `lsof -i :3001 -sTCP:LISTEN` + `ps aux | grep next.*dev`로 점유자가 우리 워크트리인지 확인, (3) 페이지 콘솔에서 `window.location.port` + `__map`의 layer 검증.
+- **transform.ts id 발번은 좌표 정렬 후 순차** (`<prefix>-<NNNN>`) — 새 통이 lat/lng 정렬 위치 사이에 끼면 뒷 통 id가 한 칸씩 밀려 hint(P4.3)·즐겨찾기(P2.14)·기타 id-keyed 메타데이터가 다른 통에 붙어버림(orphan). 공공 데이터 갱신은 연 1회 빈도라 수동 재키잉 5~10분으로 OK이지만, hint 50+ 또는 자동 transform CI 시 좌표 기반 stable id로 hardening 필요. P4.3 spec §10.1에 수용 명시.
+- **워크트리 부트스트랩에 `bun install` 빠지면 빌드만 실패하고 테스트는 통과**: vitest는 src/lib 순수 함수만 import해서 React/leaflet 의존성을 안 건드리는 반면, `bun run build`는 `leaflet.markercluster` 등을 실제 import 해 module-not-found로 fail. 워크트리 새로 만들었으면 build로 검증 전 항상 `ls node_modules/<key-pkg>` 한 번 확인. P4.3 작업 시 worktree에 `leaflet.markercluster` 미설치로 build 실패 → bun install 한 번에 복구.
 
 ---
 

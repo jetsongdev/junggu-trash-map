@@ -1,5 +1,5 @@
 ---
-index: 33
+index: 37
 slug: hud-rearrange
 date: 2026-05-07
 phase: "P2.23 + P2.18"
@@ -7,7 +7,7 @@ git_sha: 50ebd23
 viewport: 390x844
 ---
 
-# 33 — HUD 재배치 + 9 라운드 fix 누적
+# 37 — HUD 재배치 + 9 라운드 fix 누적
 
 P2.23 HUD 재배치 시작 → 9 라운드 점진적 fix가 같은 폴더에 누적된 가장 큰 시각 마일스톤. 둥근 pill에서 각진 HUD 스타일로 시각 언어 통일 + emoji → SVG 아이콘 + floating 컴포넌트 재배치 + 우하단 카드 토글 + 라이트/다크 양 테마. 마지막에 Codex review로 발견된 회귀(P2.18 카드 default 펼침 + 에러 미노출) 정리.
 

@@ -29,6 +29,7 @@ import { SearchBox } from '@/components/SearchBox';
 import { ShareButton } from '@/components/ShareButton';
 import type { TileTheme } from '@/components/Map';
 import { fetchDistrict, filterByTypes } from '@/lib/data';
+import { fetchHints, mergeHints } from '@/lib/hints';
 import {
   fetchDistrictsGeoJson,
   fetchManifest,
@@ -274,11 +275,15 @@ function PageContent() {
         }
 
         setActiveFetches((prev) => new Set([...prev, initialCode!]));
-        const data = await fetchDistrict(initialCode, m.version);
+        const [data, hintsFile] = await Promise.all([
+          fetchDistrict(initialCode, m.version),
+          fetchHints(initialCode),
+        ]);
         if (!active) return;
+        const merged = mergeHints(data, hintsFile.hints);
         setDistrictsCache((prev) => {
           const next = new Map<DistrictCode, TrashBin[]>(prev);
-          next.set(initialCode!, data);
+          next.set(initialCode!, merged);
           return next;
         });
         setActiveDistricts((prev) => new Set([...prev, initialCode!]));
@@ -342,15 +347,19 @@ function PageContent() {
         const handle = idle(async () => {
           if (cancelled) return;
           try {
-            const data = await fetchDistrict(d.code, manifest.version);
+            const [data, hintsFile] = await Promise.all([
+              fetchDistrict(d.code, manifest.version),
+              fetchHints(d.code),
+            ]);
             if (cancelled) return;
+            const merged = mergeHints(data, hintsFile.hints);
             setDistrictsCache((prev) => {
               const next = new Map<DistrictCode, TrashBin[]>(prev);
-              next.set(d.code, data);
+              next.set(d.code, merged);
               return next;
             });
             setActiveDistricts((prev) => new Set([...prev, d.code]));
-            showToast(`${d.name} ${data.length}개`, 1500);
+            showToast(`${d.name} ${merged.length}개`, 1500);
           } catch {
             // Mark terminal-failed so fullyLoaded can complete and overlay dismisses.
             // User can still pan to retry — handleCenterChange clears the flag.
@@ -703,10 +712,14 @@ function PageContent() {
 
       setActiveFetches((prev) => new Set([...prev, code]));
       try {
-        const data = await fetchDistrict(code, manifest.version);
+        const [data, hintsFile] = await Promise.all([
+          fetchDistrict(code, manifest.version),
+          fetchHints(code),
+        ]);
+        const merged = mergeHints(data, hintsFile.hints);
         setDistrictsCache((prev) => {
           const next = new Map<DistrictCode, TrashBin[]>(prev);
-          next.set(code, data);
+          next.set(code, merged);
           return next;
         });
         setActiveDistricts((prev) => new Set([...prev, code]));
@@ -717,7 +730,7 @@ function PageContent() {
           next.delete(code);
           return next;
         });
-        showToast(`${meta.name} ${data.length}개`, 1500);
+        showToast(`${meta.name} ${merged.length}개`, 1500);
       } catch {
         setFailedDistricts((prev) => new Set([...prev, code]));
       } finally {
