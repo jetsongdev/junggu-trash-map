@@ -57,6 +57,13 @@ import {
 } from '@/lib/savings';
 import { computeCycleState } from '@/lib/cycle-state';
 import {
+  HINT_DURATION_MS,
+  HINT_MESSAGES,
+  hasSeenHint,
+  markHintSeen,
+  type HintKey,
+} from '@/lib/first-use-hints';
+import {
   findTopDetours,
   findTopNearest,
   formatDistance,
@@ -533,6 +540,20 @@ function PageContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [manifest]);
 
+  const maybeShowHint = (key: HintKey) => {
+    if (typeof window === 'undefined') return;
+    if (hasSeenHint(key, window.localStorage)) return;
+    markHintSeen(key, window.localStorage);
+    showToast(HINT_MESSAGES[key], HINT_DURATION_MS);
+  };
+
+  // P2.19: origin+dest 동시 set 첫 진입 시 공유 버튼 힌트
+  useEffect(() => {
+    if (!userLocation || !destination) return;
+    maybeShowHint('share');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userLocation, destination]);
+
   // 에러는 collapsed/expanded 무관하게 카드 밖 토스트로 항상 노출.
   // GPS 권한 거부, 자치구 fetch 실패 등은 즉시 사용자에게 보여야 함.
   useEffect(() => {
@@ -584,7 +605,12 @@ function PageContent() {
 
   const handleToggleFavorite = (binId: string) => {
     vibrate(HAPTIC.SELECT);
-    setFavorites((prev) => toggleFavorite(prev, binId));
+    setFavorites((prev) => {
+      const next = toggleFavorite(prev, binId);
+      // P2.19: 첫 추가일 때만 안내 (제거에는 띄우지 않음)
+      if (next.size > prev.size) maybeShowHint('favorite');
+      return next;
+    });
   };
 
   const handleUseBin = (_binId: string, meters: number, seconds: number) => {
@@ -829,6 +855,7 @@ function PageContent() {
     if (compassMode === 'cone') {
       // gps+cone → gps+head-up
       setCompassMode('head-up');
+      maybeShowHint('headsUp');
       return;
     }
     // gps+head-up → off (전부 끄기)
@@ -968,7 +995,12 @@ function PageContent() {
               type="button"
               onClick={() => {
                 vibrate(HAPTIC.TAP);
-                setSpeedSliderOpen((prev) => !prev);
+                setSpeedSliderOpen((prev) => {
+                  const next = !prev;
+                  // P2.21: 슬라이더 첫 열림 시 안내
+                  if (next) maybeShowHint('speed');
+                  return next;
+                });
               }}
               aria-pressed={speedSliderOpen}
               aria-label={`보행 속도 ${formatKmh(walkingSpeed)}km/h. 클릭해 슬라이더 ${
@@ -1078,9 +1110,11 @@ function PageContent() {
             type="button"
             onClick={() => {
               vibrate(HAPTIC.TAP);
-              setDistanceMode((prev) =>
-                prev === 'euclidean' ? 'manhattan' : 'euclidean',
-              );
+              setDistanceMode((prev) => {
+                const next = prev === 'euclidean' ? 'manhattan' : 'euclidean';
+                if (next === 'manhattan') maybeShowHint('grid');
+                return next;
+              });
             }}
             aria-pressed={distanceMode === 'manhattan'}
             aria-label={distanceMode === 'manhattan' ? '격자 거리 (탭하면 직선)' : '직선 거리 (탭하면 격자)'}
