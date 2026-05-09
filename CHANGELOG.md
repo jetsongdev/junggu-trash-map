@@ -9,6 +9,8 @@
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-05-09
+
 ### Added
 - 휴지통 popup에 위치 힌트가 한 줄로 표시됩니다. 힌트는 **출처별로 시각이 다릅니다** — 운영자(curated)가 손으로 단 hint는 주소 위 primary 라인(`text-neutral-700`)으로 뜨고, Kakao Local API에서 자동 추출한 hint는 `📍 근처: <랜드마크>` 형식에 우측 끝 작은 ` · KAKAO` 라벨로 표시되어 검증된 사람 hint와 구분됩니다. 힌트가 없는 통은 기존과 동일하게 주소가 primary 그대로 — 빈 슬롯이 추가로 만들어지지 않습니다. 중구 첫 출시 9건(서소문·을지로입구·을지로6가·황학동 등)은 카카오 API 0~3m 반경 단일 랜드마크 케이스로 한정 (`public/data/hints/<district>.json`). 다른 자치구·중구 추가 통·운영자 curated hint는 점진적으로 채웁니다 (P4.3).
 
@@ -216,7 +218,8 @@
 - `~/.claude/skills/snapshot/` — 글로벌 스냅샷 스킬 (프레임워크 무관, config 기반)
 - `CLAUDE.md` — 세션 진입 가이드 (작업 큐 / 시각 히스토리 / CHANGELOG 포인터)
 
-[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.14.0...HEAD
+[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.15.0...HEAD
+[0.15.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.14.0...v0.15.0
 [0.14.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.13.0...v0.14.0
 [0.13.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.12.0...v0.13.0
 [0.12.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.11.0...v0.12.0
