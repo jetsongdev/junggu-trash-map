@@ -12,6 +12,11 @@
 ### Added
 - 우상단 🗺 칩으로 서울 25구 셀렉터 패널을 열 수 있습니다. 5x5 그리드에 모든 자치구가 지리 위치에 가깝게 배치되며, 데이터가 있는 7개 구는 sky 톤 + 휴지통 개수, 미발행 18개 구는 dim 처리됩니다. populated 구를 탭하면 그 구의 외곽 영역으로 부드럽게 이동하며 자동으로 마커가 로드되고, empty 구를 탭하면 "{자치구}는 아직 공공데이터가 발행되지 않았어요" 안내가 뜹니다 (P3.3).
 
+## [0.17.0] - 2026-05-09
+
+### Added
+- 보행 속도 슬라이더를 열면 우측 `km/h` 아래에 예상 시간이 한 줄로 함께 뜹니다(예: `4 km/h` / `가까운 통 약 2분 16초`). 슬라이더를 끌면 ETA가 같이 갱신돼 속도 결정에 필요한 정보가 한 시야 안에 모입니다. 출발+목적지가 모두 설정되면 경유 경로 ETA로, 출발(또는 GPS)만 있으면 가장 가까운 통 ETA로 자동 전환됩니다. 후보가 없을 때(GPS·목적지 미설정)는 ETA 줄이 표시되지 않아 패널 높이가 그대로 유지됩니다. 스크린리더는 `aria-live="polite"`로 시간 변화를 announce 합니다.
+
 ## [0.16.0] - 2026-05-09
 
 ### Changed
@@ -253,7 +258,8 @@
 - `~/.claude/skills/snapshot/` — 글로벌 스냅샷 스킬 (프레임워크 무관, config 기반)
 - `CLAUDE.md` — 세션 진입 가이드 (작업 큐 / 시각 히스토리 / CHANGELOG 포인터)
 
-[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.16.0...HEAD
+[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.17.0...HEAD
+[0.17.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.16.0...v0.17.0
 [0.16.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.15.0...v0.16.0
 [0.15.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.14.0...v0.15.0
 [0.14.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.13.0...v0.14.0
