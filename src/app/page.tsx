@@ -1305,10 +1305,10 @@ function PageContent() {
             <div
               className={
                 toast.variant === 'error'
-                  ? 'max-w-sm rounded-2xl bg-red-600/85 px-6 py-4 text-center text-sm font-semibold text-white shadow-2xl ring-1 ring-red-300/70 backdrop-blur-lg'
+                  ? 'max-w-sm rounded-2xl bg-red-500/40 px-6 py-4 text-center text-sm font-semibold text-white shadow-lg ring-1 ring-white/30 backdrop-blur-xl'
                   : toast.variant === 'emphatic'
-                    ? 'max-w-sm rounded-2xl bg-emerald-600/85 px-6 py-4 text-center text-sm font-semibold text-white shadow-2xl ring-1 ring-emerald-300/70 backdrop-blur-lg'
-                    : 'max-w-sm rounded-2xl bg-white/70 px-6 py-4 text-center text-sm text-neutral-900 shadow-2xl ring-1 ring-neutral-300/70 backdrop-blur-lg dark:bg-neutral-900/70 dark:text-neutral-50 dark:ring-neutral-700/60'
+                    ? 'max-w-sm rounded-2xl bg-emerald-500/40 px-6 py-4 text-center text-sm font-semibold text-white shadow-lg ring-1 ring-white/30 backdrop-blur-xl'
+                    : 'max-w-sm rounded-2xl bg-white/35 px-6 py-4 text-center text-sm font-medium text-neutral-900 shadow-lg ring-1 ring-white/40 backdrop-blur-xl dark:bg-neutral-900/35 dark:text-neutral-50 dark:ring-neutral-700/40'
               }
             >
               {toast.variant === 'error' && <span aria-hidden className="mr-1.5">⚠</span>}
