@@ -42,24 +42,24 @@ P3.2에서 `<MapMoveHandler>` panning auto-add가 들어가 있어 사용자가 
 - 트리거 아래로 floating, `mt-1`
 - 5x5 grid (`grid grid-cols-5`), 칸 크기 ~44px (모바일 터치타겟)
 - 자치구 한 칸 = `<button>` (자치구명 한 줄 + 옵션 binCount)
-- 빈 셀 (grid 두 칸): 빈 div placeholder
+- 빈 셀 없음 (25구 / 25칸)
 
 **셀 상태:**
 - **populated** (`binCount > 0`): 색 fill (다크 = sky-600/30, 라이트 = sky-100), 자치구명 + binCount
 - **empty** (`binCount === 0`): 다크 = neutral-800 / 라이트 = neutral-200 dim, 자치구명만, opacity 70%
 - **viewing** (현재 지도 center가 속한 구): ring-2 ring-amber-400 강조 (모드별 색과 충돌 안 하는 선택)
 
-### 4.3 5x5 그리드 매핑 (1차안)
+### 4.3 5x5 그리드 매핑
 
 ```
-| 도봉   | 노원   | 강북   | 성북   | -      |
-| 은평   | 종로   | 동대문 | 중랑   | 광진   |
-| 서대문 | 중구   | 용산   | 성동   | -      |
-| 마포   | 영등포 | 동작   | 강남   | 강동   |
+| 도봉   | 노원   | 강북   | 성북   | 중랑   |
+| 은평   | 종로   | 동대문 | 광진   | 강동   |
+| 서대문 | 중구   | 용산   | 성동   | 송파   |
+| 마포   | 영등포 | 동작   | 서초   | 강남   |
 | 강서   | 양천   | 구로   | 금천   | 관악   |
 ```
 
-빈 칸 2개. 정확한 서울 cartogram은 아니지만 서울 모양 인지는 가능.
+25구 전체 / 빈 칸 0. 정확한 서울 cartogram은 아니지만 (중랑·송파는 한 칸씩 어긋남) 서울 모양 근사 인지는 가능.
 
 > 구현 노트: 매핑 변경 가능성 있으니 상수로 추출 (`src/lib/district-grid.ts`).
 
@@ -125,8 +125,8 @@ type Props = {
 ### 단위 (vitest)
 - `getDistrictForCell` / `getCellForDistrict` round-trip
 - `boundsForDistrict`: bbox `[126.965, 37.546, 127.02, 37.575]` → `[[37.546, 126.965], [37.575, 127.02]]`
-- 25구 모두 grid에 매핑됨 (검증 테스트로 강제)
-- empty cell 좌표 (row, col) → null 반환
+- 25구 모두 grid에 매핑됨 (검증 테스트로 강제 — 25구 / 25칸 / 빈 칸 0)
+- 그리드 범위 밖 (row/col 음수, ≥5) → `getDistrictForCell` null 반환
 
 ### E2E (수동, dev)
 1. 칩 탭 → 패널 열림
@@ -145,7 +145,7 @@ type Props = {
 ## 9. 함정 후보
 
 - **flyToBounds maxZoom 누락** — 작은 자치구에서 줌 17까지 들어가 markercluster 풀려 끊김. `{ maxZoom: 15 }` 필수.
-- **5x5 grid 좌표 매핑 hard-coded** — 서울 25구 정렬은 사람이 결정해야 함 (centroid 기준 자동 생성하면 어색한 칸 발생). 수정 가능성 위해 상수로 분리.
+- **5x5 grid 좌표 매핑 hard-coded** — 서울 25구 정렬은 사람이 결정 (centroid 기준 자동 생성하면 어색한 칸 발생). 수정 가능성 위해 상수로 분리. 1차안에서 중랑(row 1)·송파(row 3)가 지리상 한 칸씩 어긋나지만 빈 칸 회피를 우선.
 - **viewing district 표시 깜빡임** — `mapCenter`가 moveend에서 갱신되므로 fly 애니메이션 중에는 viewingDistrict가 출발지 → 도착지로 한 번에 점프. 깜빡임 없음. 단 panning 도중 polygon 경계 통과 시 ring이 깜빡일 수 있음 — 무시 가능.
 - **panel open localStorage 미적용** — 의도. 모바일 화면 점유 우려, 매 세션 닫힘 default가 자연.
 - **트리거 색 충돌** — amber(즐겨찾기)·sky(거리)·violet(나침반) 사용 중. 신규 칩은 slate/teal 채택해 시각 충돌 회피.
