@@ -5,7 +5,7 @@
 
 ## 현재 상태 (2026-05-09)
 
-- **Phase**: 3 마무리 + Phase 4 data 한 칸. P3.1a/b 머지(802 bins 클러스터링), P3.2 7개 자치구 데이터, P3.1c는 obsolete. P2.20 색맹 친화 거리선 v0.14.0 / P4.3 위치 힌트 v0.15.0 / P2.22+P2.23 모바일 툴바·HUD v0.16.0 / P2.24 ETA 인라인 v0.17.0 / P3.3 25구 셀렉터 그리드 v0.18.0 / **P2.19+P2.21 첫-사용 힌트 5종 PR #38 진행 중** (share/favorite/headsUp/grid/speed + loading toast sequencing) / **P3.4 자치구 폴리곤 outline merged** (viewing district outline + 중앙 라벨, light/dark/selector-open 3장 캡처). **I.6 a11y 1차 + P3.3-fix1 empty-toast 스냅샷 merged** (axe 0 violations / 42 passes — region landmark + destination aria-label 정리 2건). **I.6 a11y 2차 완료** (focus-visible ring 공통화, `=`/`-` 키보드 지도 zoom, Leaflet 마커/클러스터 스크린리더 라벨, prefers-reduced-motion에서 fly/zoom·pulse/spin 감속). **I.7 release prebump running** (prebump on PR + finalize `release:*` 라벨 게이트 운영). 다음 후보: P4.1(타 종류 통).
+- **Phase**: 3 마무리 + Phase 4 data 한 칸 + I.6 a11y 라운드 2차 완료. P3.1a/b 머지(802 bins 클러스터링), P3.2 7개 자치구 데이터, P3.1c는 obsolete. P2.20 색맹 친화 거리선 v0.14.0 / P4.3 위치 힌트 v0.15.0 / P2.22+P2.23 모바일 툴바·HUD v0.16.0 / P2.24 ETA 인라인 v0.17.0 / P3.3 25구 셀렉터 그리드 v0.18.0 / **P2.19+P2.21 첫-사용 힌트 5종 PR #38 진행 중** (share/favorite/headsUp/grid/speed + loading toast sequencing) / **P3.4 자치구 폴리곤 outline merged** (viewing district outline + 중앙 라벨, light/dark/selector-open 3장 캡처). **I.6 a11y 1차 + P3.3-fix1 empty-toast 스냅샷 merged** (axe 0 violations / 42 passes — region landmark + destination aria-label 정리 2건). **I.6 a11y 2차 완료** (focus-visible ring 공통화, `=`/`-` 키보드 지도 zoom, Leaflet 마커/클러스터 스크린리더 라벨, prefers-reduced-motion에서 fly/zoom·pulse/spin 감속). **I.7 release prebump 운영 중** (prebump on PR + finalize `release:*` 라벨 게이트 운영). 다음 후보: P4.1(타 종류 통).
 - **사용자 환경 영속화** (`localStorage`): `distanceMode` (직선/격자), `tileTheme` (다크/라이트, **빈 값일 때 시스템 prefers-color-scheme 자동 감지**), `walkingSpeed` (km/h, 2~7 step 0.5), `favorites` (즐겨찾기 bin id), `savings` (누적 보행거리·시간·횟수)
 - **마커 색**: 일반 `#60a5fa` (blue-400), 재활용 `#34d399` (emerald-400), 혼합 `#c084fc` (violet-400) — 라이트/다크 양 타일에서 균형
 - **Roadmap 확장**: Phase 3 (25개 구) · Phase 4 (데이터 확장: 타 종류 통/사용자 제보/사진) · Phase 5 (실제 보행 경로 + TTS) · 인프라/품질 cross-cutting (i18n 남음)
@@ -14,7 +14,7 @@
 - **Dev**: `bun run dev` → http://localhost:3000 (점유 시 자동 3001)
 - **Build**: `bun run build` 통과
 - **Deploy**: `git push` → 자동 Vercel build → https://junggu-trash-map.vercel.app (16~22초). 수동 `vercel deploy`는 hotfix 시에만
-- **Release**: 현재 `v0.17.0`. PR에 `release:patch/minor/major` 라벨을 붙이면 `.github/workflows/version-bump.yml`이 PR head에 `chore(release): vX.Y.Z (PR #N)` prebump commit을 미리 붙이고, main merge 후 merge commit에 annotated tag + GitHub Release + PR 코멘트를 생성한다. 기존 **Vercel Ignored Build Step** guard는 Mr. Song이 수동 제거해야 한다. 정책 본체는 `CLAUDE.md` `## Release`. 라벨 없으면 skip (인프라·docs PR은 그대로)
+- **Release**: 현재 `v0.19.1`. PR에 `release:patch/minor/major` 라벨을 붙이면 `.github/workflows/version-bump.yml`이 PR head에 `chore(release): vX.Y.Z (PR #N)` prebump commit을 미리 붙이고, main merge 후 merge commit에 annotated tag + GitHub Release + PR 코멘트를 생성한다. Vercel Ignored Build Step은 `.md only skip` 가드로 운영한다. 정책 본체는 `CLAUDE.md` `## Release`. 라벨 없으면 skip (인프라·docs PR은 그대로)
 - **PWA**: `app/manifest.ts` + 동적 `icon.tsx`/`apple-icon.tsx` (next/og), iOS 풀스크린 메타 — Safari "홈 화면에 추가"로 풀스크린
 - **Data**: `public/data/seoul-manifest.json` (25구 메타, version `2026-05-05`) + `public/data/seoul-districts.geojson` (25구 폴리곤, ~56KB) + `public/data/districts/<code>.json` (**7개 자치구 802 그룹**: 중구 59 / 서초 83 / 중랑 27 / 성북 119 / 마포 198 / 구로 188 / 노원 128). 18개 구는 `binCount: 0` 자리 표시자 (공공데이터 미발행).
 - **Geolocation**: `watchPosition` 실시간 + Haversine/Manhattan `findNearest`/`findOptimalDetour` + sky/cyan 점선. 출발 + 목적지 모두 set 시 경유 휴지통 detour 알고리즘
@@ -66,9 +66,12 @@
 - [x] **P2.5** URL 쿼리스트링 공유 — 영문 alias(`general,recycle`) 기반 `types/theme/mode/speed/origin/dest` URL을 우선 적용하고, 현재 필터·환경·좌표 상태를 공유 링크로 복사/공유
 - [x] **P2.13** 방향 화살표 — `deviceorientation` 기반 부채꼴 cone (60°) + 🧭 토글 칩 opt-in. iOS는 `requestPermission`, Android는 즉시 시작. `webkitCompassHeading` 우선, fallback `(360 - alpha) % 360`. 권한 거부 시 칩 비활성화. 헤드업 모드(P2.13b)는 지도 자체를 사용자 시선 방향으로 회전 (`leaflet-rotate@0.2.8`).
 - [x] **P2.9** 보행 속도 사용자 정의 km/h — cycle 칩 → 슬라이더(2~7 km/h, 0.5 step). 칩 클릭으로 슬라이더 panel 토글, emoji는 임계 자동(🐢/🚶/🏃). URL/localStorage 호환 (legacy preset 'slow'/'normal'/'fast' → 3/4/5).
+- [x] **I.1** 테스트 인프라 — vitest 도입, `lib/geo.ts`·`lib/eta.ts`·`lib/url-share.ts` 순수 함수 59개 커버
 - [x] **I.2** 에러 모니터링 — Sentry 연동, production-only 초기화, geolocation/fetch 에러 캡처, global-error 추가
 - [x] **I.3** Lighthouse CI — PR마다 PWA/접근성/성능 점수 회귀 차단
+- [x] **I.7** 릴리스 자동화 prebump on PR — `.github/workflows/version-bump.yml` 도입, `release-on-merge.yml` 폐기. `release:patch|minor|major` 라벨이 붙은 PR이 open/sync/label 시점에 PR head로 `chore(release): vX.Y.Z (PR #N)` commit을 force-push (멱등, main 기준 version 재계산으로 동시 PR race 회피). squash merge 1회에 사용자 변경 + version bump가 함께 들어가 prod에 footer 버전이 즉시 반영됨. main merge 후 finalize job이 `merge_commit_sha` 기준으로 annotated tag + GitHub Release + PR 코멘트만 추가 (rebuild 없음). `scripts/bump-version.ts` 인터페이스·vitest 17개 그대로 재활용. Vercel Ignored Build Step은 `.md only skip` 가드로 교체 운영. 첫 cut: v0.18.1 (PR #37).
 - [x] **P2.14** 즐겨찾기 — popup ☆/★ 토글로 휴지통 표시, 칩 필터로 즐겨찾기만 보기. localStorage `favorites` 영속화 (comma-separated id), `lib/favorites.ts` 순수 함수 + vitest 13개
+- [x] **P2.18** 통계바 정보 분리 — `locateError`/`error`를 우하단 카드(접힘 시 숨겨짐) 안에서 빼서 빨간 토스트(`variant: 'error'`, role=alert, ⚠ prefix, 6초)로 렌더. 통계바(우하단 카드 펼침 영역)는 route/savings 등 성공 상태만 표시. P2.23-fix5 status overlay 통합 후 발견된 회귀(접힘 시 에러 미노출)와 함께 한 라운드에 처리. (UX U4)
 - [x] **P2.20** Top-N 거리선 시각 분리 — rank 1 굵은 실선(weight 4) / rank 2 대시(`8 6` weight 3) / rank 3 도트(`3 5` weight 2.5). `DISTANCE_LINE_STYLE`에 옵셔널 `dashArray` 필드 추가, 라이트는 **blue-800 `#1e40af` 단일 톤**(sky 마커류와 hue 분리), 다크는 P2.11 sky 톤 유지. `RouteLine`도 `tileTheme` prop 받아 rank 1 색 따라가면서 **실선화** → destination 모드에서도 색 일관 + candidate(dash/dot)와 패턴 분리. 색맹·소화면 가독성 보강(I.6 a11y 일부 흡수). snapshot `31-topn-distance-pattern/`(1차) → `32-topn-light-slate-polish/`(slate 시도) → `33-topn-deep-blue-final/`(최종, light·dark·destination 3장).
 
 ### Phase 3 — 25개 구 확장
@@ -91,6 +94,9 @@
 ### Phase 4 — 데이터 확장
 - [x] **P4.3** 위치 힌트 텍스트 — 사진 원안 폐기. 운영자가 카카오·Naver 보면서 손으로 단 한 줄(≤80자) 큐레이션 텍스트로 재정의. `public/data/hints/<district>.json` 별도 파일(`{ version, hints: { binId: text } }`) + 자치구별 lazy fetch (`lib/hints.ts`의 `fetchHints` 404·네트워크 에러 EMPTY fallback) + `mergeHints` 순수 immutable 머지로 `TrashBin.locationHint?: string` 런타임 주입. transform.ts와 격리 — 데이터 갱신 시 hint 안 사라짐. BinPopup: hint 있으면 주소 위 primary(text-neutral-700, sm) + 주소가 secondary(text-neutral-500, xs)로 후퇴, 없으면 현 상태 유지(빈 placeholder 안 만듦). 출시는 hints 빈 객체로 ship — 운영자가 카카오맵 검증 후 점진적 추가. 분업 구조: A(types+lib/hints+test) · B(BinPopup) · C(시드 인프라) 완전 병렬 / D(page.tsx 통합 3 site) · E(snapshot+docs) 통합 단계. snapshot `34-location-hint/` 4장은 dev 세션에서 placeholder 시드로 캡처 — 시각 검증 기록용. spec/plan: `docs/superpowers/specs/2026-05-08-...` & `docs/superpowers/plans/2026-05-08-...`.
 
+### 실험적 (선택)
+- [x] **X.1** "오늘 절약한 보행거리/시간" 누적 — 휴지통 팝업의 `✓ 사용`으로 추가 거리·시간·횟수를 localStorage에 누적하고 통계 바에 표시. 분리수거 동기부여
+
 ---
 
 ## 🔜 Open — Phase 2 잔여 (nice-to-have)
@@ -100,6 +106,8 @@
 - [ ] **P2.3** 클러스터링 — `leaflet.markercluster`. 마커 100+ 시 lag 방지. **25구 확장(Phase 3) 전엔 ø**
 - [x] **P2.18** 통계바 정보 분리 — `locateError`/`error`를 우하단 카드(접힘 시 숨겨짐) 안에서 빼서 빨간 토스트(`variant: 'error'`, role=alert, ⚠ prefix, 6초)로 렌더. 통계바(우하단 카드 펼침 영역)는 route/savings 등 성공 상태만 표시. P2.23-fix5 status overlay 통합 후 발견된 회귀(접힘 시 에러 미노출)와 함께 한 라운드에 처리. (UX U4)
 - [x] **P2.19+P2.21** 첫-사용 힌트 5종 — share(origin+dest 동시 set) / favorite(첫 ☆ 추가) / headsUp(cone→head-up 전환) / grid(euclidean→manhattan) / speed(슬라이더 첫 열림) 5개를 `localStorage hint:<key>` 게이트로 1회씩 노출. 4초 info 토스트 (기본 1.8s vs error 6s 사이). `lib/first-use-hints.ts` 순수 함수 4개 + vitest 8개. page.tsx에 `maybeShowHint(key)` 헬퍼 + 5 트리거 wiring(useEffect 1, 핸들러 4)
+- P2.19 원안: hidden feature 발견 경로 — origin+dest 동시 set 시 공유 버튼 힌트, ☆/헤드업/격자 첫 사용 시 안내 (UX U5+U8)
+- P2.21 원안: 보행 속도 슬라이더 초기 안내 — 슬라이더 첫 토글 시 "현재 4 km/h (통상 보행)" 힌트 (UX U9)
 - [ ] **P2.24** Liquid Glass 디자인 언어 — Apple iOS/iPadOS 26 Liquid Glass 시각 언어를 floating HUD/우하단 카드/메뉴 칩에 반영. 핵심: heavy backdrop-blur(`backdrop-blur-xl ~24px`) + `backdrop-saturate-150~180` + 내부 highlight gradient(상단 lighter / 하단 darker) + 외부 soft shadow + 미세 lensing(가능하면 SVG turbulence, 성능 비싸면 CSS만). 다크/라이트 양 테마에서 마커 가독성 + Lighthouse perf ≥0.62 유지. 참고: [WidgetKit Liquid Glass](https://github.com/artemnovichkov/xcode-26-system-prompts/blob/main/AdditionalDocumentation/WidgetKit-Implementing-Liquid-Glass-Design.md) · [Apple TechnologyOverviews — Liquid Glass](https://developer.apple.com/documentation/TechnologyOverviews/liquid-glass) · [Adopting Liquid Glass](https://developer.apple.com/documentation/TechnologyOverviews/adopting-liquid-glass). 적용 대상: 좌상단 필터 박스 / 우상단 모드 stack / 메뉴 한 줄 칩 / 우하단 status 카드 / 검색박스 / 토스트.
 
 ---
@@ -132,18 +140,10 @@
 
 특정 Phase에 종속되지 않는 품질·관측·국제화 작업.
 
-- [x] **I.1** 테스트 인프라 — vitest 도입, `lib/geo.ts`·`lib/eta.ts`·`lib/url-share.ts` 순수 함수 59개 커버
 - [ ] **I.4** i18n (en/ja/zh) — `next-intl`. 명동·남대문 외국인 관광객 시나리오
 - [ ] **I.6** a11y 라운드 — 색맹 친화 패턴(굵기/대시 보강은 P2.20에 포함), aria-label 점검, 키보드 탐색, 빈 자치구(미발행 18구) `aria-label` 명시
   - [x] **I.6-1차** axe-core baseline (4.10.2, wcag2a+aa+21+best-practice) → 1 moderate violation(검색·필터 `<section>` aria-label 누락) + destination 버튼 aria-label에 P2.23에서 빠진 1️⃣/2️⃣ 시각 뱃지가 음성으로 잔존하던 1건 surgical fix. axe 0 violations / 42 passes. 패널 오픈 상태도 0 violations. DistrictSelector grid 키보드(Tab + focus ring + Esc + outside-click)는 P3.3에서 이미 만족. 미발행 18구 aria-label("{name} 공공데이터 미발행")도 P3.3에서 이미 명시됨 — 이번 라운드 추가 변경 없음.
   - [x] **I.6-2차** 키보드 forward/back focus ring + motion-reduce — HUD/검색/팝업/셀렉터/필터/공유/상태 토글에 공통 `focus-visible` 링 적용, Leaflet 마커 focus outline 추가, `=` 확대 / `-` 축소 키보드 shortcut 추가(입력창 focus 중에는 무시), 마커/클러스터 accessible name을 위치명·"휴지통 N개 그룹"으로 정리. `prefers-reduced-motion`에서 Leaflet fly/zoom/pan animation은 즉시 이동으로 대체하고, user/highlight pulse·spinner/pulse·cone transition을 감속. snapshot: `docs/snapshots/2026-05-09/i6-a11y-focus-ring.png`, `i6-a11y-shift-tab-ring.png`.
-- [x] **I.7** 릴리스 자동화 prebump on PR — `.github/workflows/version-bump.yml` 도입, `release-on-merge.yml` 폐기. `release:patch|minor|major` 라벨이 붙은 PR이 open/sync/label 시점에 PR head로 `chore(release): vX.Y.Z (PR #N)` commit을 force-push (멱등, main 기준 version 재계산으로 동시 PR race 회피). squash merge 1회에 사용자 변경 + version bump가 함께 들어가 prod에 footer 버전이 즉시 반영됨. main merge 후 finalize job이 `merge_commit_sha` 기준으로 annotated tag + GitHub Release + PR 코멘트만 추가 (rebuild 없음). `scripts/bump-version.ts` 인터페이스·vitest 17개 그대로 재활용. Vercel Ignored Build Step은 `.md only skip` 가드로 교체 운영. 첫 cut: v0.18.1 (PR #37).
-
----
-
-## 🎮 Open — 실험적 (선택)
-
-- [x] **X.1** "오늘 절약한 보행거리/시간" 누적 — 휴지통 팝업의 `✓ 사용`으로 추가 거리·시간·횟수를 localStorage에 누적하고 통계 바에 표시. 분리수거 동기부여
 
 ---
 
