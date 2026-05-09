@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { TileTheme } from '@/components/Map';
+import { FOCUS_VISIBLE_CLASS } from '@/lib/a11y';
 import { getDistrictGridRows } from '@/lib/district-grid';
 import { HAPTIC, vibrate } from '@/lib/haptic';
 import type { DistrictCode, DistrictMeta, Manifest } from '@/lib/types';
@@ -15,13 +16,13 @@ type Props = {
 };
 
 const TRIGGER_BASE =
-  'relative flex h-11 w-11 shrink-0 items-center justify-center rounded-md px-2 text-base font-medium transition ring-1';
+  `relative flex h-11 w-11 shrink-0 items-center justify-center rounded-md px-2 text-base font-medium transition ring-1 ${FOCUS_VISIBLE_CLASS}`;
 const TRIGGER_INACTIVE =
   'bg-white/95 text-neutral-700 ring-neutral-300 hover:bg-white dark:bg-neutral-900/95 dark:text-neutral-200 dark:ring-neutral-700 dark:hover:bg-neutral-800';
 const TRIGGER_ACTIVE =
   'bg-teal-500/15 text-teal-700 ring-teal-500 shadow-sm dark:bg-teal-400/15 dark:text-teal-200 dark:ring-teal-400';
 const CELL_BASE =
-  'flex h-11 w-11 flex-col items-center justify-center rounded-md text-[10px] font-semibold leading-none transition ring-1 focus:outline-none focus:ring-2 focus:ring-teal-400';
+  `flex h-11 w-11 flex-col items-center justify-center rounded-md text-[10px] font-semibold leading-none transition ring-1 ${FOCUS_VISIBLE_CLASS}`;
 const POPULATED_CELL =
   'bg-sky-100 text-sky-900 ring-sky-300 hover:bg-sky-200 dark:bg-sky-600/30 dark:text-sky-100 dark:ring-sky-500/40 dark:hover:bg-sky-600/45';
 const EMPTY_CELL =

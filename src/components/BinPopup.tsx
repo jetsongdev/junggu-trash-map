@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { FOCUS_VISIBLE_CLASS } from '@/lib/a11y';
 import { HAPTIC, vibrate } from '@/lib/haptic';
 import type { TrashBin } from '@/lib/types';
 import { TYPE_STYLE, styleFor } from '@/lib/types';
@@ -41,7 +42,7 @@ export function BinPopup({ bin, isFavorite = false, onToggleFavorite, onUse }: P
             onClick={() => onToggleFavorite(bin.id)}
             aria-pressed={isFavorite}
             aria-label={isFavorite ? '즐겨찾기 해제' : '즐겨찾기 추가'}
-            className={`rounded-full px-2 py-1 text-lg leading-none transition ${
+            className={`rounded-full px-2 py-1 text-lg leading-none transition ${FOCUS_VISIBLE_CLASS} ${
               isFavorite ? 'text-amber-500' : 'text-neutral-300 hover:text-amber-400'
             }`}
           >
@@ -53,7 +54,7 @@ export function BinPopup({ bin, isFavorite = false, onToggleFavorite, onUse }: P
             type="button"
             onClick={handleUse}
             aria-label="이 휴지통 사용 기록"
-            className={`rounded-full px-2 py-1 text-xs font-semibold transition ${
+            className={`rounded-full px-2 py-1 text-xs font-semibold transition ${FOCUS_VISIBLE_CLASS} ${
               usedFlash
                 ? 'bg-emerald-500 text-white'
                 : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'

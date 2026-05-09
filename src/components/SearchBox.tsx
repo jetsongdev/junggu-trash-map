@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { FOCUS_VISIBLE_CLASS } from '@/lib/a11y';
 import { HAPTIC, vibrate } from '@/lib/haptic';
 import type { NominatimResult } from '@/lib/search';
 
@@ -165,7 +166,7 @@ export function SearchBox({ onSelect, tapMode, onDropdownChange }: Props) {
               ? '목적지 주소·랜드마크 검색'
               : '주소·랜드마크 검색'
         }
-        className="min-h-[44px] w-full rounded-2xl border border-neutral-200 bg-white px-4 pr-12 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-500 focus:border-neutral-400 focus:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:placeholder:text-neutral-500 dark:focus:border-neutral-500 dark:focus:bg-neutral-800"
+        className={`min-h-[44px] w-full rounded-2xl border border-neutral-200 bg-white px-4 pr-12 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-500 focus:border-neutral-400 focus:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:placeholder:text-neutral-500 dark:focus:border-neutral-500 dark:focus:bg-neutral-800 ${FOCUS_VISIBLE_CLASS}`}
         autoComplete="off"
         spellCheck={false}
       />
@@ -193,7 +194,7 @@ export function SearchBox({ onSelect, tapMode, onDropdownChange }: Props) {
                 key={result.place_id}
                 type="button"
                 onClick={() => handleSelect(result)}
-                className="flex min-h-[44px] w-full items-start gap-3 border-t border-neutral-100 px-4 py-3 text-left text-sm text-neutral-900 first:border-t-0 hover:bg-neutral-100 dark:border-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-800"
+                className={`flex min-h-[44px] w-full items-start gap-3 border-t border-neutral-100 px-4 py-3 text-left text-sm text-neutral-900 first:border-t-0 hover:bg-neutral-100 dark:border-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-800 ${FOCUS_VISIBLE_CLASS}`}
               >
                 <span aria-hidden className="pt-0.5 text-neutral-500 dark:text-neutral-400">
                   📍

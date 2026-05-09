@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import '@/lib/leaflet-globals';
 import 'leaflet-rotate/dist/leaflet-rotate.js';
+import L from 'leaflet';
 import {
   CircleMarker,
   MapContainer,
@@ -17,6 +18,7 @@ import { DestinationMarker } from './DestinationMarker';
 import { DistrictOutline } from './DistrictOutline';
 import { MarkerClusterGroup } from './MarkerClusterGroup';
 import { UserMarker } from './UserMarker';
+import { clusterMarkerLabel, prefersReducedMotion } from '@/lib/a11y';
 import type { DistrictsGeoJson } from '@/lib/point-in-district';
 import type { DistrictCode } from '@/lib/types';
 import {
@@ -86,6 +88,18 @@ type Props = {
 
 const JUNGGU_CENTER: [number, number] = [37.5635, 126.987];
 
+function createClusterIcon(cluster: L.MarkerCluster): L.DivIcon {
+  const count = cluster.getChildCount();
+  const size = count < 10 ? 'small' : count < 100 ? 'medium' : 'large';
+  const label = clusterMarkerLabel(count);
+
+  return L.divIcon({
+    html: `<div><span aria-hidden="true">${count}</span><span class="sr-only">${label}</span></div>`,
+    className: `marker-cluster marker-cluster-${size}`,
+    iconSize: L.point(40, 40),
+  });
+}
+
 function MapReadyHandler({ onReady }: { onReady: (map: LeafletMap) => void }) {
   const map = useMap();
   useEffect(() => {
@@ -98,7 +112,12 @@ function PanToUser({ target }: { target: LatLng | null | undefined }) {
   const map = useMap();
   useEffect(() => {
     if (!target) return;
-    map.flyTo([target.lat, target.lng], Math.max(map.getZoom(), 16), {
+    const zoom = Math.max(map.getZoom(), 16);
+    if (prefersReducedMotion()) {
+      map.setView([target.lat, target.lng], zoom, { animate: false });
+      return;
+    }
+    map.flyTo([target.lat, target.lng], zoom, {
       duration: 0.6,
     });
   }, [map, target]);
@@ -250,6 +269,7 @@ export function Map({
     highlights.map((bin, index) => [bin.id, (index + 1) as 1 | 2 | 3]),
   );
   const hasCandidates = highlights.length > 0;
+  const reduceMotion = prefersReducedMotion();
 
   const handleUse = (bin: TrashBin) => {
     if (!onUse || !userLocation) return;
@@ -282,6 +302,10 @@ export function Map({
       zoom={14}
       scrollWheelZoom
       zoomControl={false}
+      fadeAnimation={!reduceMotion}
+      markerZoomAnimation={!reduceMotion}
+      zoomAnimation={!reduceMotion}
+      inertia={!reduceMotion}
       style={{ height: '100%', width: '100%' }}
       {...({ rotate: true, rotateControl: false, touchRotate: false, bearing: 0 } as object)}
     >
@@ -306,6 +330,7 @@ export function Map({
         spiderfyOnMaxZoom={false}
         showCoverageOnHover={false}
         chunkedLoading
+        iconCreateFunction={createClusterIcon}
       >
         {bins.map((bin) => {
           const rank = highlightRanks.get(bin.id);
