@@ -1074,6 +1074,13 @@ function PageContent() {
           walkingSpeed={walkingSpeed}
           onUse={handleUseBin}
           onMapReady={onMapReady}
+          viewingDistrict={viewingDistrict}
+          viewingDistrictName={
+            viewingDistrict && manifest
+              ? findDistrictMeta(manifest, viewingDistrict)?.name ?? null
+              : null
+          }
+          districtsGeo={districtsGeo}
         />
         {/* 좌상단: 거리모드 (직선/격자) 단독 */}
         <div className={`absolute left-2 top-2 z-[1000] p-1.5 ${hudFloatingGroup}`}>

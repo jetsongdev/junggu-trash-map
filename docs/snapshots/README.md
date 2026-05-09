@@ -46,6 +46,7 @@
 | 38 | 2026-05-09 | ✅ P2.22 + P2.23 branch final — mobile light/dark + iPad scroll lock 검수 | [38-p222-p223-final](./38-p222-p223-final/) |
 | 39 | 2026-05-09 | 🚶 속도 슬라이더 우측에 ETA 인라인 프리뷰 — `km/h` 아래 "가까운 통 약 2분" 한 줄 (with·without 2장) | [39-speed-slider-eta-preview](./39-speed-slider-eta-preview/) |
 | 40 | 2026-05-09 | 🗺 25구 셀렉터 그리드 — 우상단 🗺 칩 → 5x5 grid (populated/empty 시각 분리, P3.3) | [40-district-selector](./40-district-selector/) |
+| 41 | 2026-05-09 | 🟡 자치구 폴리곤 outline — viewing district amber dashed (light/dark/selector-open 3장, P3.4) | [41-district-outline](./41-district-outline/) |
 
 ## 새 스냅샷 찍는 법
 
