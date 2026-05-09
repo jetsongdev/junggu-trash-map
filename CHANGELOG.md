@@ -9,6 +9,9 @@
 
 ## [Unreleased]
 
+### Infrastructure
+- 릴리스 자동화가 라벨 달린 PR branch에서 version/CHANGELOG prebump commit을 먼저 만들고, main merge 후에는 merge commit 기준 tag/GitHub Release/PR 코멘트만 생성합니다. squash merge 1회로 사용자 변경 + version bump가 함께 prod에 반영돼 footer 버전이 즉시 갱신됩니다. Vercel Ignored Build Step은 `.md only skip` 가드로 운영합니다.
+
 ## [0.18.0] - 2026-05-09
 
 ### Added
