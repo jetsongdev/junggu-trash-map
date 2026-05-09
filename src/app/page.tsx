@@ -134,8 +134,12 @@ function PageContent() {
     text: string;
     variant: ToastVariant;
     position: ToastPosition;
+    exiting: boolean;
   } | null>(null);
+  const [toastShown, setToastShown] = useState(false);
   const toastTimerRef = useRef<number | null>(null);
+  const toastFadeOutRef = useRef<number | null>(null);
+  const TOAST_FADE_MS = 300;
   const [selected, setSelected] = useState<Set<BinType>>(() => new Set());
   const [error, setError] = useState<string | null>(null);
 
@@ -476,6 +480,10 @@ function PageContent() {
         window.clearTimeout(toastTimerRef.current);
         toastTimerRef.current = null;
       }
+      if (toastFadeOutRef.current != null) {
+        window.clearTimeout(toastFadeOutRef.current);
+        toastFadeOutRef.current = null;
+      }
     };
   }, []);
 
@@ -509,15 +517,38 @@ function PageContent() {
     variant: ToastVariant = 'info',
     position: ToastPosition = 'center',
   ) => {
-    setToast({ text, variant, position });
     if (toastTimerRef.current != null) {
       window.clearTimeout(toastTimerRef.current);
+      toastTimerRef.current = null;
     }
+    if (toastFadeOutRef.current != null) {
+      window.clearTimeout(toastFadeOutRef.current);
+      toastFadeOutRef.current = null;
+    }
+    setToast({ text, variant, position, exiting: false });
+    // 끝나기 TOAST_FADE_MS 전에 exiting 플래그 → CSS opacity 1→0 전환 시작
+    toastFadeOutRef.current = window.setTimeout(() => {
+      setToast((prev) => (prev ? { ...prev, exiting: true } : null));
+      toastFadeOutRef.current = null;
+    }, Math.max(0, durationMs - TOAST_FADE_MS));
+    // 그 후 unmount
     toastTimerRef.current = window.setTimeout(() => {
       setToast(null);
       toastTimerRef.current = null;
     }, durationMs);
   };
+
+  // 토스트 fade-in: mount 시점에 opacity 0 → 다음 paint에 opacity 1.
+  // exiting=true 또는 toast=null이면 다시 0으로 복귀해 unmount 전 fade-out.
+  useEffect(() => {
+    if (!toast || toast.exiting) {
+      setToastShown(false);
+      return;
+    }
+    setToastShown(false);
+    const id = window.requestAnimationFrame(() => setToastShown(true));
+    return () => window.cancelAnimationFrame(id);
+  }, [toast]);
 
   const allLoadedToastFiredRef = useRef(false);
   useEffect(() => {
@@ -1302,9 +1333,9 @@ function PageContent() {
         )}
         {toast && (
           <div
-            className={`pointer-events-none absolute inset-x-0 z-[1001] flex justify-center px-6 ${
+            className={`pointer-events-none absolute inset-x-0 z-[1001] flex justify-center px-6 transition-opacity duration-300 ease-out ${
               toast.position === 'top' ? 'top-16' : 'inset-y-0 items-center'
-            }`}
+            } ${toastShown ? 'opacity-100' : 'opacity-0'}`}
             role={toast.variant === 'error' ? 'alert' : 'status'}
             aria-live={toast.variant === 'error' ? 'assertive' : 'polite'}
           >
