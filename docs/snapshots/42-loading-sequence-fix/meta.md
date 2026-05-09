@@ -3,7 +3,7 @@ index: 42
 slug: loading-sequence-fix
 date: 2026-05-09
 phase: P2.19+P2.21 (toast sequencing fix)
-git_sha: adf5fe3 (dirty)
+git_sha: 1953f30
 viewport: 390x844 (mobile)
 ---
 
