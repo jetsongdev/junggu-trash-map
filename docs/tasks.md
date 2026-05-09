@@ -3,9 +3,9 @@
 > 이 파일은 Claude가 매 세션 시작 시 읽고 작업 우선순위를 판단하는 1차 소스.
 > 사람과 에이전트 모두 직접 편집 가능. 컨벤션은 파일 끝 「운영 규칙」 참고.
 
-## 현재 상태 (2026-05-07)
+## 현재 상태 (2026-05-09)
 
-- **Phase**: 3 거의 마무리. P3.1a/b 머지(802 bins 클러스터링), P3.2 7개 자치구 데이터, P3.1c는 obsolete. P2.20 색맹 친화 거리선 패턴 분리 v0.14.0 cut. **P4.3 위치 힌트 텍스트 — 사진 원안 폐기, 운영자 큐레이션 한 줄로 재정의해 머지 진행 중** (별도 hints/<district>.json + lazy fetch + runtime 머지). 다음 후보: P3.3(자치구 선택 UI), I.6(a11y 라운드), P4.1(타 종류 통).
+- **Phase**: 3 거의 마무리 + Phase 4 data 한 칸. P3.1a/b 머지(802 bins 클러스터링), P3.2 7개 자치구 데이터, P3.1c는 obsolete. P2.20 색맹 친화 거리선 v0.14.0 / P4.3 위치 힌트 v0.15.0 / P2.22+P2.23 모바일 툴바·HUD v0.16.0 / P2.24 ETA 인라인 v0.17.0. **P3.3 25구 셀렉터 그리드 머지 진행 중** (우상단 🗺 → 5x5 grid, populated/empty 시각 분리, flyToBounds + info 토스트). 다음 후보: I.6(a11y 라운드), P4.1(타 종류 통), P3.3-fix1(empty-toast 스냅샷 재캡처).
 - **사용자 환경 영속화** (`localStorage`): `distanceMode` (직선/격자), `tileTheme` (다크/라이트, **빈 값일 때 시스템 prefers-color-scheme 자동 감지**), `walkingSpeed` (km/h, 2~7 step 0.5), `favorites` (즐겨찾기 bin id), `savings` (누적 보행거리·시간·횟수)
 - **마커 색**: 일반 `#60a5fa` (blue-400), 재활용 `#34d399` (emerald-400), 혼합 `#c084fc` (violet-400) — 라이트/다크 양 타일에서 균형
 - **Roadmap 확장**: Phase 3 (25개 구) · Phase 4 (데이터 확장: 타 종류 통/사용자 제보/사진) · Phase 5 (실제 보행 경로 + TTS) · 인프라/품질 cross-cutting (i18n 남음)
@@ -84,6 +84,7 @@
 - [x] **P2.22** 모바일 툴바 압축 — 칩을 3개 시각 그룹(필터/경로/보기)으로 묶고, 아이콘 only로 텍스트 축약 (📍, 📏, 1️⃣🎯, 2️⃣🏁, 🧭, ☀️, 🔗). Leaflet 줌 컨트롤을 `<ZoomControl position="bottomleft" />`로 좌하단 명시, 데이터 출처 배지를 `bottom-7 right-2` 우하단으로 이동. 메뉴 영역 화면 점유율 ~50% → ~33%로 감소. snapshot `31-mobile-toolbar-compact/`.
 - [x] **P2.22+** 데이터 현황 + 출처 통합 토글 — 메뉴의 합계/자치구 분포를 우하단 출처 카드에 통합. 접힘=한 줄 (`📊 v2026-05-05 · 📍 802/802 ▴`), 펼침=자치구 7행 + status + 출처 링크. `bg-white/70` 더 투명. `localStorage.statusOverlayCollapsed`로 영속화. 메뉴 영역 ~33% → ~30% 추가 압축. snapshot `32-status-overlay-toggle/`.
 - [x] **P2.23** HUD 재배치 — 필터를 좌상단 floating row(✓/🗑️/♻️ 아이콘 only)로, 즐겨찾기/직선·격자/나침반을 우상단 floating stack으로, 출발/목적지를 segmented 한 박스로 통합(1️⃣/2️⃣ 뱃지 제거, 슬롯 위치로 순서 시사). 칩 형태 `rounded-full` → `rounded-md` HUD 스타일, 5색 accent state(amber/sky/violet/rose/emerald) + 15% fill + ring + ✓ corner badge. 우하단 카드 투명도 `/70` → `/45`. 메뉴 영역 ~30% → ~20% (검색 + 한 줄 칩). HUD 헬퍼: `hudInactive`/`hudChip`/`hudIconBtn`/`hudFloatingGroup`. snapshot `33-hud-rearrange/` (default → fix1 → fix2 → fix3 4 라운드 누적).
+- [x] **P3.3** 25구 셀렉터 그리드 — 우상단 floating stack에 🗺 칩(`hudIconBtn`, teal accent) → 5x5 grid 패널. 25구 / 25칸 / 빈 칸 0(중랑·송파 한 칸씩 어긋남 수용). populated 7구는 sky 톤 + binCount, empty 18구는 neutral dim. 현재 viewing district는 amber ring. populated 탭 → `flyToBounds(bbox, { maxZoom: 15 })` (P3.2 panning auto-add가 fetch 자연 트리거), empty 탭 → `flyTo(centroid, 14)` + info 토스트 "{name}는 아직 공공데이터가 발행되지 않았어요". 패널 외부 탭/Esc 닫힘. 코드: `lib/district-grid.ts` 순수 함수 4개 + vitest 6개, `components/DistrictSelector.tsx`. Codex 위임 후 surgical fix 2건(mapRef 리네임 롤백·populated 토스트 제거). snapshot `39-district-selector/` (default + opened 2장, empty-toast는 dev 환경 timing 충돌로 별도 세션 — P3.3-fix1). spec: `docs/superpowers/specs/2026-05-09-...`.
 
 ### Phase 4 — 데이터 확장
 - [x] **P4.3** 위치 힌트 텍스트 — 사진 원안 폐기. 운영자가 카카오·Naver 보면서 손으로 단 한 줄(≤80자) 큐레이션 텍스트로 재정의. `public/data/hints/<district>.json` 별도 파일(`{ version, hints: { binId: text } }`) + 자치구별 lazy fetch (`lib/hints.ts`의 `fetchHints` 404·네트워크 에러 EMPTY fallback) + `mergeHints` 순수 immutable 머지로 `TrashBin.locationHint?: string` 런타임 주입. transform.ts와 격리 — 데이터 갱신 시 hint 안 사라짐. BinPopup: hint 있으면 주소 위 primary(text-neutral-700, sm) + 주소가 secondary(text-neutral-500, xs)로 후퇴, 없으면 현 상태 유지(빈 placeholder 안 만듦). 출시는 hints 빈 객체로 ship — 운영자가 카카오맵 검증 후 점진적 추가. 분업 구조: A(types+lib/hints+test) · B(BinPopup) · C(시드 인프라) 완전 병렬 / D(page.tsx 통합 3 site) · E(snapshot+docs) 통합 단계. snapshot `34-location-hint/` 4장은 dev 세션에서 placeholder 시드로 캡처 — 시각 검증 기록용. spec/plan: `docs/superpowers/specs/2026-05-08-...` & `docs/superpowers/plans/2026-05-08-...`.
@@ -106,7 +107,7 @@
 
 자치구별 정적 JSON + 클라이언트 point-in-polygon 판정으로 결정. spec: `docs/superpowers/specs/2026-05-05-p3-1-data-partitioning-design.md`. P3.1은 3-PR로 분할 (a foundation → b markercluster · c 인접 prefetch).
 
-- [ ] **P3.3** 자치구 자동 감지 진입 가이드 UI — 25구 선택 셀렉터, 빈 데이터 구(공공데이터 미발행 18개) 토스트 안내. (panning auto-add는 P3.2에서 들어감)
+- [ ] **P3.3-fix1** empty-toast 스냅샷 재캡처 — P3.3 본 세션에서 빠진 `screenshot-empty-toast.png`. dev 환경에서 토스트 3s duration이 Playwright `take_screenshot` 내부 폰트 wait(~5s)와 충돌해 캡처 시점에 토스트 이미 사라짐. 옵션: 임시 duration 6~10s로 늘려 캡처 후 revert / setTimeout monkey-patch / 별도 capture mode prop. 별도 세션에서 처리.
 
 ---
 
