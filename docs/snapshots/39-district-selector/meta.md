@@ -3,7 +3,7 @@ index: 39
 slug: district-selector
 date: 2026-05-09
 phase: P3.3
-git_sha: 651ae32
+git_sha: 5b1a45c
 viewport: 390x844 (mobile, dark)
 ---
 
