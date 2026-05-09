@@ -1280,17 +1280,17 @@ function PageContent() {
         )}
         {toast && (
           <div
-            className="pointer-events-none absolute inset-x-0 bottom-6 z-[1001] flex justify-center px-4"
+            className="pointer-events-none absolute inset-0 z-[1001] flex items-center justify-center px-6"
             role={toast.variant === 'error' ? 'alert' : 'status'}
             aria-live={toast.variant === 'error' ? 'assertive' : 'polite'}
           >
             <div
               className={
                 toast.variant === 'error'
-                  ? 'rounded-full bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-2xl ring-2 ring-red-300'
+                  ? 'max-w-sm rounded-2xl bg-red-600/85 px-6 py-4 text-center text-sm font-semibold text-white shadow-2xl ring-1 ring-red-300/60 backdrop-blur-md'
                   : toast.variant === 'emphatic'
-                    ? 'rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-2xl ring-2 ring-emerald-300'
-                    : 'rounded-full bg-white/95 px-4 py-2 text-xs text-neutral-800 shadow-lg ring-1 ring-neutral-200 backdrop-blur-sm dark:bg-neutral-900/90 dark:text-neutral-100 dark:ring-neutral-700'
+                    ? 'max-w-sm rounded-2xl bg-emerald-600/85 px-6 py-4 text-center text-sm font-semibold text-white shadow-2xl ring-1 ring-emerald-300/60 backdrop-blur-md'
+                    : 'max-w-sm rounded-2xl bg-white/75 px-6 py-4 text-center text-sm text-neutral-900 shadow-2xl ring-1 ring-neutral-300/70 backdrop-blur-md dark:bg-neutral-900/70 dark:text-neutral-50 dark:ring-neutral-700/70'
               }
             >
               {toast.variant === 'error' && <span aria-hidden className="mr-1.5">⚠</span>}
