@@ -14,16 +14,19 @@ type Props = {
   tileTheme: TileTheme;
 };
 
-const STYLE: Record<TileTheme, { halo: string; inner: string; haloOpacity: number }> = {
-  dark: { halo: '#000000', inner: '#fbbf24', haloOpacity: 0.55 },
-  light: { halo: '#ffffff', inner: '#1e293b', haloOpacity: 0.85 },
+const STYLE: Record<
+  TileTheme,
+  { halo: string; haloWeight: number; haloOpacity: number; inner: string; innerWeight: number }
+> = {
+  dark: { halo: '#000000', haloWeight: 4, haloOpacity: 0.55, inner: '#fbbf24', innerWeight: 1.5 },
+  light: { halo: '#ffffff', haloWeight: 5, haloOpacity: 0.9, inner: '#1e40af', innerWeight: 2.5 },
 };
 
 export function DistrictOutline({ geoJson, code, name, tileTheme }: Props) {
   const feature = geoJson.features.find((f) => f.properties.code === code);
   if (!feature) return null;
   const data = feature as unknown as Feature;
-  const { halo, inner, haloOpacity } = STYLE[tileTheme];
+  const { halo, haloWeight, haloOpacity, inner, innerWeight } = STYLE[tileTheme];
 
   const bindName = (_: Feature, layer: Layer) => {
     layer.bindTooltip(name, {
@@ -42,7 +45,7 @@ export function DistrictOutline({ geoJson, code, name, tileTheme }: Props) {
         data={data}
         pathOptions={{
           color: halo,
-          weight: 4,
+          weight: haloWeight,
           opacity: haloOpacity,
           fill: false,
           interactive: false,
@@ -53,7 +56,7 @@ export function DistrictOutline({ geoJson, code, name, tileTheme }: Props) {
         data={data}
         pathOptions={{
           color: inner,
-          weight: 1.5,
+          weight: innerWeight,
           dashArray: '6 4',
           opacity: 0.95,
           fill: false,

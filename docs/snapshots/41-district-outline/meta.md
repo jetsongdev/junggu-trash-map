@@ -12,8 +12,8 @@ viewport: 390x844
 P3.3 셀렉터에서 amber ring으로만 표시되던 "현재 viewing district"를 지도 위에도 영구 outline으로 띄움. 셀렉터를 닫아 둔 상태에서도 어느 구를 보고 있는지 한눈에 알 수 있고, 패닝으로 다른 구에 진입하면 outline이 자연스럽게 따라가 panning auto-add(P3.2)와 시각적으로 같은 신호를 준다.
 
 ## 보이는 것
-- 두 겹 stack outline: 굵은 halo(weight 4, opacity 0.55~0.85) + 얇은 dashed inner(weight 1.5, opacity 0.95). 다크 = 검정 halo + amber-400 inner / 라이트 = 흰 halo + slate-800 inner
-- 자치구 이름은 폴리곤 중앙에 leaflet `bindTooltip` permanent로 fixed 라벨. 배경/테두리 제거 + text-shadow 다겹으로 가독성. 라이트 = slate-900 + 흰 halo / 다크 = amber-200 + 검정 halo
+- 두 겹 stack outline. 다크 = 검정 halo(weight 4, opacity 0.55) + amber-400 dashed inner(weight 1.5) / 라이트 = 흰 halo(weight 5, opacity 0.9) + blue-800(`#1e40af`) dashed inner(weight 2.5) — Top-3 거리선과 동일 톤
+- 자치구 이름은 폴리곤 중앙에 leaflet `bindTooltip` permanent로 fixed 라벨. 배경/테두리 제거 + text-shadow 다겹으로 가독성. 라이트 = blue-900(`#1e3a8a`) + 흰 halo / 다크 = amber-200 + 검정 halo
 - TileLayer 직후 첫 레이어로 깔려 마커·distance line·route 모두 outline 위에 살아있음
 - `screenshot-light.png` — 라이트 OSM 타일. 흰 halo로 도로·녹지 위에서도 outline이 살아남고, 폴리곤 중앙 "중구" 텍스트 상시 표시
 - `screenshot-dark.png` — CartoDB Dark Matter 타일. 검정 halo가 amber inner를 더 도드라지게 하고, amber 텍스트 라벨 명확
