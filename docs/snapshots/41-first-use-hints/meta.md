@@ -3,7 +3,7 @@ index: 41
 slug: first-use-hints
 date: 2026-05-09
 phase: P2.19+P2.21
-git_sha: 92b3b30 (dirty)
+git_sha: 19ceb1a
 viewport: 390x844 (mobile, dark)
 ---
 
