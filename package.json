@@ -8,7 +8,8 @@
     "start": "next start",
     "lighthouse": "lhci autorun",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "hint:scan": "bun scripts/hint-scan.ts"
   },
   "dependencies": {
     "@sentry/nextjs": "^10.51.0",
