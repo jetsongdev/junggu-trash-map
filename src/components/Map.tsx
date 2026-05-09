@@ -11,6 +11,7 @@ import {
   useMap,
   useMapEvents,
 } from 'react-leaflet';
+import type { Map as LeafletMap } from 'leaflet';
 import { BinMarker } from './BinMarker';
 import { DestinationMarker } from './DestinationMarker';
 import { MarkerClusterGroup } from './MarkerClusterGroup';
@@ -74,9 +75,18 @@ type Props = {
   onToggleFavorite?: (binId: string) => void;
   walkingSpeed?: number;
   onUse?: (binId: string, extraMeters: number, extraSeconds: number) => void;
+  onMapReady?: (map: LeafletMap) => void;
 };
 
 const JUNGGU_CENTER: [number, number] = [37.5635, 126.987];
+
+function MapReadyHandler({ onReady }: { onReady: (map: LeafletMap) => void }) {
+  const map = useMap();
+  useEffect(() => {
+    onReady(map);
+  }, [map, onReady]);
+  return null;
+}
 
 function PanToUser({ target }: { target: LatLng | null | undefined }) {
   const map = useMap();
@@ -221,6 +231,7 @@ export function Map({
   onToggleFavorite,
   walkingSpeed = 4,
   onUse,
+  onMapReady,
 }: Props) {
   const preset = TILE_PRESETS[tileTheme];
   const primaryHighlight = highlights[0] ?? null;
@@ -261,9 +272,11 @@ export function Map({
       center={JUNGGU_CENTER}
       zoom={14}
       scrollWheelZoom
+      zoomControl={false}
       style={{ height: '100%', width: '100%' }}
       {...({ rotate: true, rotateControl: false, touchRotate: false, bearing: 0 } as object)}
     >
+      {onMapReady && <MapReadyHandler onReady={onMapReady} />}
       <TileLayer
         key={tileTheme}
         attribution={preset.attribution}

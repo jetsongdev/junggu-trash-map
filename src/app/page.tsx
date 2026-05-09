@@ -1,10 +1,30 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import {
+  BarChart3,
+  ChevronDown,
+  ChevronUp,
+  Compass,
+  ExternalLink,
+  Flag,
+  Footprints,
+  Grid3x3,
+  Loader2,
+  MapPin,
+  Minus,
+  Moon,
+  Navigation,
+  Plus,
+  Ruler,
+  Star,
+  Sun,
+  Target,
+} from 'lucide-react';
+import type { Map as LeafletMap } from 'leaflet';
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { FilterChips } from '@/components/FilterChips';
-import { LocateButton } from '@/components/LocateButton';
 import { SearchBox } from '@/components/SearchBox';
 import { ShareButton } from '@/components/ShareButton';
 import type { TileTheme } from '@/components/Map';
@@ -33,6 +53,7 @@ import {
   saveSavings as persistSavings,
   type Savings,
 } from '@/lib/savings';
+import { computeCycleState } from '@/lib/cycle-state';
 import {
   findTopDetours,
   findTopNearest,
@@ -46,7 +67,6 @@ import {
   etaSeconds,
   formatEta,
   formatKmh,
-  getSpeedDisplay,
   MAX_KMH,
   MIN_KMH,
   STEP_KMH,
@@ -99,7 +119,8 @@ function PageContent() {
   const [districtsGeo, setDistrictsGeo] = useState<DistrictsGeoJson | null>(null);
   const [activeFetches, setActiveFetches] = useState<Set<DistrictCode>>(() => new Set());
   const [failedDistricts, setFailedDistricts] = useState<Set<DistrictCode>>(() => new Set());
-  const [toast, setToast] = useState<{ text: string; emphatic: boolean } | null>(null);
+  type ToastVariant = 'info' | 'emphatic' | 'error';
+  const [toast, setToast] = useState<{ text: string; variant: ToastVariant } | null>(null);
   const toastTimerRef = useRef<number | null>(null);
   const [selected, setSelected] = useState<Set<BinType>>(() => new Set());
   const [error, setError] = useState<string | null>(null);
@@ -123,8 +144,13 @@ function PageContent() {
     totalSeconds: 0,
     uses: 0,
   });
+  const [statusCollapsed, setStatusCollapsed] = useState(true);
   const watchIdRef = useRef<number | null>(null);
   const prefsHydratedRef = useRef(false);
+  const mapRef = useRef<LeafletMap | null>(null);
+  const onMapReady = useCallback((m: LeafletMap) => {
+    mapRef.current = m;
+  }, []);
 
   const compass = useDeviceHeading(compassMode !== 'off');
 
@@ -196,6 +222,14 @@ function PageContent() {
 
     setFavorites(loadFavorites());
     setSavings(loadSavings());
+
+    const storedCollapsed = window.localStorage.getItem('statusOverlayCollapsed');
+    if (storedCollapsed === 'false') {
+      setStatusCollapsed(false);
+    } else if (storedCollapsed === 'true') {
+      setStatusCollapsed(true);
+    }
+    // null (no key yet) → default collapsed (true) so first-time visitors see compact summary, not full panel covering the map
 
     queueMicrotask(() => {
       prefsHydratedRef.current = true;
@@ -439,6 +473,11 @@ function PageContent() {
     window.localStorage.setItem('walkingSpeed', formatKmh(walkingSpeed));
   }, [walkingSpeed]);
 
+  useEffect(() => {
+    if (!prefsHydratedRef.current) return;
+    window.localStorage.setItem('statusOverlayCollapsed', String(statusCollapsed));
+  }, [statusCollapsed]);
+
   const bins = useMemo<TrashBin[]>(() => {
     const flat: TrashBin[] = [];
     for (const code of activeDistricts) {
@@ -448,8 +487,8 @@ function PageContent() {
     return flat;
   }, [districtsCache, activeDistricts]);
 
-  const showToast = (text: string, durationMs = 1800, emphatic = false) => {
-    setToast({ text, emphatic });
+  const showToast = (text: string, durationMs = 1800, variant: ToastVariant = 'info') => {
+    setToast({ text, variant });
     if (toastTimerRef.current != null) {
       window.clearTimeout(toastTimerRef.current);
     }
@@ -468,7 +507,7 @@ function PageContent() {
     showToast(
       `전체 ${populatedDistrictCount}개 자치구 ${bins.length}개 휴지통 로드 완료`,
       4000,
-      true,
+      'emphatic',
     );
     // showToast 는 매 render 새로 만드는 closure지만 ref guard 덕에 1회 실행 보장.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -485,10 +524,22 @@ function PageContent() {
     showToast(
       '🎯 출발과 🏁 목적지를 정하면 경유 휴지통을 알려드려요',
       6000,
-      true,
+      'emphatic',
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [manifest]);
+
+  // 에러는 collapsed/expanded 무관하게 카드 밖 토스트로 항상 노출.
+  // GPS 권한 거부, 자치구 fetch 실패 등은 즉시 사용자에게 보여야 함.
+  useEffect(() => {
+    if (locateError) showToast(locateError, 6000, 'error');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locateError]);
+
+  useEffect(() => {
+    if (error) showToast(error, 6000, 'error');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [error]);
 
   type DistrictRow = {
     code: DistrictCode;
@@ -562,9 +613,6 @@ function PageContent() {
       return next;
     });
   };
-  const clearTypes = () =>
-    setSelected((prev) => (prev.size === 0 ? prev : new Set()));
-
   const stopWatch = () => {
     if (watchIdRef.current !== null && 'geolocation' in navigator) {
       navigator.geolocation.clearWatch(watchIdRef.current);
@@ -740,10 +788,55 @@ function PageContent() {
       ? '2️⃣ 🏁 목적지 탭하세요'
       : '2️⃣ 🏁 목적지';
 
-  const inactiveChip =
-    'bg-neutral-100 text-neutral-700 ring-1 ring-neutral-200 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-200 dark:ring-neutral-700 dark:hover:bg-neutral-700';
-  const chipBase =
-    'min-h-[44px] rounded-full px-4 text-sm font-medium transition flex items-center gap-1.5';
+  // 좌하단 통합 cycle: off → gps → gps+cone → gps+head-up → off
+  // GPS가 없으면 방향 모드는 의미 없음 (의존). 이를 cycle 순서로 강제.
+  const cycleState = computeCycleState(locatePending, userLocation, compassMode);
+
+  const cycleLocate = async () => {
+    vibrate(HAPTIC.TAP);
+    if (locatePending) return;
+    if (!userLocation) {
+      // off → gps
+      locate();
+      return;
+    }
+    if (compassMode === 'off') {
+      // gps → gps+cone (방향 권한 요청)
+      if (!compass.supported || compass.permission === 'denied') return;
+      const result = await compass.request();
+      if (result === 'granted') setCompassMode('cone');
+      return;
+    }
+    if (compassMode === 'cone') {
+      // gps+cone → gps+head-up
+      setCompassMode('head-up');
+      return;
+    }
+    // gps+head-up → off (전부 끄기)
+    setCompassMode('off');
+    clearLocation();
+  };
+
+  const hudInactive =
+    'bg-white/95 text-neutral-700 ring-1 ring-neutral-300 hover:bg-white dark:bg-neutral-900/95 dark:text-neutral-200 dark:ring-neutral-700 dark:hover:bg-neutral-800';
+  const hudChip =
+    'flex h-9 items-center gap-1.5 rounded-md px-2.5 text-sm font-medium whitespace-nowrap transition ring-1';
+  const hudIconBtn =
+    'relative flex h-11 w-11 shrink-0 items-center justify-center rounded-md px-2 text-base font-medium transition ring-1';
+  const routeSegmentBtn =
+    'relative flex h-9 w-[74px] shrink-0 items-center justify-center gap-1 px-2 text-xs font-medium leading-none transition';
+  const routeSegmentInactive =
+    'text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800';
+  const hudFloatingGroup =
+    'rounded-md bg-white/80 ring-1 ring-neutral-300 backdrop-blur-sm dark:bg-neutral-900/80 dark:ring-neutral-700';
+  const hudAmberActive =
+    'bg-amber-500/15 text-amber-700 ring-1 ring-amber-500 shadow-sm dark:bg-amber-400/15 dark:text-amber-200 dark:ring-amber-400';
+  const hudSkyActive =
+    'bg-sky-500/15 text-sky-700 ring-1 ring-sky-500 shadow-sm dark:bg-sky-400/15 dark:text-sky-200 dark:ring-sky-400';
+  const hudVioletActive =
+    'bg-violet-500/15 text-violet-700 ring-1 ring-violet-500 shadow-sm dark:bg-violet-400/15 dark:text-violet-200 dark:ring-violet-400';
+  const hudEmeraldActive =
+    'bg-emerald-500/15 text-emerald-700 ring-1 ring-emerald-500 shadow-sm dark:bg-emerald-400/15 dark:text-emerald-200 dark:ring-emerald-400';
   const shareState: AppState = {
     selected,
     tileTheme,
@@ -765,150 +858,6 @@ function PageContent() {
           <span className="rounded bg-amber-400 px-1.5 py-0.5 text-[10px] font-bold text-neutral-900">
             PROTO
           </span>
-        </div>
-      </header>
-
-      <section className="border-b border-neutral-200 bg-neutral-100 px-4 py-3 dark:border-neutral-800 dark:bg-neutral-900">
-        <div className="mb-3">
-          <SearchBox
-            onSelect={handleSearchSelect}
-            tapMode={tapTarget}
-            onDropdownChange={setSearchDropdownOpen}
-          />
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <FilterChips selected={selected} onToggle={toggle} onClear={clearTypes} />
-          <button
-            type="button"
-            onClick={() => {
-              vibrate(HAPTIC.TAP);
-              setFavoritesOnly((prev) => !prev);
-            }}
-            disabled={!favoritesOnly && favorites.size === 0}
-            aria-pressed={favoritesOnly}
-            aria-label={
-              favorites.size === 0
-                ? '즐겨찾기 없음 (마커 팝업의 ☆ 클릭)'
-                : favoritesOnly
-                  ? '즐겨찾기 필터 끄기'
-                  : `즐겨찾기 ${favorites.size}개만 보기`
-            }
-            className={`${chipBase} ${
-              favoritesOnly ? 'bg-amber-500 text-white shadow' : inactiveChip
-            } ${!favoritesOnly && favorites.size === 0 ? 'opacity-40 cursor-not-allowed' : ''}`}
-          >
-            <span aria-hidden>{favoritesOnly ? '★' : '☆'}</span>
-            <span>즐겨찾기{favorites.size > 0 ? ` ${favorites.size}` : ''}</span>
-          </button>
-          <LocateButton
-            active={!!userLocation}
-            pending={locatePending}
-            onLocate={locate}
-            onClear={clearLocation}
-          />
-          <button
-            type="button"
-            onClick={() => {
-              vibrate(HAPTIC.TAP);
-              setDistanceMode((prev) =>
-                prev === 'euclidean' ? 'manhattan' : 'euclidean',
-              );
-            }}
-            aria-pressed={distanceMode === 'manhattan'}
-            className={`${chipBase} ${
-              distanceMode === 'manhattan'
-                ? 'bg-amber-500 text-white shadow'
-                : inactiveChip
-            }`}
-          >
-            <span>{distanceMode === 'euclidean' ? '📏 직선' : '📐 격자'}</span>
-          </button>
-          <button
-            type="button"
-            onClick={onOriginTap}
-            aria-pressed={tapTarget === 'origin'}
-            className={`${chipBase} ${
-              tapTarget === 'origin'
-                ? 'bg-violet-500 text-white shadow'
-                : inactiveChip
-            }`}
-          >
-            <span aria-hidden>1️⃣ 🎯</span>
-            <span>{tapTarget === 'origin' ? '출발 탭하세요' : '출발 탭'}</span>
-          </button>
-          <button
-            type="button"
-            onClick={onDestinationButton}
-            aria-pressed={tapTarget === 'destination' || !!destination}
-            className={`${chipBase} ${
-              destination
-                ? 'bg-rose-500 text-white shadow'
-                : tapTarget === 'destination'
-                  ? 'bg-rose-500 text-white shadow'
-                  : inactiveChip
-            }`}
-          >
-            <span>{destButtonLabel}</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              vibrate(HAPTIC.TAP);
-              setSpeedSliderOpen((prev) => !prev);
-            }}
-            aria-pressed={speedSliderOpen}
-            aria-label={`보행 속도 ${formatKmh(walkingSpeed)}km/h. 클릭해 슬라이더 ${
-              speedSliderOpen ? '닫기' : '열기'
-            }`}
-            className={`${chipBase} ${
-              speedSliderOpen ? 'bg-emerald-600 text-white shadow' : inactiveChip
-            }`}
-          >
-            <span aria-hidden>{getSpeedDisplay(walkingSpeed).emoji}</span>
-            <span>{formatKmh(walkingSpeed)}km/h</span>
-          </button>
-          <button
-            type="button"
-            onClick={async () => {
-              vibrate(HAPTIC.TAP);
-              const next =
-                compassMode === 'off'
-                  ? 'cone'
-                  : compassMode === 'cone'
-                    ? 'head-up'
-                    : 'off';
-              if (compassMode === 'off') {
-                const result = await compass.request();
-                if (result !== 'granted') return;
-              }
-              setCompassMode(next);
-            }}
-            disabled={!compass.supported || compass.permission === 'denied'}
-            aria-pressed={compassMode !== 'off'}
-            aria-label={
-              !compass.supported
-                ? '방향 센서 미지원'
-                : compass.permission === 'denied'
-                  ? '방향 권한 거부됨'
-                  : compassMode === 'off'
-                    ? '방향 cone 켜기'
-                    : compassMode === 'cone'
-                      ? '헤드업 모드로 전환'
-                      : '방향 표시 끄기'
-            }
-            className={`${chipBase} ${
-              compassMode === 'head-up'
-                ? 'bg-violet-500 text-white shadow'
-                : compassMode === 'cone'
-                  ? 'bg-sky-500 text-white shadow'
-                  : inactiveChip
-            } ${!compass.supported || compass.permission === 'denied' ? 'opacity-40 cursor-not-allowed' : ''}`}
-          >
-            <span aria-hidden>🧭</span>
-            <span>
-              {compassMode === 'head-up' ? '헤드업' : compassMode === 'cone' ? '방향' : '방향'}
-            </span>
-          </button>
           <button
             type="button"
             onClick={() => {
@@ -919,23 +868,138 @@ function PageContent() {
                 return next;
               });
             }}
-            aria-label={`타일 테마 ${tileTheme === 'dark' ? '라이트로 전환' : '다크로 전환'}`}
-            className={`${chipBase} ${inactiveChip}`}
+            aria-label={`테마 ${tileTheme === 'dark' ? '라이트로 전환' : '다크로 전환'}`}
+            title={tileTheme === 'dark' ? '다크 테마 (탭하면 라이트)' : '라이트 테마 (탭하면 다크)'}
+            className="ml-auto flex h-9 w-9 items-center justify-center rounded-md text-neutral-600 ring-1 ring-neutral-200 transition hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:ring-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
           >
-            <span aria-hidden>{tileTheme === 'dark' ? '🌑' : '☀️'}</span>
-            <span>{tileTheme === 'dark' ? '다크' : '라이트'}</span>
+            {tileTheme === 'dark' ? (
+              <Moon size={18} aria-hidden="true" />
+            ) : (
+              <Sun size={18} aria-hidden="true" />
+            )}
           </button>
+        </div>
+      </header>
+
+      <section className="relative z-[1000] border-b border-neutral-200 bg-neutral-100 px-4 py-3 dark:border-neutral-800 dark:bg-neutral-900">
+        <div className="mb-3 flex gap-2">
+          <div className="flex-1">
+            <SearchBox
+              onSelect={handleSearchSelect}
+              tapMode={tapTarget}
+              onDropdownChange={setSearchDropdownOpen}
+            />
+          </div>
           <ShareButton
             state={shareState}
             defaults={DEFAULT_APP_STATE}
-            className={`${chipBase} ${inactiveChip}`}
+            className={`${hudIconBtn} ${hudInactive}`}
           />
         </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {/* 그룹 1: 위치/경로/속도 */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <div className="flex overflow-hidden rounded-md bg-white/95 ring-1 ring-neutral-300 dark:bg-neutral-900/95 dark:ring-neutral-700">
+              <button
+                type="button"
+                onClick={onOriginTap}
+                aria-pressed={tapTarget === 'origin'}
+                aria-label={tapTarget === 'origin' ? '출발 위치 탭하세요' : '출발 위치 지정'}
+                title="출발 위치 (1)"
+                className={`${routeSegmentBtn} ${
+                  tapTarget === 'origin'
+                    ? 'bg-violet-500/15 text-violet-700 dark:text-violet-200'
+                    : routeSegmentInactive
+                }`}
+              >
+                <MapPin size={18} aria-hidden="true" />
+                <span className="text-xs">출발</span>
+                {userLocation && (
+                  <span className="absolute right-0.5 top-0.5 rounded-sm bg-violet-500 px-1 text-[9px] leading-4 text-white ring-1 ring-white dark:ring-neutral-900">
+                    ✓
+                  </span>
+                )}
+              </button>
+              <span
+                aria-hidden
+                className="self-stretch border-l border-neutral-300 dark:border-neutral-700"
+              />
+              <button
+                type="button"
+                onClick={onDestinationButton}
+                aria-pressed={tapTarget === 'destination' || !!destination}
+                aria-label={destButtonLabel}
+                title={destination ? '목적지 해제' : '목적지 지정 (2)'}
+                className={`${routeSegmentBtn} ${
+                  tapTarget === 'destination'
+                    ? 'bg-rose-500/15 text-rose-600 dark:text-rose-200'
+                    : routeSegmentInactive
+                }`}
+              >
+                <Flag size={18} aria-hidden="true" />
+                <span className="text-xs">목적지</span>
+                {destination && (
+                  <span className="absolute right-0.5 top-0.5 rounded-sm bg-rose-500 px-1 text-[9px] leading-4 text-white ring-1 ring-white dark:ring-neutral-900">
+                    ✓
+                  </span>
+                )}
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                vibrate(HAPTIC.TAP);
+                setSpeedSliderOpen((prev) => !prev);
+              }}
+              aria-pressed={speedSliderOpen}
+              aria-label={`보행 속도 ${formatKmh(walkingSpeed)}km/h. 클릭해 슬라이더 ${
+                speedSliderOpen ? '닫기' : '열기'
+              }`}
+              className={`${hudChip} ${
+                speedSliderOpen ? hudEmeraldActive : hudInactive
+              }`}
+            >
+              <Footprints size={18} aria-hidden="true" />
+              <span>
+                <span className="font-mono">{formatKmh(walkingSpeed)}</span>km/h
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                vibrate(HAPTIC.TAP);
+                setFavoritesOnly((prev) => !prev);
+              }}
+              disabled={!favoritesOnly && favorites.size === 0}
+              aria-pressed={favoritesOnly}
+              aria-label={
+                favorites.size === 0
+                  ? '즐겨찾기 없음 (마커 팝업의 ☆ 클릭)'
+                  : favoritesOnly
+                    ? '즐겨찾기 필터 끄기'
+                    : `즐겨찾기 ${favorites.size}개만 보기`
+              }
+              title={favorites.size === 0 ? '즐겨찾기' : `즐겨찾기 ${favorites.size}개`}
+              className={`relative flex h-9 w-9 shrink-0 items-center justify-center rounded-md ring-1 transition ${
+                favoritesOnly ? hudAmberActive : hudInactive
+              } ${!favoritesOnly && favorites.size === 0 ? 'opacity-40 cursor-not-allowed' : ''}`}
+            >
+              <Star
+                size={18}
+                aria-hidden="true"
+                fill={favoritesOnly ? 'currentColor' : 'none'}
+              />
+              {favorites.size > 0 && (
+                <span className="absolute -right-1 -top-1 min-w-4 rounded-md bg-amber-500 px-1 text-center font-mono text-[9px] leading-4 text-white ring-1 ring-white dark:ring-neutral-900">
+                  {favorites.size}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
         {speedSliderOpen && (
-          <div className="mt-2 flex items-center gap-3 rounded-lg bg-neutral-200/80 px-3 py-2 dark:bg-neutral-800/80">
-            <span aria-hidden className="text-base">
-              {getSpeedDisplay(walkingSpeed).emoji}
-            </span>
+          <div className="mt-2 flex items-center gap-3 rounded-md bg-white/95 px-3 py-2 ring-1 ring-emerald-500/40 dark:bg-neutral-900/95">
+            <Footprints size={20} aria-hidden="true" className="text-emerald-700 dark:text-emerald-300" />
             <input
               type="range"
               min={MIN_KMH}
@@ -949,46 +1013,6 @@ function PageContent() {
             <span className="min-w-[64px] text-right font-mono text-sm text-emerald-700 dark:text-emerald-300">
               {formatKmh(walkingSpeed)} km/h
             </span>
-          </div>
-        )}
-        <div className="mt-2 text-xs text-neutral-600 dark:text-neutral-400">
-          📍 {visible.length} / 전체 {totalAvailableBins || bins.length}개
-          {activeFetches.size > 0 && (
-            <span className="ml-2 inline-flex items-center gap-1 text-amber-700 dark:text-amber-300" role="status" aria-live="polite">
-              <span
-                aria-hidden
-                className="inline-block h-2 w-2 animate-pulse rounded-full bg-amber-400"
-              />
-              <span>{activeFetches.size}개 자치구 로드 중…</span>
-            </span>
-          )}
-          {bestRouteCandidate && (
-            <span className="ml-2 text-cyan-700 dark:text-cyan-300">
-              · 출발→{bestRouteCandidate.bin.name.split(',')[0]}→목적지 {formatDistance(bestRouteCandidate.cost.total)} · {formatEta(etaSeconds(bestRouteCandidate.cost.total, walkingSpeed))} (경유 +{formatDistance(bestRouteCandidate.cost.extra)})
-            </span>
-          )}
-          {!bestRouteCandidate && bestNearestCandidate && (
-            <span className="ml-2 text-sky-700 dark:text-sky-300">
-              · 가까운 통 {formatDistance(bestNearestCandidate.meters)} · {formatEta(etaSeconds(bestNearestCandidate.meters, walkingSpeed))} ({bestNearestCandidate.bin.name.split(',')[0]})
-            </span>
-          )}
-          {savings.uses > 0 && (
-            <span className="ml-2 text-emerald-700 dark:text-emerald-300">{formatSavingsLine(savings)}</span>
-          )}
-          {locateError && <span className="ml-2 text-red-600 dark:text-red-400">({locateError})</span>}
-          {error && <span className="ml-2 text-red-600 dark:text-red-400">({error})</span>}
-        </div>
-        {districtBreakdown.length >= 2 && (
-          <div className="mt-1 text-[11px] leading-relaxed">
-            {districtBreakdown.map((d, i) => (
-              <span key={d.code}>
-                {i > 0 && <span aria-hidden className="mx-1.5 text-neutral-300 dark:text-neutral-700">·</span>}
-                <span className={d.loaded ? 'text-neutral-700 dark:text-neutral-300' : 'text-neutral-400 dark:text-neutral-600'}>
-                  {d.name}{' '}
-                  <span className="font-mono">{d.binCount}</span>
-                </span>
-              </span>
-            ))}
           </div>
         )}
       </section>
@@ -1015,7 +1039,100 @@ function PageContent() {
           onToggleFavorite={handleToggleFavorite}
           walkingSpeed={walkingSpeed}
           onUse={handleUseBin}
+          onMapReady={onMapReady}
         />
+        {/* 좌상단: 거리모드 (직선/격자) 단독 */}
+        <div className={`absolute left-2 top-2 z-[1000] p-1.5 ${hudFloatingGroup}`}>
+          <button
+            type="button"
+            onClick={() => {
+              vibrate(HAPTIC.TAP);
+              setDistanceMode((prev) =>
+                prev === 'euclidean' ? 'manhattan' : 'euclidean',
+              );
+            }}
+            aria-pressed={distanceMode === 'manhattan'}
+            aria-label={distanceMode === 'manhattan' ? '격자 거리 (탭하면 직선)' : '직선 거리 (탭하면 격자)'}
+            title={distanceMode === 'manhattan' ? '격자 거리' : '직선 거리'}
+            className={`${hudIconBtn} ${
+              distanceMode === 'manhattan' ? hudAmberActive : hudInactive
+            }`}
+          >
+            {distanceMode === 'euclidean' ? (
+              <Ruler size={20} aria-hidden="true" />
+            ) : (
+              <Grid3x3 size={20} aria-hidden="true" />
+            )}
+          </button>
+        </div>
+        {/* 우상단: 필터 (휴지통/재활용) 세로 stack */}
+        <div className={`absolute right-2 top-2 z-[1000] p-1.5 ${hudFloatingGroup}`}>
+          <FilterChips selected={selected} onToggle={toggle} layout="vertical" />
+        </div>
+        {/* 좌하단 통합: 줌 + 위치/방향 cycle */}
+        <div className={`absolute bottom-4 left-4 z-[1000] flex flex-col gap-1.5 p-1.5 ${hudFloatingGroup}`}>
+          <button
+            type="button"
+            onClick={() => {
+              vibrate(HAPTIC.TAP);
+              mapRef.current?.zoomIn();
+            }}
+            aria-label="확대"
+            title="확대"
+            className={`${hudIconBtn} ${hudInactive}`}
+          >
+            <Plus size={20} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              vibrate(HAPTIC.TAP);
+              mapRef.current?.zoomOut();
+            }}
+            aria-label="축소"
+            title="축소"
+            className={`${hudIconBtn} ${hudInactive}`}
+          >
+            <Minus size={20} aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            onClick={cycleLocate}
+            disabled={cycleState === 'pending'}
+            aria-pressed={cycleState !== 'off' && cycleState !== 'pending'}
+            aria-label={{
+              pending: '위치 찾는 중',
+              off: '내 위치 찾기',
+              gps: '방향 cone 켜기 (현재: 위치만)',
+              cone: '헤드업 모드로 전환 (현재: cone)',
+              'head-up': '위치/방향 끄기 (현재: 헤드업)',
+            }[cycleState]}
+            title={{
+              pending: '위치 찾는 중',
+              off: '위치',
+              gps: '위치 ON',
+              cone: '위치 + cone',
+              'head-up': '헤드업',
+            }[cycleState]}
+            className={`${hudIconBtn} ${{
+              pending: hudInactive,
+              off: hudInactive,
+              gps: hudSkyActive,
+              cone: hudSkyActive,
+              'head-up': hudVioletActive,
+            }[cycleState]} disabled:opacity-60`}
+          >
+            {cycleState === 'pending' ? (
+              <Loader2 size={20} aria-hidden="true" className="animate-spin" />
+            ) : cycleState === 'head-up' ? (
+              <Navigation size={20} aria-hidden="true" fill="currentColor" />
+            ) : cycleState === 'cone' ? (
+              <Compass size={20} aria-hidden="true" />
+            ) : (
+              <Target size={20} aria-hidden="true" />
+            )}
+          </button>
+        </div>
         {showLoadingOverlay && manifest && (
           <div
             className="pointer-events-none absolute inset-0 z-[1002] flex items-center justify-center px-4"
@@ -1090,31 +1207,125 @@ function PageContent() {
         {toast && (
           <div
             className="pointer-events-none absolute inset-x-0 bottom-6 z-[1001] flex justify-center px-4"
-            role="status"
-            aria-live="polite"
+            role={toast.variant === 'error' ? 'alert' : 'status'}
+            aria-live={toast.variant === 'error' ? 'assertive' : 'polite'}
           >
             <div
               className={
-                toast.emphatic
-                  ? 'rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-2xl ring-2 ring-emerald-300'
-                  : 'rounded-full bg-white/95 px-4 py-2 text-xs text-neutral-800 shadow-lg ring-1 ring-neutral-200 backdrop-blur-sm dark:bg-neutral-900/90 dark:text-neutral-100 dark:ring-neutral-700'
+                toast.variant === 'error'
+                  ? 'rounded-full bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-2xl ring-2 ring-red-300'
+                  : toast.variant === 'emphatic'
+                    ? 'rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-2xl ring-2 ring-emerald-300'
+                    : 'rounded-full bg-white/95 px-4 py-2 text-xs text-neutral-800 shadow-lg ring-1 ring-neutral-200 backdrop-blur-sm dark:bg-neutral-900/90 dark:text-neutral-100 dark:ring-neutral-700'
               }
             >
-              {toast.emphatic && <span aria-hidden className="mr-1.5">✅</span>}
+              {toast.variant === 'error' && <span aria-hidden className="mr-1.5">⚠</span>}
+              {toast.variant === 'emphatic' && <span aria-hidden className="mr-1.5">✅</span>}
               {toast.text}
             </div>
           </div>
         )}
         {manifest && (
-          <a
-            href="https://www.data.go.kr/data/15129450/standard.do"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="absolute bottom-2 left-2 z-[1000] rounded bg-white/85 px-2 py-1 text-[10px] text-neutral-600 ring-1 ring-neutral-200 backdrop-blur-sm hover:text-neutral-900 dark:bg-neutral-900/80 dark:text-neutral-400 dark:ring-neutral-700 dark:hover:text-neutral-200"
-            aria-label={`데이터 출처: 공공데이터포털 전국휴지통표준데이터 v${manifest.version}`}
-          >
-            📊 공공데이터포털 · v{manifest.version}
-          </a>
+          <div className="absolute bottom-7 right-2 z-[1000] flex max-w-[80%] flex-col items-stretch overflow-hidden rounded-lg bg-white/45 text-neutral-800 ring-1 ring-neutral-200 backdrop-blur-sm dark:bg-neutral-900/45 dark:text-neutral-100 dark:ring-neutral-700">
+            {!statusCollapsed && (
+              <div className="border-b border-neutral-200/70 px-3 py-2 text-[11px] leading-relaxed dark:border-neutral-700/70">
+                <a
+                  href="https://www.data.go.kr/data/15129450/standard.do"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-[10px] text-neutral-500 underline underline-offset-2 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-200"
+                  aria-label={`데이터 출처: 공공데이터포털 전국휴지통표준데이터 v${manifest.version}`}
+                >
+                  <span>출처 → 공공데이터포털</span>
+                  <ExternalLink size={12} aria-hidden="true" className="shrink-0" />
+                </a>
+                {(bestRouteCandidate || bestNearestCandidate || savings.uses > 0) && (
+                  <div className="mt-1.5 space-y-0.5 border-t border-neutral-200/70 pt-1.5 dark:border-neutral-700/70">
+                    {bestRouteCandidate && (
+                      <div className="text-cyan-700 dark:text-cyan-300">
+                        → {bestRouteCandidate.bin.name.split(',')[0]} {formatDistance(bestRouteCandidate.cost.total)} · {formatEta(etaSeconds(bestRouteCandidate.cost.total, walkingSpeed))}
+                      </div>
+                    )}
+                    {!bestRouteCandidate && bestNearestCandidate && (
+                      <div className="text-sky-700 dark:text-sky-300">
+                        가까운 {bestNearestCandidate.bin.name.split(',')[0]} · {formatDistance(bestNearestCandidate.meters)} · {formatEta(etaSeconds(bestNearestCandidate.meters, walkingSpeed))}
+                      </div>
+                    )}
+                    {savings.uses > 0 && (
+                      <div className="text-emerald-700 dark:text-emerald-300">{formatSavingsLine(savings)}</div>
+                    )}
+                  </div>
+                )}
+                {districtBreakdown.length >= 2 && (
+                  <ul className="mt-1.5 space-y-0.5 border-t border-neutral-200/70 pt-1.5 dark:border-neutral-700/70">
+                    {districtBreakdown.map((d) => {
+                      const status = d.loaded
+                        ? 'loaded'
+                        : d.failed
+                          ? 'failed'
+                          : d.inFlight
+                            ? 'inFlight'
+                            : 'pending';
+                      const { icon, cls } = STATUS_VIS[status];
+                      return (
+                        <li
+                          key={d.code}
+                          className={`flex items-center justify-between gap-3 ${
+                            d.loaded
+                              ? 'text-neutral-700 dark:text-neutral-200'
+                              : 'text-neutral-500 dark:text-neutral-400'
+                          }`}
+                        >
+                          <span className="flex items-center gap-1">
+                            <span aria-hidden className={`font-mono ${cls}`}>
+                              {icon}
+                            </span>
+                            <span>{d.name}</span>
+                          </span>
+                          <span className="font-mono text-neutral-400 dark:text-neutral-500">
+                            {d.binCount}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                vibrate(HAPTIC.TAP);
+                setStatusCollapsed((prev) => !prev);
+              }}
+              aria-expanded={!statusCollapsed}
+              aria-label={`데이터 현황 ${statusCollapsed ? '펼치기' : '접기'}`}
+              className="flex w-full items-center gap-1.5 px-3 py-2 text-xs font-medium hover:bg-neutral-100/40 dark:hover:bg-neutral-800/40"
+            >
+              <BarChart3 size={20} aria-hidden="true" />
+              <span className="text-neutral-600 dark:text-neutral-400">v{manifest.version}</span>
+              <span aria-hidden className="text-neutral-300 dark:text-neutral-600">·</span>
+              <MapPin size={20} aria-hidden="true" />
+              <span className="font-mono">
+                {visible.length}/{totalAvailableBins || bins.length}
+              </span>
+              {activeFetches.size > 0 && (
+                <span
+                  aria-hidden
+                  className="ml-0.5 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-amber-400"
+                  role="status"
+                  aria-live="polite"
+                />
+              )}
+              <span aria-hidden className="ml-auto flex text-neutral-700 dark:text-neutral-200">
+                {statusCollapsed ? (
+                  <ChevronUp size={14} />
+                ) : (
+                  <ChevronDown size={14} />
+                )}
+              </span>
+            </button>
+          </div>
         )}
       </main>
     </div>

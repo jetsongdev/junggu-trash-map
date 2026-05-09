@@ -1,5 +1,6 @@
 'use client';
 
+import { Check, Share2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { HAPTIC, vibrate } from '@/lib/haptic';
 import { buildShareUrl, type AppState } from '@/lib/url-share';
@@ -9,6 +10,9 @@ type Props = {
   defaults: AppState;
   className?: string;
 };
+
+const DEFAULT_CLASSNAME =
+  'relative flex h-11 w-11 items-center justify-center rounded-md px-3 text-base transition ring-1 bg-white/95 text-neutral-700 ring-neutral-300 hover:bg-white dark:bg-neutral-900/95 dark:text-neutral-200 dark:ring-neutral-700 dark:hover:bg-neutral-800';
 
 export function ShareButton({ state, defaults, className }: Props) {
   const [copied, setCopied] = useState(false);
@@ -79,11 +83,15 @@ export function ShareButton({ state, defaults, className }: Props) {
       onClick={() => {
         void handleShare();
       }}
-      aria-label="현재 필터와 경로 상태 공유"
-      className={className}
+      aria-label={copied ? '링크 복사됨' : '현재 필터와 경로 상태 공유'}
+      title={copied ? '복사됨!' : '공유'}
+      className={className ?? DEFAULT_CLASSNAME}
     >
-      <span aria-hidden>🔗</span>
-      <span>{copied ? '복사됨!' : '공유'}</span>
+      {copied ? (
+        <Check size={20} aria-hidden="true" />
+      ) : (
+        <Share2 size={20} aria-hidden="true" />
+      )}
     </button>
   );
 }

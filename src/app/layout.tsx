@@ -33,8 +33,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" className="h-full antialiased">
-      <body className="min-h-full">
+    <html lang="ko" className="h-full overflow-hidden antialiased">
+      <body className="h-full overflow-hidden overscroll-none">
         <PreloadResources />
         {children}
         <Analytics />
