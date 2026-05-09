@@ -1,8 +1,12 @@
-import type { DistrictCode, TrashBin } from './types';
+import type { DistrictCode, LocationHintSource, TrashBin } from './types';
+
+export type HintEntry =
+  | string
+  | { text: string; source: LocationHintSource };
 
 export type DistrictHints = {
   version: string;
-  hints: Record<string, string>;
+  hints: Record<string, HintEntry>;
 };
 
 const EMPTY: DistrictHints = { version: '', hints: {} };
@@ -19,9 +23,14 @@ export async function fetchHints(code: DistrictCode): Promise<DistrictHints> {
 
 export function mergeHints(
   bins: TrashBin[],
-  hints: Record<string, string>,
+  hints: Record<string, HintEntry>,
 ): TrashBin[] {
-  return bins.map((b) =>
-    hints[b.id] ? { ...b, locationHint: hints[b.id] } : b,
-  );
+  return bins.map((b) => {
+    const h = hints[b.id];
+    if (!h) return b;
+    if (typeof h === 'string') {
+      return { ...b, locationHint: h, locationHintSource: 'curated' };
+    }
+    return { ...b, locationHint: h.text, locationHintSource: h.source };
+  });
 }

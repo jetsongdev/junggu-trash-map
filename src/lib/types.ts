@@ -2,6 +2,8 @@ export const BIN_TYPES = ['일반', '재활용'] as const;
 
 export type BinType = (typeof BIN_TYPES)[number];
 
+export type LocationHintSource = 'curated' | 'kakao';
+
 export type TrashBin = {
   id: string;
   name: string;
@@ -17,6 +19,7 @@ export type TrashBin = {
   managerTel?: string;
   updatedAt: string;
   locationHint?: string;
+  locationHintSource?: LocationHintSource;
 };
 
 export const TYPE_STYLE: Record<BinType, { color: string; emoji: string }> = {

@@ -32,24 +32,35 @@ describe('mergeHints', () => {
     const result = mergeHints(sampleBins, {});
     expect(result).toHaveLength(2);
     expect(result[0].locationHint).toBeUndefined();
+    expect(result[0].locationHintSource).toBeUndefined();
     expect(result[1].locationHint).toBeUndefined();
   });
 
-  it('해당 id의 bin에만 locationHint 주입', () => {
+  it('string hint는 curated로 주입', () => {
     const hints = { 'JG-0001': '명동성당 정문 좌측 5m' };
     const result = mergeHints(sampleBins, hints);
     expect(result[0].locationHint).toBe('명동성당 정문 좌측 5m');
+    expect(result[0].locationHintSource).toBe('curated');
     expect(result[1].locationHint).toBeUndefined();
   });
 
-  it('여러 hint를 동시에 주입', () => {
+  it('object hint는 source 그대로 주입', () => {
     const hints = {
-      'JG-0001': '힌트1',
-      'JG-0002': '힌트2',
+      'JG-0001': { text: 'GS25 씨티스퀘어점', source: 'kakao' as const },
     };
     const result = mergeHints(sampleBins, hints);
-    expect(result[0].locationHint).toBe('힌트1');
-    expect(result[1].locationHint).toBe('힌트2');
+    expect(result[0].locationHint).toBe('GS25 씨티스퀘어점');
+    expect(result[0].locationHintSource).toBe('kakao');
+  });
+
+  it('curated와 kakao를 섞어도 각각 source 보존', () => {
+    const hints = {
+      'JG-0001': '운영자 텍스트',
+      'JG-0002': { text: '근처 편의점', source: 'kakao' as const },
+    };
+    const result = mergeHints(sampleBins, hints);
+    expect(result[0].locationHintSource).toBe('curated');
+    expect(result[1].locationHintSource).toBe('kakao');
   });
 
   it('매칭 안 되는 hint id는 무시', () => {
