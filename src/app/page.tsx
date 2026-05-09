@@ -542,6 +542,11 @@ function PageContent() {
 
   const maybeShowHint = (key: HintKey) => {
     if (typeof window === 'undefined') return;
+    // 다른 토스트(onboarding · 802 자치구 완료 · 에러)가 활성 중이면 skip.
+    // markSeen 도 안 해서 다음 트리거에서 다시 시도. URL-driven origin+dest로
+    // 첫 mount에 share hint이 onboarding과 충돌하면 이번 세션엔 안 뜨지만,
+    // 공유 URL로 도착한 사용자는 이미 공유 기능을 알고 있으니 trade-off 수용.
+    if (toastTimerRef.current != null) return;
     if (hasSeenHint(key, window.localStorage)) return;
     markHintSeen(key, window.localStorage);
     showToast(HINT_MESSAGES[key], HINT_DURATION_MS);
@@ -1287,10 +1292,10 @@ function PageContent() {
             <div
               className={
                 toast.variant === 'error'
-                  ? 'max-w-sm rounded-2xl bg-red-600/85 px-6 py-4 text-center text-sm font-semibold text-white shadow-2xl ring-1 ring-red-300/60 backdrop-blur-md'
+                  ? 'max-w-sm rounded-2xl bg-red-600/70 px-6 py-4 text-center text-sm font-semibold text-white shadow-2xl ring-1 ring-red-300/50 backdrop-blur-lg'
                   : toast.variant === 'emphatic'
-                    ? 'max-w-sm rounded-2xl bg-emerald-600/85 px-6 py-4 text-center text-sm font-semibold text-white shadow-2xl ring-1 ring-emerald-300/60 backdrop-blur-md'
-                    : 'max-w-sm rounded-2xl bg-white/75 px-6 py-4 text-center text-sm text-neutral-900 shadow-2xl ring-1 ring-neutral-300/70 backdrop-blur-md dark:bg-neutral-900/70 dark:text-neutral-50 dark:ring-neutral-700/70'
+                    ? 'max-w-sm rounded-2xl bg-emerald-600/70 px-6 py-4 text-center text-sm font-semibold text-white shadow-2xl ring-1 ring-emerald-300/50 backdrop-blur-lg'
+                    : 'max-w-sm rounded-2xl bg-white/55 px-6 py-4 text-center text-sm text-neutral-900 shadow-xl ring-1 ring-neutral-300/50 backdrop-blur-lg dark:bg-neutral-900/55 dark:text-neutral-50 dark:ring-neutral-700/50'
               }
             >
               {toast.variant === 'error' && <span aria-hidden className="mr-1.5">⚠</span>}
