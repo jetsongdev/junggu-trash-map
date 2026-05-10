@@ -976,7 +976,7 @@ function PageContent() {
   };
 
   const hudInactive =
-    'bg-white/95 text-neutral-700 ring-1 ring-neutral-300 hover:bg-white dark:bg-neutral-900/95 dark:text-neutral-200 dark:ring-neutral-700 dark:hover:bg-neutral-800';
+    'bg-transparent text-neutral-700 ring-1 ring-white/40 hover:bg-white/30 dark:text-neutral-200 dark:ring-white/15 dark:hover:bg-white/10';
   const hudChip =
     `flex h-9 items-center gap-1.5 rounded-md px-2.5 text-sm font-medium whitespace-nowrap transition ring-1 ${FOCUS_VISIBLE_CLASS}`;
   const hudIconBtn =
@@ -985,16 +985,15 @@ function PageContent() {
     `relative flex h-9 w-[74px] shrink-0 items-center justify-center gap-1 px-2 text-xs font-medium leading-none transition ${FOCUS_VISIBLE_CLASS}`;
   const routeSegmentInactive =
     'text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800';
-  const hudFloatingGroup =
-    'rounded-md bg-white/80 ring-1 ring-neutral-300 backdrop-blur-sm dark:bg-neutral-900/80 dark:ring-neutral-700';
+  const hudFloatingGroup = 'rounded-md glass-surface';
   const hudAmberActive =
-    'bg-amber-500/15 text-amber-700 ring-1 ring-amber-500 shadow-sm dark:bg-amber-400/15 dark:text-amber-200 dark:ring-amber-400';
+    'bg-amber-500/85 text-white ring-1 ring-amber-300 shadow-sm dark:bg-amber-400/80 dark:text-neutral-950 dark:ring-amber-200';
   const hudSkyActive =
-    'bg-sky-500/15 text-sky-700 ring-1 ring-sky-500 shadow-sm dark:bg-sky-400/15 dark:text-sky-200 dark:ring-sky-400';
+    'bg-sky-500/85 text-white ring-1 ring-sky-300 shadow-sm dark:bg-sky-400/80 dark:text-neutral-950 dark:ring-sky-200';
   const hudVioletActive =
-    'bg-violet-500/15 text-violet-700 ring-1 ring-violet-500 shadow-sm dark:bg-violet-400/15 dark:text-violet-200 dark:ring-violet-400';
+    'bg-violet-500/85 text-white ring-1 ring-violet-300 shadow-sm dark:bg-violet-400/80 dark:text-neutral-950 dark:ring-violet-200';
   const hudEmeraldActive =
-    'bg-emerald-500/15 text-emerald-700 ring-1 ring-emerald-500 shadow-sm dark:bg-emerald-400/15 dark:text-emerald-200 dark:ring-emerald-400';
+    'bg-emerald-500/85 text-white ring-1 ring-emerald-300 shadow-sm dark:bg-emerald-400/80 dark:text-neutral-950 dark:ring-emerald-200';
   const shareState: AppState = {
     selected,
     tileTheme,
@@ -1060,7 +1059,7 @@ function PageContent() {
         <div className="flex flex-wrap items-center gap-2">
           {/* 그룹 1: 위치/경로/속도 */}
           <div className="flex flex-wrap items-center gap-1.5">
-            <div className="flex overflow-hidden rounded-md bg-white/95 ring-1 ring-neutral-300 dark:bg-neutral-900/95 dark:ring-neutral-700">
+            <div className="flex overflow-hidden rounded-md glass-surface">
               <button
                 type="button"
                 onClick={onOriginTap}
@@ -1164,7 +1163,7 @@ function PageContent() {
           </div>
         </div>
         {speedSliderOpen && (
-          <div className="mt-2 flex items-center gap-3 rounded-md bg-white/95 px-3 py-2 ring-1 ring-emerald-500/40 dark:bg-neutral-900/95">
+          <div className="mt-2 flex items-center gap-3 rounded-md px-3 py-2 ring-1 ring-emerald-500/40 glass-surface">
             <Footprints size={20} aria-hidden="true" className="text-emerald-700 dark:text-emerald-300" />
             <input
               type="range"
