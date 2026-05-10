@@ -1335,7 +1335,7 @@ function PageContent() {
             aria-live="polite"
             aria-label="자치구 데이터 로드 중"
           >
-            <div className="rounded-2xl bg-white/95 px-5 py-4 text-sm text-neutral-900 shadow-2xl ring-1 ring-neutral-200 backdrop-blur-sm min-w-[200px] dark:bg-neutral-900/85 dark:text-neutral-100 dark:ring-neutral-700">
+            <div className="glass-surface-strong rounded-2xl px-5 py-4 text-sm text-neutral-900 min-w-[200px] dark:text-neutral-100">
               <div className="mb-2 flex items-center gap-2 font-semibold">
                 <span
                   aria-hidden
@@ -1388,7 +1388,7 @@ function PageContent() {
             style={{ opacity: tapBannerShown ? 1 : 0, transition: "opacity 300ms ease-out" }}
           >
             <div
-              className={`rounded-2xl max-w-sm px-6 py-4 text-center text-sm font-semibold text-white shadow-lg ring-1 ring-white/25 backdrop-blur-xl ${
+              className={`glass-toast rounded-2xl max-w-sm px-6 py-4 text-center text-sm font-semibold text-white ring-1 ring-white/25 ${
                 displayedTapTarget === "origin"
                   ? "bg-violet-500/20"
                   : "bg-rose-500/20"
@@ -1411,10 +1411,10 @@ function PageContent() {
             <div
               className={
                 toast.variant === 'error'
-                  ? 'max-w-sm rounded-2xl bg-red-500/20 px-6 py-4 text-center text-sm font-semibold text-white shadow-lg ring-1 ring-white/25 backdrop-blur-xl'
+                  ? 'glass-toast max-w-sm rounded-2xl bg-red-500/20 px-6 py-4 text-center text-sm font-semibold text-white ring-1 ring-white/25'
                   : toast.variant === 'emphatic'
-                    ? 'max-w-sm rounded-2xl bg-emerald-500/20 px-6 py-4 text-center text-sm font-semibold text-white shadow-lg ring-1 ring-white/25 backdrop-blur-xl'
-                    : 'max-w-sm rounded-2xl bg-white/20 px-6 py-4 text-center text-sm font-medium text-neutral-900 shadow-lg ring-1 ring-white/30 backdrop-blur-xl dark:bg-neutral-900/20 dark:text-neutral-50 dark:ring-neutral-700/30'
+                    ? 'glass-toast max-w-sm rounded-2xl bg-emerald-500/20 px-6 py-4 text-center text-sm font-semibold text-white ring-1 ring-white/25'
+                    : 'glass-toast max-w-sm rounded-2xl bg-white/20 px-6 py-4 text-center text-sm font-medium text-neutral-900 ring-1 ring-white/30 dark:bg-neutral-900/20 dark:text-neutral-50 dark:ring-neutral-700/30'
               }
             >
               {toast.variant === 'error' && <span aria-hidden className="mr-1.5">⚠</span>}
