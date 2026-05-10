@@ -37,8 +37,8 @@ body {
 }
 .dark .leaflet-popup-content-wrapper,
 .tile-theme-dark .leaflet-popup-content-wrapper {
-  background: rgba(23, 23, 23, 0.82);
-  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(23, 23, 23, 0.92);
+  border-color: rgba(255, 255, 255, 0.14);
   box-shadow:
     0 12px 32px rgba(0, 0, 0, 0.55),
     inset 0 1px 0 rgba(255, 255, 255, 0.14);
@@ -48,7 +48,7 @@ body {
 }
 .dark .leaflet-popup-tip,
 .tile-theme-dark .leaflet-popup-tip {
-  background: rgba(23, 23, 23, 0.82);
+  background: rgba(23, 23, 23, 0.92);
 }
 @media (prefers-reduced-transparency: reduce) {
   .leaflet-popup-content-wrapper {

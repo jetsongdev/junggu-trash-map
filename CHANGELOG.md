@@ -9,6 +9,11 @@
 
 ## [Unreleased]
 
+## [0.23.1] - 2026-05-10
+
+### Fixed
+- 다크 모드에서 휴지통 팝업의 이름·주소·관리자 라인 텍스트가 다크 타일 위에서 묻혀 안 읽히던 문제 해결 — 본문 텍스트에 다크 변형을 더해 흰톤으로 대비를 살리고, 팝업 카드 배경 불투명도를 살짝 끌어올려 어떤 위치에서도 글자가 또렷이 읽힘. 라이트 모드 톤은 그대로 (P2.27).
+
 ## [0.23.0] - 2026-05-10
 
 ### Changed
@@ -318,7 +323,8 @@
 - `~/.claude/skills/snapshot/` — 글로벌 스냅샷 스킬 (프레임워크 무관, config 기반)
 - `CLAUDE.md` — 세션 진입 가이드 (작업 큐 / 시각 히스토리 / CHANGELOG 포인터)
 
-[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.23.0...HEAD
+[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.23.1...HEAD
+[0.23.1]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.23.0...v0.23.1
 [0.23.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.22.0...v0.23.0
 [0.22.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.21.1...v0.22.0
 [0.21.1]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.21.0...v0.21.1

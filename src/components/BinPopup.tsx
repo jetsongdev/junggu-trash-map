@@ -35,7 +35,7 @@ export function BinPopup({ bin, isFavorite = false, onToggleFavorite, onUse }: P
         >
           {headStyle.emoji}
         </span>
-        <strong className="flex-1 text-base text-neutral-900">{bin.name}</strong>
+        <strong className="flex-1 text-base text-neutral-900 dark:text-neutral-50">{bin.name}</strong>
         {onToggleFavorite && (
           <button
             type="button"
@@ -43,7 +43,7 @@ export function BinPopup({ bin, isFavorite = false, onToggleFavorite, onUse }: P
             aria-pressed={isFavorite}
             aria-label={isFavorite ? '즐겨찾기 해제' : '즐겨찾기 추가'}
             className={`rounded-full px-2 py-1 text-lg leading-none transition ${FOCUS_VISIBLE_CLASS} ${
-              isFavorite ? 'text-amber-500' : 'text-neutral-300 hover:text-amber-400'
+              isFavorite ? 'text-amber-500' : 'text-neutral-300 hover:text-amber-400 dark:text-neutral-400 dark:hover:text-amber-300'
             }`}
           >
             {isFavorite ? '★' : '☆'}
@@ -78,35 +78,35 @@ export function BinPopup({ bin, isFavorite = false, onToggleFavorite, onUse }: P
       {bin.locationHint ? (
         <>
           {bin.locationHintSource === 'kakao' ? (
-            <div className="mt-2 flex items-start gap-1 text-sm text-neutral-600">
+            <div className="mt-2 flex items-start gap-1 text-sm text-neutral-600 dark:text-neutral-200">
               <span aria-hidden>📍</span>
               <span>
-                <span className="text-neutral-500">근처: </span>
+                <span className="text-neutral-500 dark:text-neutral-400">근처: </span>
                 {bin.locationHint}
-                <span className="ml-1 text-[10px] uppercase tracking-wide text-neutral-400">
+                <span className="ml-1 text-[10px] uppercase tracking-wide text-neutral-400 dark:text-neutral-500">
                   · kakao
                 </span>
               </span>
             </div>
           ) : (
-            <div className="mt-2 text-neutral-700">{bin.locationHint}</div>
+            <div className="mt-2 text-neutral-700 dark:text-neutral-100">{bin.locationHint}</div>
           )}
           {(bin.roadAddress || bin.jibunAddress) && (
-            <div className="mt-1 text-xs text-neutral-500">
+            <div className="mt-1 text-xs text-neutral-500 dark:text-neutral-300">
               {bin.roadAddress || bin.jibunAddress}
             </div>
           )}
         </>
       ) : (
         (bin.roadAddress || bin.jibunAddress) && (
-          <div className="mt-2 text-neutral-700">
+          <div className="mt-2 text-neutral-700 dark:text-neutral-100">
             {bin.roadAddress || bin.jibunAddress}
           </div>
         )
       )}
-      {bin.detail && <div className="mt-1 text-neutral-500">{bin.detail}</div>}
+      {bin.detail && <div className="mt-1 text-neutral-500 dark:text-neutral-300">{bin.detail}</div>}
       {bin.manager && (
-        <div className="mt-2 border-t border-neutral-200 pt-2 text-xs text-neutral-500">
+        <div className="mt-2 border-t border-neutral-200 pt-2 text-xs text-neutral-500 dark:border-neutral-700 dark:text-neutral-300">
           관리: {bin.manager}
           {bin.managerTel && ` · ${bin.managerTel}`}
         </div>
