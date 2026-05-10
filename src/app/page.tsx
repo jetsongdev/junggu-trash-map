@@ -1424,7 +1424,7 @@ function PageContent() {
           </div>
         )}
         {manifest && (
-          <div className="absolute bottom-7 right-2 z-[1000] flex max-w-[80%] flex-col items-stretch overflow-hidden rounded-lg bg-white/45 text-neutral-800 ring-1 ring-neutral-200 backdrop-blur-sm dark:bg-neutral-900/45 dark:text-neutral-100 dark:ring-neutral-700">
+          <div className="absolute bottom-7 right-2 z-[1000] flex max-w-[80%] flex-col items-stretch overflow-hidden rounded-lg text-neutral-800 dark:text-neutral-100 glass-surface">
             {!statusCollapsed && (
               <div className="border-b border-neutral-200/70 px-3 py-2 text-[11px] leading-relaxed dark:border-neutral-700/70">
                 <a
