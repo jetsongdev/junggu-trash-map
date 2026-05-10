@@ -53,6 +53,7 @@
 | 45 | 2026-05-10 | 🪟 Liquid Glass 디자인 언어 — HUD/검색/status/토스트 6 표면에 backdrop-blur+saturate+inset highlight, light·dark·status-open·search-dropdown 4장 (P2.24) | [45-liquid-glass](./45-liquid-glass/) |
 | 46 | 2026-05-10 | 🥞 토스트 stacking 큐 — single state → array (한도 없음), `flex-col gap-2`로 위→아래 chronological. default + stacked 2장 (P2.25) | [46-toast-stacking-queue](./46-toast-stacking-queue/) |
 | 47 | 2026-05-10 | 🥞🥞 토스트 stacking 한도 제거 — cap=3 → 무한 N. 5장 stacking 시각 contract (P2.25 refactor) | [47-toast-stacking-no-cap](./47-toast-stacking-no-cap/) |
+| 48 | 2026-05-10 | 🧭 P3.5+P2.26 머지 후 baseline (v0.23.0) — routing reset & GPS-anchor zoom은 인터랙션 trigger 동작이라 정적 캡처는 milestone 표식 | [48-routing-reset-baseline](./48-routing-reset-baseline/) |
 
 ## 새 스냅샷 찍는 법
 
