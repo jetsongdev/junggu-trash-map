@@ -3,7 +3,7 @@ index: 48
 slug: popup-dark-readability
 date: 2026-05-10
 phase: P2.27
-git_sha: 30b0803 (dirty)
+git_sha: cdf390a (clean)
 viewport: 390x844
 url: http://localhost:3010
 title: BinPopup 다크 모드 가독성 보강
