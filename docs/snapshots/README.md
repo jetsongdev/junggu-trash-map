@@ -50,6 +50,7 @@
 | 42 | 2026-05-09 | 💡 첫-사용 힌트 5종 + 토스트 모달 재배치 — share/favorite/headsUp/grid/speed 정중앙 투명 모달 (P2.19+P2.21) | [42-first-use-hints](./42-first-use-hints/) |
 | 43 | 2026-05-09 | ⏱ 첫 로딩 토스트 시퀀스 검증 — 오버레이→상단→중앙 3 phase 모두 단독, 위치 충돌 0 (sequencing fix) | [43-loading-sequence-fix](./43-loading-sequence-fix/) |
 | 44 | 2026-05-10 | 🎯🏁 토스트 + 탭 모드 배너 통합 시각 언어 — 정중앙 투명 모달 + 300ms fade in/out, default·violet origin·rose destination 3장 (P2.19+P2.21 final) | [44-toast-tap-banner-unified](./44-toast-tap-banner-unified/) |
+| 45 | 2026-05-10 | 🪟 Liquid Glass 디자인 언어 — HUD/검색/status/토스트 6 표면에 backdrop-blur+saturate+inset highlight, light·dark·status-open·search-dropdown 4장 (P2.24) | [45-liquid-glass](./45-liquid-glass/) |
 
 ## 새 스냅샷 찍는 법
 
