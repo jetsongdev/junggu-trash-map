@@ -3,7 +3,7 @@ index: 46
 slug: toast-stacking-queue
 date: 2026-05-10
 phase: P2.25
-git_sha: 55a13a7 (clean)
+git_sha: 4616972 (clean)
 viewport: 390x844
 url: http://localhost:3000
 title: 토스트 stacking 큐 — 최대 3장, position별 독립 stack
