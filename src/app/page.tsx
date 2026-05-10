@@ -1009,7 +1009,7 @@ function PageContent() {
         tileTheme === 'dark' ? 'dark' : ''
       }`}
     >
-      <header className="border-b border-neutral-200 bg-neutral-50 px-4 py-3 dark:border-neutral-800 dark:bg-neutral-950">
+      <header className="glass-surface border-b border-white/30 px-4 py-3 dark:border-white/10">
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-bold tracking-tight">🗑️ 중구 휴지통 지도</h1>
           <span className="rounded bg-amber-400 px-1.5 py-0.5 text-[10px] font-bold text-neutral-900">
@@ -1027,7 +1027,7 @@ function PageContent() {
             }}
             aria-label={`테마 ${tileTheme === 'dark' ? '라이트로 전환' : '다크로 전환'}`}
             title={tileTheme === 'dark' ? '다크 테마 (탭하면 라이트)' : '라이트 테마 (탭하면 다크)'}
-            className={`ml-auto flex h-9 w-9 items-center justify-center rounded-md text-neutral-600 ring-1 ring-neutral-200 transition hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:ring-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-100 ${FOCUS_VISIBLE_CLASS}`}
+            className={`ml-auto flex h-9 w-9 items-center justify-center rounded-md bg-transparent text-neutral-700 ring-1 ring-white/40 transition hover:bg-white/30 dark:text-neutral-200 dark:ring-white/15 dark:hover:bg-white/10 ${FOCUS_VISIBLE_CLASS}`}
           >
             {tileTheme === 'dark' ? (
               <Moon size={18} aria-hidden="true" />

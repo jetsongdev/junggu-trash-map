@@ -89,7 +89,7 @@ export function DistrictSelector({
         <span aria-hidden>🗺</span>
       </button>
       {open && (
-        <div className="absolute right-0 top-full z-[1001] mt-1 w-[252px] rounded-md bg-white/95 p-2 shadow-xl ring-1 ring-neutral-200 backdrop-blur-sm dark:bg-neutral-900/95 dark:ring-neutral-700">
+        <div className="glass-surface absolute right-0 top-full z-[1001] mt-1 w-[252px] rounded-md p-2">
           <div className="grid grid-cols-5 gap-1">
             {rows.map((row) =>
               row.map((meta) => {

@@ -12,7 +12,7 @@
 ## [0.21.0] - 2026-05-10
 
 ### Changed
-- HUD floating groups, 검색박스, status 카드, 토스트에 Apple Liquid Glass 톤 적용 — backdrop-blur + saturate + inset highlight로 깊이감, 활성 칩은 색 identity 유지
+- HUD floating groups, 검색박스, status 카드, 토스트, **헤더, Leaflet popup, DistrictSelector 자치구 그리드 패널**까지 Apple Liquid Glass 톤 통합 — backdrop-blur + saturate + inset highlight로 전 표면 깊이감, 활성 칩은 색 identity 유지
 
 ## [0.20.0] - 2026-05-09
 
