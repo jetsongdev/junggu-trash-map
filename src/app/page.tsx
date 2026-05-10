@@ -1027,7 +1027,7 @@ function PageContent() {
             }}
             aria-label={`테마 ${tileTheme === 'dark' ? '라이트로 전환' : '다크로 전환'}`}
             title={tileTheme === 'dark' ? '다크 테마 (탭하면 라이트)' : '라이트 테마 (탭하면 다크)'}
-            className={`ml-auto flex h-9 w-9 items-center justify-center rounded-md bg-transparent text-neutral-700 ring-1 ring-white/40 transition hover:bg-white/30 dark:text-neutral-200 dark:ring-white/15 dark:hover:bg-white/10 ${FOCUS_VISIBLE_CLASS}`}
+            className={`ml-auto flex h-9 w-9 items-center justify-center rounded-md transition ${hudInactive} ${FOCUS_VISIBLE_CLASS}`}
           >
             {tileTheme === 'dark' ? (
               <Moon size={18} aria-hidden="true" />
