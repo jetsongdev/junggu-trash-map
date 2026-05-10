@@ -47,6 +47,9 @@
 | 39 | 2026-05-09 | 🚶 속도 슬라이더 우측에 ETA 인라인 프리뷰 — `km/h` 아래 "가까운 통 약 2분" 한 줄 (with·without 2장) | [39-speed-slider-eta-preview](./39-speed-slider-eta-preview/) |
 | 40 | 2026-05-09 | 🗺 25구 셀렉터 그리드 — 우상단 🗺 칩 → 5x5 grid (populated/empty 시각 분리, P3.3) | [40-district-selector](./40-district-selector/) |
 | 41 | 2026-05-09 | 🟡 자치구 폴리곤 outline — viewing district amber dashed (light/dark/selector-open 3장, P3.4) | [41-district-outline](./41-district-outline/) |
+| 42 | 2026-05-09 | 💡 첫-사용 힌트 5종 + 토스트 모달 재배치 — share/favorite/headsUp/grid/speed 정중앙 투명 모달 (P2.19+P2.21) | [42-first-use-hints](./42-first-use-hints/) |
+| 43 | 2026-05-09 | ⏱ 첫 로딩 토스트 시퀀스 검증 — 오버레이→상단→중앙 3 phase 모두 단독, 위치 충돌 0 (sequencing fix) | [43-loading-sequence-fix](./43-loading-sequence-fix/) |
+| 44 | 2026-05-10 | 🎯🏁 토스트 + 탭 모드 배너 통합 시각 언어 — 정중앙 투명 모달 + 300ms fade in/out, default·violet origin·rose destination 3장 (P2.19+P2.21 final) | [44-toast-tap-banner-unified](./44-toast-tap-banner-unified/) |
 
 ## 새 스냅샷 찍는 법
 

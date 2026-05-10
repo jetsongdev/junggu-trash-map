@@ -9,6 +9,23 @@
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-05-09
+
+### Added
+- 처음 사용하는 기능 5종(공유 버튼 / ☆ 즐겨찾기 / 헤드업 모드 / 격자 거리 / 보행 속도 슬라이더)에 대해 한 번씩만 짧은 안내 토스트가 뜹니다. 출발과 목적지를 모두 정하면 공유 버튼이 있다는 걸 알려주고, ☆를 처음 누르면 즐겨찾기 칩으로 모아볼 수 있다는 안내가, 헤드업·격자 모드와 속도 슬라이더는 첫 활성화 시점에 그 의미를 한 줄로 설명합니다. 한 번 본 안내는 다시 뜨지 않습니다 (P2.19, P2.21).
+
+### Changed
+- "전체 N개 자치구 N개 휴지통 로드 완료" 토스트는 화면 상단(`top-16`)으로 이동했습니다. 초기 로딩 중 화면 중앙에 떠 있는 자치구 로드 진행 오버레이가 사라지자마자 같은 자리에 완료 토스트가 뜨던 위치 충돌을 해소했습니다.
+- 모든 토스트 배경 투명도를 `/20`으로 통일해 더 가벼운 모달 느낌으로 다듬었습니다. info/error/emphatic 모두 동일한 톤. `backdrop-blur-xl` + 글자 굵기로 가독성은 유지됩니다.
+- 첫 방문 onboarding 토스트(🎯 출발과 🏁 목적지...)가 화면 중앙에 뜨던 자치구 로드 오버레이와 겹치는 문제를 해결했습니다. onboarding은 자치구 로드가 끝나고 "전체 N개 자치구 로드 완료" 토스트가 사라진 뒤에 발사되도록 시퀀스를 조정해, 초기 로딩 중에는 한 번에 한 가지 안내만 화면에 보입니다.
+- 출발/목적지 탭 모드 배너(🎯/🏁 ... 탭하거나 검색하세요)도 토스트와 동일한 시각 언어로 통일했습니다. 화면 정중앙에 violet/rose 톤 투명 모달(`/20` + `backdrop-blur-xl` + `rounded-2xl`)로, 탭 모드 진입/해제 시 부드럽게 fade in/out 합니다(300ms). 기존 화면 하단 둥근 pill 형태에서 변경.
+- 토스트 위치를 화면 하단에서 화면 정중앙으로 옮기고 모달 느낌으로 다듬었습니다. 둥근 사각형(`rounded-2xl`) + 반투명 배경(info `/70`, error/emphatic `/85`) + `backdrop-blur-lg`로, 사용자가 한 번 읽고 흘려보낼 안내가 시야 중심에 잠시 머물렀다 사라지면서도 뒤의 지도가 어렴풋이 비쳐 보입니다. error는 6초, info(첫-사용 힌트 등)는 4초, emphatic은 4~6초 노출 후 자동으로 사라지고, 지도 조작은 막지 않습니다. 첫-사용 힌트는 다른 토스트가 표시 중일 때는 발사를 건너뛰어 timing 충돌이 없습니다.
+- 토스트가 화면에 나타나고 사라질 때 부드럽게 fade in/out 합니다(300ms `transition-opacity ease-out`). 한 번에 켜졌다 꺼지던 깜빡임이 사라져 시야 흐름을 끊지 않고, 다음 안내가 들어올 때도 자연스럽게 인계됩니다. 표시 시간은 그대로(info 4s, error 6s, emphatic 4~6s) — fade-out은 끝나기 직전 300ms 동안 진행됩니다.
+
+### Fixed
+- 키보드로 지도 HUD, 검색, 팝업, 마커와 클러스터를 이동할 때 포커스 링이 더 명확하게 보입니다. `=`/`-` 키로 지도 확대·축소도 가능해졌습니다. 마커와 클러스터의 스크린리더 이름도 숫자·이모지 대신 위치명 또는 "휴지통 N개 그룹"으로 읽히며, `prefers-reduced-motion` 사용자는 지도 이동·줌과 반복 애니메이션이 줄어듭니다 (I.6 2차).
+- 휴지통 마커 popup이 열린 상태에서 다른 토스트(첫-사용 힌트, onboarding 등)가 발사되면 popup이 깜빡이던 문제를 해결했습니다. 토스트 state 변경 → 페이지 리렌더 → marker/popup props 참조 변경 → react-leaflet이 Leaflet Marker/Popup을 update하면서 발생했던 시각 깜빡임. 마커/콜백 참조를 `useCallback`/`useMemo`로 안정화해 토스트만 변경되는 리렌더에서는 마커 트리가 영향받지 않습니다.
+
 ## [0.19.2] - 2026-05-09
 
 ### Fixed
@@ -279,7 +296,8 @@
 - `~/.claude/skills/snapshot/` — 글로벌 스냅샷 스킬 (프레임워크 무관, config 기반)
 - `CLAUDE.md` — 세션 진입 가이드 (작업 큐 / 시각 히스토리 / CHANGELOG 포인터)
 
-[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.19.2...HEAD
+[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.20.0...HEAD
+[0.20.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.19.2...v0.20.0
 [0.19.2]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.19.1...v0.19.2
 [0.19.1]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.19.0...v0.19.1
 [0.19.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.18.1...v0.19.0

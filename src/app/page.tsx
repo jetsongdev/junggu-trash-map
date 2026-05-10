@@ -64,6 +64,13 @@ import {
 } from '@/lib/savings';
 import { computeCycleState } from '@/lib/cycle-state';
 import {
+  HINT_DURATION_MS,
+  HINT_MESSAGES,
+  hasSeenHint,
+  markHintSeen,
+  type HintKey,
+} from '@/lib/first-use-hints';
+import {
   findTopDetours,
   findTopNearest,
   formatDistance,
@@ -129,8 +136,17 @@ function PageContent() {
   const [activeFetches, setActiveFetches] = useState<Set<DistrictCode>>(() => new Set());
   const [failedDistricts, setFailedDistricts] = useState<Set<DistrictCode>>(() => new Set());
   type ToastVariant = 'info' | 'emphatic' | 'error';
-  const [toast, setToast] = useState<{ text: string; variant: ToastVariant } | null>(null);
+  type ToastPosition = 'center' | 'top';
+  const [toast, setToast] = useState<{
+    text: string;
+    variant: ToastVariant;
+    position: ToastPosition;
+    exiting: boolean;
+  } | null>(null);
+  const [toastShown, setToastShown] = useState(false);
   const toastTimerRef = useRef<number | null>(null);
+  const toastFadeOutRef = useRef<number | null>(null);
+  const TOAST_FADE_MS = 300;
   const [selected, setSelected] = useState<Set<BinType>>(() => new Set());
   const [error, setError] = useState<string | null>(null);
 
@@ -141,6 +157,8 @@ function PageContent() {
   const [locatePending, setLocatePending] = useState(false);
   const [locateError, setLocateError] = useState<string | null>(null);
   const [tapTarget, setTapTarget] = useState<TapTarget>(null);
+  const [tapBannerShown, setTapBannerShown] = useState(false);
+  const [displayedTapTarget, setDisplayedTapTarget] = useState<"origin" | "destination" | null>(null);
   const [searchDropdownOpen, setSearchDropdownOpen] = useState(false);
   const [distanceMode, setDistanceMode] = useState<DistanceMode>('euclidean');
   const [tileTheme, setTileTheme] = useState<TileTheme>('dark');
@@ -499,6 +517,10 @@ function PageContent() {
         window.clearTimeout(toastTimerRef.current);
         toastTimerRef.current = null;
       }
+      if (toastFadeOutRef.current != null) {
+        window.clearTimeout(toastFadeOutRef.current);
+        toastFadeOutRef.current = null;
+      }
     };
   }, []);
 
@@ -526,16 +548,58 @@ function PageContent() {
     return flat;
   }, [districtsCache, activeDistricts]);
 
-  const showToast = (text: string, durationMs = 1800, variant: ToastVariant = 'info') => {
-    setToast({ text, variant });
+  const showToast = useCallback((
+    text: string,
+    durationMs = 1800,
+    variant: ToastVariant = 'info',
+    position: ToastPosition = 'center',
+  ) => {
     if (toastTimerRef.current != null) {
       window.clearTimeout(toastTimerRef.current);
+      toastTimerRef.current = null;
     }
+    if (toastFadeOutRef.current != null) {
+      window.clearTimeout(toastFadeOutRef.current);
+      toastFadeOutRef.current = null;
+    }
+    setToast({ text, variant, position, exiting: false });
+    // 끝나기 TOAST_FADE_MS 전에 exiting 플래그 → CSS opacity 1→0 전환 시작
+    toastFadeOutRef.current = window.setTimeout(() => {
+      setToast((prev) => (prev ? { ...prev, exiting: true } : null));
+      toastFadeOutRef.current = null;
+    }, Math.max(0, durationMs - TOAST_FADE_MS));
+    // 그 후 unmount
     toastTimerRef.current = window.setTimeout(() => {
       setToast(null);
       toastTimerRef.current = null;
     }, durationMs);
-  };
+  }, [TOAST_FADE_MS]);
+
+  // 토스트 fade-in: mount 시점에 opacity 0 → 다음 paint에 opacity 1.
+  // exiting=true 또는 toast=null이면 다시 0으로 복귀해 unmount 전 fade-out.
+  useEffect(() => {
+    if (!toast || toast.exiting) {
+      setToastShown(false);
+      return;
+    }
+    setToastShown(false);
+    const id = window.requestAnimationFrame(() => setToastShown(true));
+    return () => window.cancelAnimationFrame(id);
+  }, [toast]);
+
+  useEffect(() => {
+    if (tapTarget) {
+      setDisplayedTapTarget(tapTarget);
+      setTapBannerShown(false);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setTapBannerShown(true));
+      });
+    } else {
+      setTapBannerShown(false);
+      const t = setTimeout(() => setDisplayedTapTarget(null), 300);
+      return () => clearTimeout(t);
+    }
+  }, [tapTarget]);
 
   const allLoadedToastFiredRef = useRef(false);
   useEffect(() => {
@@ -547,16 +611,21 @@ function PageContent() {
       `전체 ${populatedDistrictCount}개 자치구 ${bins.length}개 휴지통 로드 완료`,
       4000,
       'emphatic',
+      'top',
     );
-    // showToast 는 매 render 새로 만드는 closure지만 ref guard 덕에 1회 실행 보장.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loadedPopulatedCount, populatedDistrictCount, bins.length]);
+  }, [loadedPopulatedCount, populatedDistrictCount, bins.length, showToast]);
 
   const onboardingFiredRef = useRef(false);
   useEffect(() => {
     if (onboardingFiredRef.current) return;
     if (!manifest) return;
     if (typeof window === 'undefined') return;
+    // 로딩 오버레이(중앙)와 onboarding 토스트(중앙)가 같은 자리에서 겹치는
+    // 시각 충돌 회피 — 자치구 로드가 끝나야 발사. 그 직후 firing되는
+    // 802 자치구 완료 토스트(top, 4s)가 끝날 때까지도 toast 슬롯이 점유돼
+    // 있으므로 둘 다 클리어된 시점에 onboarding 차례.
+    if (showLoadingOverlay) return;
+    if (toast !== null) return;
     onboardingFiredRef.current = true;
     if (window.localStorage.getItem('onboarded') === 'true') return;
     window.localStorage.setItem('onboarded', 'true');
@@ -565,20 +634,35 @@ function PageContent() {
       6000,
       'emphatic',
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [manifest]);
+  }, [manifest, showLoadingOverlay, toast, showToast]);
+
+  const maybeShowHint = useCallback((key: HintKey) => {
+    if (typeof window === 'undefined') return;
+    // 다른 토스트(onboarding · 802 자치구 완료 · 에러)가 활성 중이면 skip.
+    // markSeen 도 안 해서 다음 트리거에서 다시 시도. URL-driven origin+dest로
+    // 첫 mount에 share hint이 onboarding과 충돌하면 이번 세션엔 안 뜨지만,
+    // 공유 URL로 도착한 사용자는 이미 공유 기능을 알고 있으니 trade-off 수용.
+    if (toastTimerRef.current != null) return;
+    if (hasSeenHint(key, window.localStorage)) return;
+    markHintSeen(key, window.localStorage);
+    showToast(HINT_MESSAGES[key], HINT_DURATION_MS);
+  }, [showToast]);
+
+  // P2.19: origin+dest 동시 set 첫 진입 시 공유 버튼 힌트
+  useEffect(() => {
+    if (!userLocation || !destination) return;
+    maybeShowHint('share');
+  }, [userLocation, destination, maybeShowHint]);
 
   // 에러는 collapsed/expanded 무관하게 카드 밖 토스트로 항상 노출.
   // GPS 권한 거부, 자치구 fetch 실패 등은 즉시 사용자에게 보여야 함.
   useEffect(() => {
     if (locateError) showToast(locateError, 6000, 'error');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [locateError]);
+  }, [locateError, showToast]);
 
   useEffect(() => {
     if (error) showToast(error, 6000, 'error');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [error]);
+  }, [error, showToast]);
 
   type DistrictRow = {
     code: DistrictCode;
@@ -617,18 +701,23 @@ function PageContent() {
     return favoritesOnly ? filterByFavorites(byType, favorites) : byType;
   }, [bins, selected, favoritesOnly, favorites]);
 
-  const handleToggleFavorite = (binId: string) => {
+  const handleToggleFavorite = useCallback((binId: string) => {
     vibrate(HAPTIC.SELECT);
-    setFavorites((prev) => toggleFavorite(prev, binId));
-  };
+    setFavorites((prev) => {
+      const next = toggleFavorite(prev, binId);
+      // P2.19: 첫 추가일 때만 안내 (제거에는 띄우지 않음)
+      if (next.size > prev.size) maybeShowHint('favorite');
+      return next;
+    });
+  }, [maybeShowHint]);
 
-  const handleUseBin = (_binId: string, meters: number, seconds: number) => {
+  const handleUseBin = useCallback((_binId: string, meters: number, seconds: number) => {
     setSavings((prev) => {
       const next = addUse(prev, meters, seconds);
       persistSavings(next);
       return next;
     });
-  };
+  }, []);
 
   const routeCandidates = useMemo(() => {
     if (!userLocation || !destination) return null;
@@ -642,7 +731,10 @@ function PageContent() {
 
   const bestRouteCandidate = routeCandidates?.[0] ?? null;
   const bestNearestCandidate = nearestCandidates[0] ?? null;
-  const highlights = routeCandidates?.map(({ bin }) => bin) ?? nearestCandidates.map(({ bin }) => bin);
+  const highlights = useMemo(
+    () => routeCandidates?.map(({ bin }) => bin) ?? nearestCandidates.map(({ bin }) => bin),
+    [routeCandidates, nearestCandidates],
+  );
 
   const toggle = (type: BinType) => {
     setSelected((prev) => {
@@ -652,12 +744,12 @@ function PageContent() {
       return next;
     });
   };
-  const stopWatch = () => {
+  const stopWatch = useCallback(() => {
     if (watchIdRef.current !== null && 'geolocation' in navigator) {
       navigator.geolocation.clearWatch(watchIdRef.current);
       watchIdRef.current = null;
     }
-  };
+  }, []);
 
   const locate = () => {
     if (!('geolocation' in navigator)) {
@@ -698,7 +790,7 @@ function PageContent() {
     setLocateError(null);
   };
 
-  const handleMapClick = (latlng: LatLng) => {
+  const handleMapClick = useCallback((latlng: LatLng) => {
     // 검색 드롭다운이 열려 있으면 사용자가 결과를 누르려는 중. 맵 빈 영역 클릭으로
     // origin/destination이 잘못 잡히는 걸 막는다.
     if (searchDropdownOpen) return;
@@ -711,7 +803,7 @@ function PageContent() {
       vibrate(HAPTIC.CONFIRM);
     }
     setTapTarget(null);
-  };
+  }, [searchDropdownOpen, tapTarget, stopWatch]);
 
   // Refs syncing latest state — let handleCenterChange be useCallback-stable so
   // MapMoveHandler doesn't rebind the leaflet `moveend` listener on every render.
@@ -780,10 +872,8 @@ function PageContent() {
           return next;
         });
       }
-      // showToast은 매 render 새 closure지만 부수효과만 일으키므로 deps 누락 안전.
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     },
-    [manifest, districtsGeo],
+    [manifest, districtsGeo, showToast],
   );
 
   const handleDistrictSelectPopulated = (meta: DistrictMeta) => {
@@ -877,6 +967,7 @@ function PageContent() {
     if (compassMode === 'cone') {
       // gps+cone → gps+head-up
       setCompassMode('head-up');
+      maybeShowHint('headsUp');
       return;
     }
     // gps+head-up → off (전부 끄기)
@@ -1019,7 +1110,12 @@ function PageContent() {
               type="button"
               onClick={() => {
                 vibrate(HAPTIC.TAP);
-                setSpeedSliderOpen((prev) => !prev);
+                setSpeedSliderOpen((prev) => {
+                  const next = !prev;
+                  // P2.21: 슬라이더 첫 열림 시 안내
+                  if (next) maybeShowHint('speed');
+                  return next;
+                });
               }}
               aria-pressed={speedSliderOpen}
               aria-label={`보행 속도 ${formatKmh(walkingSpeed)}km/h. 클릭해 슬라이더 ${
@@ -1136,9 +1232,11 @@ function PageContent() {
             type="button"
             onClick={() => {
               vibrate(HAPTIC.TAP);
-              setDistanceMode((prev) =>
-                prev === 'euclidean' ? 'manhattan' : 'euclidean',
-              );
+              setDistanceMode((prev) => {
+                const next = prev === 'euclidean' ? 'manhattan' : 'euclidean';
+                if (next === 'manhattan') maybeShowHint('grid');
+                return next;
+              });
             }}
             aria-pressed={distanceMode === 'manhattan'}
             aria-label={distanceMode === 'manhattan' ? '격자 거리 (탭하면 직선)' : '직선 거리 (탭하면 격자)'}
@@ -1283,20 +1381,21 @@ function PageContent() {
             </div>
           </div>
         )}
-        {tapTarget && (
+        {displayedTapTarget && (
           <div
-            className="pointer-events-none absolute inset-x-0 bottom-20 z-[1001] flex justify-center px-4"
+            className="pointer-events-none absolute inset-0 z-[1001] flex items-center justify-center px-6"
             role="status"
             aria-live="polite"
+            style={{ opacity: tapBannerShown ? 1 : 0, transition: "opacity 300ms ease-out" }}
           >
             <div
-              className={`rounded-full px-5 py-3 text-sm font-semibold text-white shadow-2xl ring-2 ${
-                tapTarget === 'origin'
-                  ? 'bg-violet-600 ring-violet-300'
-                  : 'bg-rose-600 ring-rose-300'
+              className={`rounded-2xl max-w-sm px-6 py-4 text-center text-sm font-semibold text-white shadow-lg ring-1 ring-white/25 backdrop-blur-xl ${
+                displayedTapTarget === "origin"
+                  ? "bg-violet-500/20"
+                  : "bg-rose-500/20"
               }`}
             >
-              {tapTarget === 'origin'
+              {displayedTapTarget === "origin"
                 ? '🎯 지도에서 출발 위치를 탭하거나 검색하세요'
                 : '🏁 지도에서 목적지를 탭하거나 검색하세요'}
             </div>
@@ -1304,17 +1403,19 @@ function PageContent() {
         )}
         {toast && (
           <div
-            className="pointer-events-none absolute inset-x-0 bottom-6 z-[1001] flex justify-center px-4"
+            className={`pointer-events-none absolute inset-x-0 z-[1001] flex justify-center px-6 transition-opacity duration-300 ease-out ${
+              toast.position === 'top' ? 'top-16' : 'inset-y-0 items-center'
+            } ${toastShown ? 'opacity-100' : 'opacity-0'}`}
             role={toast.variant === 'error' ? 'alert' : 'status'}
             aria-live={toast.variant === 'error' ? 'assertive' : 'polite'}
           >
             <div
               className={
                 toast.variant === 'error'
-                  ? 'rounded-full bg-red-600 px-5 py-3 text-sm font-semibold text-white shadow-2xl ring-2 ring-red-300'
+                  ? 'max-w-sm rounded-2xl bg-red-500/20 px-6 py-4 text-center text-sm font-semibold text-white shadow-lg ring-1 ring-white/25 backdrop-blur-xl'
                   : toast.variant === 'emphatic'
-                    ? 'rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-2xl ring-2 ring-emerald-300'
-                    : 'rounded-full bg-white/95 px-4 py-2 text-xs text-neutral-800 shadow-lg ring-1 ring-neutral-200 backdrop-blur-sm dark:bg-neutral-900/90 dark:text-neutral-100 dark:ring-neutral-700'
+                    ? 'max-w-sm rounded-2xl bg-emerald-500/20 px-6 py-4 text-center text-sm font-semibold text-white shadow-lg ring-1 ring-white/25 backdrop-blur-xl'
+                    : 'max-w-sm rounded-2xl bg-white/20 px-6 py-4 text-center text-sm font-medium text-neutral-900 shadow-lg ring-1 ring-white/30 backdrop-blur-xl dark:bg-neutral-900/20 dark:text-neutral-50 dark:ring-neutral-700/30'
               }
             >
               {toast.variant === 'error' && <span aria-hidden className="mr-1.5">⚠</span>}
