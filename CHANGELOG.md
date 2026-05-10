@@ -9,6 +9,9 @@
 
 ## [Unreleased]
 
+### Changed
+- 토스트가 빠른 연속으로 발사돼도 직전 토스트를 덮지 않고 위→아래 chronological 순으로 최대 3장까지 stacking됩니다. 4장째가 들어오면 가장 오래된 것이 즉시 사라지고 새 것이 stack 하단에 등장합니다. 토스트 사이 8px 간격, position(`top`/`center`)별로 독립 stack. tap mode 배너는 별개 영역으로 그대로 동작 (P2.25).
+
 ## [0.21.1] - 2026-05-10
 
 ### Fixed

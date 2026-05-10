@@ -90,6 +90,14 @@ import {
 import { HAPTIC, vibrate } from '@/lib/haptic';
 import { captureGeolocationError } from '@/lib/monitoring';
 import { useDeviceHeading } from '@/lib/orientation';
+import {
+  markExiting,
+  pushToast,
+  removeToast,
+  type ToastItem,
+  type ToastPosition,
+  type ToastVariant,
+} from '@/lib/toast-queue';
 import type { BinType, DistrictCode, DistrictMeta, Manifest, TrashBin } from '@/lib/types';
 import {
   parseUrlParams,
@@ -114,6 +122,8 @@ const STATUS_VIS = {
   failed:   { icon: '✗', cls: 'text-rose-400' },
 } as const;
 
+const TOAST_FADE_MS = 300;
+
 const MapView = dynamic(() => import('@/components/Map'), {
   ssr: false,
   loading: () => (
@@ -135,18 +145,10 @@ function PageContent() {
   const [districtsGeo, setDistrictsGeo] = useState<DistrictsGeoJson | null>(null);
   const [activeFetches, setActiveFetches] = useState<Set<DistrictCode>>(() => new Set());
   const [failedDistricts, setFailedDistricts] = useState<Set<DistrictCode>>(() => new Set());
-  type ToastVariant = 'info' | 'emphatic' | 'error';
-  type ToastPosition = 'center' | 'top';
-  const [toast, setToast] = useState<{
-    text: string;
-    variant: ToastVariant;
-    position: ToastPosition;
-    exiting: boolean;
-  } | null>(null);
-  const [toastShown, setToastShown] = useState(false);
-  const toastTimerRef = useRef<number | null>(null);
-  const toastFadeOutRef = useRef<number | null>(null);
-  const TOAST_FADE_MS = 300;
+  const [toasts, setToasts] = useState<ToastItem[]>([]);
+  const [toastsShown, setToastsShown] = useState<Set<number>>(() => new Set());
+  const nextToastIdRef = useRef(0);
+  const toastTimersRef = useRef<Map<number, { fade: number; unmount: number }>>(new Map());
   const [selected, setSelected] = useState<Set<BinType>>(() => new Set());
   const [error, setError] = useState<string | null>(null);
 
@@ -513,14 +515,11 @@ function PageContent() {
         navigator.geolocation.clearWatch(watchIdRef.current);
         watchIdRef.current = null;
       }
-      if (toastTimerRef.current != null) {
-        window.clearTimeout(toastTimerRef.current);
-        toastTimerRef.current = null;
+      for (const timers of toastTimersRef.current.values()) {
+        window.clearTimeout(timers.fade);
+        window.clearTimeout(timers.unmount);
       }
-      if (toastFadeOutRef.current != null) {
-        window.clearTimeout(toastFadeOutRef.current);
-        toastFadeOutRef.current = null;
-      }
+      toastTimersRef.current.clear();
     };
   }, []);
 
@@ -554,38 +553,54 @@ function PageContent() {
     variant: ToastVariant = 'info',
     position: ToastPosition = 'center',
   ) => {
-    if (toastTimerRef.current != null) {
-      window.clearTimeout(toastTimerRef.current);
-      toastTimerRef.current = null;
-    }
-    if (toastFadeOutRef.current != null) {
-      window.clearTimeout(toastFadeOutRef.current);
-      toastFadeOutRef.current = null;
-    }
-    setToast({ text, variant, position, exiting: false });
-    // 끝나기 TOAST_FADE_MS 전에 exiting 플래그 → CSS opacity 1→0 전환 시작
-    toastFadeOutRef.current = window.setTimeout(() => {
-      setToast((prev) => (prev ? { ...prev, exiting: true } : null));
-      toastFadeOutRef.current = null;
-    }, Math.max(0, durationMs - TOAST_FADE_MS));
-    // 그 후 unmount
-    toastTimerRef.current = window.setTimeout(() => {
-      setToast(null);
-      toastTimerRef.current = null;
+    const id = ++nextToastIdRef.current;
+    const fadeStart = Math.max(0, durationMs - TOAST_FADE_MS);
+    const timers = toastTimersRef.current;
+
+    setToasts((prev) => {
+      const result = pushToast(prev, { id, text, variant, position, durationMs });
+      for (const evictedId of result.evictedIds) {
+        const t = timers.get(evictedId);
+        if (t) {
+          window.clearTimeout(t.fade);
+          window.clearTimeout(t.unmount);
+          timers.delete(evictedId);
+        }
+      }
+      return result.next;
+    });
+
+    const fade = window.setTimeout(() => {
+      setToasts((prev) => markExiting(prev, id));
+    }, fadeStart);
+    const unmount = window.setTimeout(() => {
+      setToasts((prev) => removeToast(prev, id));
+      setToastsShown((prev) => {
+        if (!prev.has(id)) return prev;
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+      timers.delete(id);
     }, durationMs);
-  }, [TOAST_FADE_MS]);
+    timers.set(id, { fade, unmount });
+  }, []);
 
   // 토스트 fade-in: mount 시점에 opacity 0 → 다음 paint에 opacity 1.
-  // exiting=true 또는 toast=null이면 다시 0으로 복귀해 unmount 전 fade-out.
   useEffect(() => {
-    if (!toast || toast.exiting) {
-      setToastShown(false);
-      return;
-    }
-    setToastShown(false);
-    const id = window.requestAnimationFrame(() => setToastShown(true));
-    return () => window.cancelAnimationFrame(id);
-  }, [toast]);
+    const newIds = toasts
+      .filter((item) => !item.exiting && !toastsShown.has(item.id))
+      .map((item) => item.id);
+    if (newIds.length === 0) return;
+    const raf = window.requestAnimationFrame(() => {
+      setToastsShown((prev) => {
+        const next = new Set(prev);
+        for (const id of newIds) next.add(id);
+        return next;
+      });
+    });
+    return () => window.cancelAnimationFrame(raf);
+  }, [toasts, toastsShown]);
 
   useEffect(() => {
     if (tapTarget) {
@@ -625,7 +640,7 @@ function PageContent() {
     // 802 자치구 완료 토스트(top, 4s)가 끝날 때까지도 toast 슬롯이 점유돼
     // 있으므로 둘 다 클리어된 시점에 onboarding 차례.
     if (showLoadingOverlay) return;
-    if (toast !== null) return;
+    if (toasts.length > 0) return;
     onboardingFiredRef.current = true;
     if (window.localStorage.getItem('onboarded') === 'true') return;
     window.localStorage.setItem('onboarded', 'true');
@@ -634,7 +649,7 @@ function PageContent() {
       6000,
       'emphatic',
     );
-  }, [manifest, showLoadingOverlay, toast, showToast]);
+  }, [manifest, showLoadingOverlay, toasts, showToast]);
 
   const maybeShowHint = useCallback((key: HintKey) => {
     if (typeof window === 'undefined') return;
@@ -642,11 +657,11 @@ function PageContent() {
     // markSeen 도 안 해서 다음 트리거에서 다시 시도. URL-driven origin+dest로
     // 첫 mount에 share hint이 onboarding과 충돌하면 이번 세션엔 안 뜨지만,
     // 공유 URL로 도착한 사용자는 이미 공유 기능을 알고 있으니 trade-off 수용.
-    if (toastTimerRef.current != null) return;
+    if (toasts.length > 0) return;
     if (hasSeenHint(key, window.localStorage)) return;
     markHintSeen(key, window.localStorage);
     showToast(HINT_MESSAGES[key], HINT_DURATION_MS);
-  }, [showToast]);
+  }, [showToast, toasts]);
 
   // P2.19: origin+dest 동시 set 첫 진입 시 공유 버튼 힌트
   useEffect(() => {
@@ -1400,29 +1415,43 @@ function PageContent() {
             </div>
           </div>
         )}
-        {toast && (
-          <div
-            className={`pointer-events-none absolute inset-x-0 z-[1001] flex justify-center px-6 transition-opacity duration-300 ease-out ${
-              toast.position === 'top' ? 'top-16' : 'inset-y-0 items-center'
-            } ${toastShown ? 'opacity-100' : 'opacity-0'}`}
-            role={toast.variant === 'error' ? 'alert' : 'status'}
-            aria-live={toast.variant === 'error' ? 'assertive' : 'polite'}
-          >
+        {(['top', 'center'] as const).map((pos) => {
+          const items = toasts.filter((item) => item.position === pos);
+          if (items.length === 0) return null;
+          return (
             <div
-              className={
-                toast.variant === 'error'
-                  ? 'glass-toast max-w-sm rounded-2xl bg-red-500/20 px-6 py-4 text-center text-sm font-semibold text-white ring-1 ring-white/25'
-                  : toast.variant === 'emphatic'
-                    ? 'glass-toast max-w-sm rounded-2xl bg-emerald-500/20 px-6 py-4 text-center text-sm font-semibold text-white ring-1 ring-white/25'
-                    : 'glass-toast max-w-sm rounded-2xl bg-white/20 px-6 py-4 text-center text-sm font-medium text-neutral-900 ring-1 ring-white/30 dark:bg-neutral-900/20 dark:text-neutral-50 dark:ring-neutral-700/30'
-              }
+              key={pos}
+              className={`pointer-events-none absolute inset-x-0 z-[1001] flex flex-col items-center gap-2 px-6 ${
+                pos === 'top' ? 'top-16' : 'inset-y-0 justify-center'
+              }`}
             >
-              {toast.variant === 'error' && <span aria-hidden className="mr-1.5">⚠</span>}
-              {toast.variant === 'emphatic' && <span aria-hidden className="mr-1.5">✅</span>}
-              {toast.text}
+              {items.map((item) => (
+                <div
+                  key={item.id}
+                  role={item.variant === 'error' ? 'alert' : 'status'}
+                  aria-live={item.variant === 'error' ? 'assertive' : 'polite'}
+                  className={`transition-opacity duration-300 ease-out ${
+                    toastsShown.has(item.id) && !item.exiting ? 'opacity-100' : 'opacity-0'
+                  }`}
+                >
+                  <div
+                    className={
+                      item.variant === 'error'
+                        ? 'glass-toast max-w-sm rounded-2xl bg-red-500/20 px-6 py-4 text-center text-sm font-semibold text-white ring-1 ring-white/25'
+                        : item.variant === 'emphatic'
+                          ? 'glass-toast max-w-sm rounded-2xl bg-emerald-500/20 px-6 py-4 text-center text-sm font-semibold text-white ring-1 ring-white/25'
+                          : 'glass-toast max-w-sm rounded-2xl bg-white/20 px-6 py-4 text-center text-sm font-medium text-neutral-900 ring-1 ring-white/30 dark:bg-neutral-900/20 dark:text-neutral-50 dark:ring-neutral-700/30'
+                    }
+                  >
+                    {item.variant === 'error' && <span aria-hidden className="mr-1.5">⚠</span>}
+                    {item.variant === 'emphatic' && <span aria-hidden className="mr-1.5">✅</span>}
+                    {item.text}
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
-        )}
+          );
+        })}
         {manifest && (
           <div className="absolute bottom-7 right-2 z-[1000] flex max-w-[80%] flex-col items-stretch overflow-hidden rounded-lg text-neutral-800 dark:text-neutral-100 glass-surface">
             {!statusCollapsed && (
