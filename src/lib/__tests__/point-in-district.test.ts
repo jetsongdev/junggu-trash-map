@@ -3,6 +3,7 @@ import {
   findDistrictForPoint,
   findNearestDistrictCentroid,
 } from '../point-in-district';
+import type { DistrictsGeoJson } from '../point-in-district';
 import type { DistrictMeta } from '../types';
 
 // Minimal FeatureCollection: junggu = unit square around (127, 37.56)
@@ -43,7 +44,7 @@ const FAKE_GEOJSON = {
       },
     },
   ],
-} as const;
+} as unknown as DistrictsGeoJson;
 
 const FAKE_MANIFEST_DISTRICTS: DistrictMeta[] = [
   {
