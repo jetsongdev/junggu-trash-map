@@ -117,6 +117,8 @@
 
 자치구별 정적 JSON + 클라이언트 point-in-polygon 판정으로 결정. spec: `docs/superpowers/specs/2026-05-05-p3-1-data-partitioning-design.md`. P3.1은 3-PR로 분할 (a foundation → b markercluster · c 인접 prefetch).
 
+- [ ] **P3.5** 자치구 전환 시 경로 상태 초기화 — 셀렉터 그리드(P3.3)에서 다른 구를 탭하면 `origin`/`destination`/`userLocation`(및 따라붙는 distance line, route, tap mode banner)을 reset. 이전 구의 출발·목적지가 새 구 경계 밖에서 stale 화살표로 남는 문제. 결정 포인트: (a) populated 탭만 reset할지 empty 탭에서도 reset할지, (b) panning 자동 진입(P3.2)도 reset 트리거에 포함할지, (c) 사용자 안내 토스트 추가 여부 (P2.25 stacking으로 이제 부담 적음)
+
 ---
 
 ## 📦 Open — Phase 4: 데이터 확장
