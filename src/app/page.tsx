@@ -77,6 +77,7 @@ import {
   type DistanceMode,
   type LatLng,
 } from '@/lib/geo';
+import { getZoomAnchor } from '@/lib/zoom-anchor';
 import {
   clampKmh,
   DEFAULT_KMH,
@@ -154,6 +155,8 @@ function PageContent() {
 
   const [userLocation, setUserLocation] = useState<LatLng | null>(null);
   const [destination, setDestination] = useState<LatLng | null>(null);
+  const userLocationRef = useRef(userLocation);
+  const destinationRef = useRef(destination);
   const [mapFocusTarget, setMapFocusTarget] = useState<LatLng | null>(null);
   const [viewingDistrict, setViewingDistrict] = useState<DistrictCode | null>(null);
   const [locatePending, setLocatePending] = useState(false);
@@ -186,7 +189,11 @@ function PageContent() {
     const map = mapRef.current;
     if (!map) return;
     const options = prefersReducedMotion() ? { animate: false } : undefined;
-    if (shortcut === 'in') {
+    const delta = shortcut === 'in' ? 1 : -1;
+    const anchor = getZoomAnchor(userLocationRef.current, destinationRef.current);
+    if (anchor) {
+      map.setZoomAround([anchor.lat, anchor.lng], map.getZoom() + delta, options);
+    } else if (shortcut === 'in') {
       map.zoomIn(1, options);
     } else {
       map.zoomOut(1, options);
@@ -818,6 +825,12 @@ function PageContent() {
   const districtsCacheRef = useRef(districtsCache);
   const failedDistrictsRef = useRef(failedDistricts);
   useEffect(() => {
+    userLocationRef.current = userLocation;
+  }, [userLocation]);
+  useEffect(() => {
+    destinationRef.current = destination;
+  }, [destination]);
+  useEffect(() => {
     activeDistrictsRef.current = activeDistricts;
   }, [activeDistricts]);
   useEffect(() => {
@@ -880,7 +893,20 @@ function PageContent() {
     [manifest, districtsGeo, showToast],
   );
 
+  const resetRouting = useCallback((newDistrictName: string | null) => {
+    stopWatch();
+    setUserLocation(null);
+    setDestination(null);
+    setTapTarget(null);
+    if (newDistrictName) {
+      showToast(`${newDistrictName}로 이동 — 출발/목적지 초기화됨`, 3000, 'info');
+    }
+  }, [showToast]);
+
   const handleDistrictSelectPopulated = (meta: DistrictMeta) => {
+    if (meta.code !== viewingDistrict) {
+      resetRouting(meta.name);
+    }
     const map = mapRef.current;
     if (!map) return;
     const bounds = boundsForDistrict(meta);
@@ -892,6 +918,9 @@ function PageContent() {
   };
 
   const handleDistrictSelectEmpty = (meta: DistrictMeta) => {
+    if (meta.code !== viewingDistrict) {
+      resetRouting(meta.name);
+    }
     const map = mapRef.current;
     if (prefersReducedMotion()) {
       map?.setView([meta.centroid[1], meta.centroid[0]], 14, {
@@ -914,6 +943,13 @@ function PageContent() {
     mode: TapTarget,
   ) => {
     const target = { lat, lng: lon };
+    if (manifest && districtsGeo) {
+      const newCode = findDistrictForPoint(target, districtsGeo);
+      if (newCode && newCode !== viewingDistrict) {
+        const meta = findDistrictMeta(manifest, newCode);
+        resetRouting(meta?.name ?? null);
+      }
+    }
 
     if (mode === 'origin') {
       stopWatch();

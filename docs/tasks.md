@@ -106,7 +106,7 @@
 
 - [x] **P2.25** 토스트 stacking 큐 — `lib/toast-queue.ts` 순수 모듈(`pushToast`/`markExiting`/`removeToast`, vitest 8개) + page.tsx single state → array. 위(오래된)→아래(최신) chronological, position(`top`/`center`)별 독립 stack(`flex-col gap-2`), 한도 없음. variant·duration·색·아이콘·tap mode 배너 모두 그대로.
 - [ ] **P2.3** 클러스터링 — `leaflet.markercluster`. 마커 100+ 시 lag 방지. **25구 확장(Phase 3) 전엔 ø**
-- [ ] **P2.26** 확대/축소 시 사용자 위치 기준 — 현재 Leaflet 기본 동작은 viewport center 기준 zoom. `userLocation` 있으면 GPS 점을 focal point로 zoom (`map.setView(userLocation, newZoom)` 또는 anchor 옵션). 트리거: `=`/`-` 키보드 shortcut(I.6) + 좌하단 `<ZoomControl />` 버튼. 결정 포인트: (a) GPS 점 active일 때만 적용할지 항상 viewport center 기준으로 둘지, (b) 사용자가 명시적으로 panning한 후에도 GPS 점으로 snap back 시킬지, (c) 휠/핀치 zoom도 같은 동작으로 통일할지 키보드+버튼만 적용할지
+- [x] **P2.26** 확대/축소 시 사용자 위치 기준 — `lib/zoom-anchor.ts` `getZoomAnchor(origin, dest)` 순수 함수 + vitest 4개. 키보드 `=`/`-` + 좌하단 ➕/➖ 버튼만 anchor 적용 (휠/핀치는 Leaflet 기본 cursor anchor 유지). 우선순위: origin+dest midpoint > origin > 기본 viewport center. dest only는 무시(출발지 없이 anchor 비활성). `map.setZoomAround` 사용. spec: `docs/superpowers/specs/2026-05-10-p3-5-p2-26-bundle-design.md`.
 - [x] **P2.18** 통계바 정보 분리 — `locateError`/`error`를 우하단 카드(접힘 시 숨겨짐) 안에서 빼서 빨간 토스트(`variant: 'error'`, role=alert, ⚠ prefix, 6초)로 렌더. 통계바(우하단 카드 펼침 영역)는 route/savings 등 성공 상태만 표시. P2.23-fix5 status overlay 통합 후 발견된 회귀(접힘 시 에러 미노출)와 함께 한 라운드에 처리. (UX U4)
 - [x] **P2.19+P2.21** 첫-사용 힌트 5종 — share(origin+dest 동시 set) / favorite(첫 ☆ 추가) / headsUp(cone→head-up 전환) / grid(euclidean→manhattan) / speed(슬라이더 첫 열림) 5개를 `localStorage hint:<key>` 게이트로 1회씩 노출. 4초 info 토스트 (기본 1.8s vs error 6s 사이). `lib/first-use-hints.ts` 순수 함수 4개 + vitest 8개. page.tsx에 `maybeShowHint(key)` 헬퍼 + 5 트리거 wiring(useEffect 1, 핸들러 4)
 - P2.19 원안: hidden feature 발견 경로 — origin+dest 동시 set 시 공유 버튼 힌트, ☆/헤드업/격자 첫 사용 시 안내 (UX U5+U8)
@@ -118,7 +118,7 @@
 
 자치구별 정적 JSON + 클라이언트 point-in-polygon 판정으로 결정. spec: `docs/superpowers/specs/2026-05-05-p3-1-data-partitioning-design.md`. P3.1은 3-PR로 분할 (a foundation → b markercluster · c 인접 prefetch).
 
-- [ ] **P3.5** 자치구 전환 시 경로 상태 초기화 — 셀렉터 그리드(P3.3)에서 다른 구를 탭하면 `origin`/`destination`/`userLocation`(및 따라붙는 distance line, route, tap mode banner)을 reset. 이전 구의 출발·목적지가 새 구 경계 밖에서 stale 화살표로 남는 문제. 결정 포인트: (a) populated 탭만 reset할지 empty 탭에서도 reset할지, (b) panning 자동 진입(P3.2)도 reset 트리거에 포함할지, (c) 사용자 안내 토스트 추가 여부 (P2.25 stacking으로 이제 부담 적음)
+- [x] **P3.5** 자치구 전환 시 경로 상태 초기화 — Selector 탭(populated/empty) + 검색 결과 클릭(다른 구 점프)에 `resetRouting(name)` 호출 → `userLocation`/`destination`/`tapTarget` 초기화 + watch 종료 + info 토스트(`{name}로 이동 — 출발/목적지 초기화됨`, 3s). 손 드래그(panning)는 reset 안 함 — `handleCenterChange`는 그대로 district 추적/fetch만 담당해 LocateButton GPS auto-locate가 다른 구 잡아도 origin 보존(트리거 측 명시 호출 패턴이라 자연 회피). spec: `docs/superpowers/specs/2026-05-10-p3-5-p2-26-bundle-design.md`.
 
 ---
 
