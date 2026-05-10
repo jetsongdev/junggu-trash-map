@@ -104,6 +104,7 @@
 
 핵심 기능 다 들어가있고, 아래는 사용성·확장성 강화. 가벼운 → 무거운 순:
 
+- [ ] **P2.25** 토스트 stacking 큐 — 현재 single `toast` state라 빠른 연속 트리거 시 직전 토스트가 덮이거나 위치가 겹치는 사례 발생. queue 모델로 변경: 새 토스트는 stack 하단에 추가, 위 토스트가 dismiss되면 아래 토스트들이 위로 shift. variant(`info`/`error`/`emphatic`) · duration(1.8s/4s/6s) · 색은 그대로 유지. 토스트 사이 8~12px gap. 동시 표시 한도(예: 3장) 검토. tap 모드 배너는 별개 영역이라 stack 외 (현행 유지).
 - [ ] **P2.3** 클러스터링 — `leaflet.markercluster`. 마커 100+ 시 lag 방지. **25구 확장(Phase 3) 전엔 ø**
 - [x] **P2.18** 통계바 정보 분리 — `locateError`/`error`를 우하단 카드(접힘 시 숨겨짐) 안에서 빼서 빨간 토스트(`variant: 'error'`, role=alert, ⚠ prefix, 6초)로 렌더. 통계바(우하단 카드 펼침 영역)는 route/savings 등 성공 상태만 표시. P2.23-fix5 status overlay 통합 후 발견된 회귀(접힘 시 에러 미노출)와 함께 한 라운드에 처리. (UX U4)
 - [x] **P2.19+P2.21** 첫-사용 힌트 5종 — share(origin+dest 동시 set) / favorite(첫 ☆ 추가) / headsUp(cone→head-up 전환) / grid(euclidean→manhattan) / speed(슬라이더 첫 열림) 5개를 `localStorage hint:<key>` 게이트로 1회씩 노출. 4초 info 토스트 (기본 1.8s vs error 6s 사이). `lib/first-use-hints.ts` 순수 함수 4개 + vitest 8개. page.tsx에 `maybeShowHint(key)` 헬퍼 + 5 트리거 wiring(useEffect 1, 핸들러 4)
