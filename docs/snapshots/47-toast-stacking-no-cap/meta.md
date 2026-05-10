@@ -3,7 +3,7 @@ index: 47
 slug: toast-stacking-no-cap
 date: 2026-05-10
 phase: P2.25
-git_sha: 34cf596 (clean)
+git_sha: eae7f86 (clean)
 viewport: 390x844
 url: http://localhost:3000
 title: 토스트 stacking — 한도 없음 (5장 데모)
