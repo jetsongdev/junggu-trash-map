@@ -1005,11 +1005,11 @@ function PageContent() {
 
   return (
     <div
-      className={`flex h-dvh flex-col bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100 ${
+      className={`relative h-dvh bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100 ${
         tileTheme === 'dark' ? 'dark' : ''
       }`}
     >
-      <header className="glass-surface border-b border-white/30 px-4 py-3 dark:border-white/10">
+      <header className="glass-surface absolute inset-x-0 top-0 z-[1020] border-b border-white/30 px-4 py-3 dark:border-white/10">
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-bold tracking-tight">🗑️ 중구 휴지통 지도</h1>
           <span className="rounded bg-amber-400 px-1.5 py-0.5 text-[10px] font-bold text-neutral-900">
@@ -1040,7 +1040,7 @@ function PageContent() {
 
       <section
         aria-label="검색 및 컨트롤"
-        className="relative z-[1000] border-b border-neutral-200 bg-neutral-100 px-4 py-3 dark:border-neutral-800 dark:bg-neutral-900"
+        className="glass-surface absolute inset-x-0 top-[60px] z-[1010] border-b border-white/30 px-4 py-3 dark:border-white/10"
       >
         <div className="mb-3 flex gap-2">
           <div className="flex-1">
@@ -1194,7 +1194,7 @@ function PageContent() {
         )}
       </section>
 
-      <main className="relative min-h-0 flex-1">
+      <main className="absolute inset-0">
         <MapView
           bins={visible}
           userLocation={userLocation}
@@ -1226,7 +1226,7 @@ function PageContent() {
           districtsGeo={districtsGeo}
         />
         {/* 좌상단: 거리모드 (직선/격자) 단독 */}
-        <div className={`absolute left-2 top-2 z-[1000] p-1.5 ${hudFloatingGroup}`}>
+        <div className={`absolute left-2 top-[180px] z-[1000] p-1.5 ${hudFloatingGroup}`}>
           <button
             type="button"
             onClick={() => {
@@ -1252,7 +1252,7 @@ function PageContent() {
           </button>
         </div>
         {/* 우상단: 자치구 셀렉터 + 필터 (휴지통/재활용) 세로 stack */}
-        <div className={`absolute right-2 top-2 z-[1000] flex flex-col items-end gap-1.5 p-1.5 ${hudFloatingGroup}`}>
+        <div className={`absolute right-2 top-[180px] z-[1000] flex flex-col items-end gap-1.5 p-1.5 ${hudFloatingGroup}`}>
           {manifest && (
             <DistrictSelector
               manifest={manifest}
