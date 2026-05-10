@@ -13,6 +13,7 @@
 
 ### Changed
 - HUD floating groups, 검색박스, status 카드, 토스트, **헤더, Leaflet popup, DistrictSelector 자치구 그리드 패널**까지 Apple Liquid Glass 톤 통합 — backdrop-blur + saturate + inset highlight로 전 표면 깊이감, 활성 칩은 색 identity 유지
+- 헤더와 검색 섹션을 지도 위 `absolute` 레이아웃으로 재배치 — 지도가 viewport 전체로 확장되고 그 위에 헤더·검색 섹션이 떠 있어 backdrop-blur가 실제 지도 콘텐츠를 흐려 보여주는 진짜 Liquid Glass 효과 활성
 
 ## [0.20.0] - 2026-05-09
 
