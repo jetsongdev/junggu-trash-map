@@ -3,7 +3,7 @@ index: 48
 slug: routing-reset-baseline
 date: 2026-05-10
 phase: "Phase 3 마무리 + P3.5/P2.26 머지 (v0.23.0)"
-git_sha: 3527bbcdfe676c5b37fcb2a68fc143715209cf21 (dirty)
+git_sha: 94262f0
 viewport: 390x844
 ---
 
