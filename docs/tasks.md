@@ -5,7 +5,7 @@
 
 ## 현재 상태 (2026-05-10)
 
-- **Phase**: 3 마무리 + Phase 4 data 한 칸 + I.6 a11y 라운드 2차 완료. P3.1a/b 머지(802 bins 클러스터링), P3.2 7개 자치구 데이터, P3.1c는 obsolete. P2.20 색맹 친화 거리선 v0.14.0 / P4.3 위치 힌트 v0.15.0 / P2.22+P2.23 모바일 툴바·HUD v0.16.0 / P2.24 ETA 인라인 v0.17.0 / P3.3 25구 셀렉터 그리드 v0.18.0 / **P2.19+P2.21 첫-사용 힌트 5종 PR #38 진행 중** (share/favorite/headsUp/grid/speed + loading toast sequencing) / **P3.4 자치구 폴리곤 outline merged** (viewing district outline + 중앙 라벨, light/dark/selector-open 3장 캡처). **I.6 a11y 1차 + P3.3-fix1 empty-toast 스냅샷 merged** (axe 0 violations / 42 passes — region landmark + destination aria-label 정리 2건). **I.6 a11y 2차 완료** (focus-visible ring 공통화, `=`/`-` 키보드 지도 zoom, Leaflet 마커/클러스터 스크린리더 라벨, prefers-reduced-motion에서 fly/zoom·pulse/spin 감속). **I.7 release prebump 운영 중** (prebump on PR + finalize `release:*` 라벨 게이트 운영). **P2.24 Liquid Glass 시각 refresh 완료** (HUD/검색/status/토스트/header/Leaflet popup/DistrictSelector/token 적용). 다음 후보: P4.1(타 종류 통 합치기).
+- **Phase**: 3 마무리 + Phase 4 data 한 칸 + I.6 a11y 2차 + P2.25 토스트 큐 완료. P3.1a/b 머지(802 bins 클러스터링), P3.2 7개 자치구 데이터, P3.1c는 obsolete. P2.20 색맹 친화 거리선 v0.14.0 / P4.3 위치 힌트 v0.15.0 / P2.22+P2.23 모바일 툴바·HUD v0.16.0 / P2.24 ETA 인라인 v0.17.0 / P3.3 25구 셀렉터 그리드 v0.18.0 / P2.19+P2.21 첫-사용 힌트 5종 v0.20.0 / P3.4 자치구 폴리곤 outline + I.6 a11y 2차 v0.19.x / P2.24 Liquid Glass refresh v0.21.0~0.21.1 / **P2.25 토스트 stacking 큐 진행 중** (single state → queue, 최대 3장, position별 독립 stack, evict-oldest 정책). **I.6 a11y 1차 + P3.3-fix1 empty-toast 스냅샷 merged** (axe 0 violations / 42 passes — region landmark + destination aria-label 정리 2건). **I.6 a11y 2차 완료** (focus-visible ring 공통화, `=`/`-` 키보드 지도 zoom, Leaflet 마커/클러스터 스크린리더 라벨, prefers-reduced-motion에서 fly/zoom·pulse/spin 감속). **I.7 release prebump 운영 중** (prebump on PR + finalize `release:*` 라벨 게이트 운영). 다음 후보: P4.1(타 종류 통 합치기).
 - **사용자 환경 영속화** (`localStorage`): `distanceMode` (직선/격자), `tileTheme` (다크/라이트, **빈 값일 때 시스템 prefers-color-scheme 자동 감지**), `walkingSpeed` (km/h, 2~7 step 0.5), `favorites` (즐겨찾기 bin id), `savings` (누적 보행거리·시간·횟수)
 - **마커 색**: 일반 `#60a5fa` (blue-400), 재활용 `#34d399` (emerald-400), 혼합 `#c084fc` (violet-400) — 라이트/다크 양 타일에서 균형
 - **Roadmap 확장**: Phase 3 (25개 구) · Phase 4 (데이터 확장: 타 종류 통/사용자 제보/사진) · Phase 5 (실제 보행 경로 + TTS) · 인프라/품질 cross-cutting (i18n 남음)
@@ -104,8 +104,9 @@
 
 핵심 기능 다 들어가있고, 아래는 사용성·확장성 강화. 가벼운 → 무거운 순:
 
-- [ ] **P2.25** 토스트 stacking 큐 — 현재 single `toast` state라 빠른 연속 트리거 시 직전 토스트가 덮이거나 위치가 겹치는 사례 발생. queue 모델로 변경: 새 토스트는 stack 하단에 추가, 위 토스트가 dismiss되면 아래 토스트들이 위로 shift. variant(`info`/`error`/`emphatic`) · duration(1.8s/4s/6s) · 색은 그대로 유지. 토스트 사이 8~12px gap. 동시 표시 한도(예: 3장) 검토. tap 모드 배너는 별개 영역이라 stack 외 (현행 유지).
+- [x] **P2.25** 토스트 stacking 큐 — `lib/toast-queue.ts` 순수 모듈(`pushToast`/`markExiting`/`removeToast`, vitest 8개) + page.tsx single state → array. 위(오래된)→아래(최신) chronological, position(`top`/`center`)별 독립 stack(`flex-col gap-2`), 한도 없음. variant·duration·색·아이콘·tap mode 배너 모두 그대로.
 - [ ] **P2.3** 클러스터링 — `leaflet.markercluster`. 마커 100+ 시 lag 방지. **25구 확장(Phase 3) 전엔 ø**
+- [ ] **P2.26** 확대/축소 시 사용자 위치 기준 — 현재 Leaflet 기본 동작은 viewport center 기준 zoom. `userLocation` 있으면 GPS 점을 focal point로 zoom (`map.setView(userLocation, newZoom)` 또는 anchor 옵션). 트리거: `=`/`-` 키보드 shortcut(I.6) + 좌하단 `<ZoomControl />` 버튼. 결정 포인트: (a) GPS 점 active일 때만 적용할지 항상 viewport center 기준으로 둘지, (b) 사용자가 명시적으로 panning한 후에도 GPS 점으로 snap back 시킬지, (c) 휠/핀치 zoom도 같은 동작으로 통일할지 키보드+버튼만 적용할지
 - [x] **P2.18** 통계바 정보 분리 — `locateError`/`error`를 우하단 카드(접힘 시 숨겨짐) 안에서 빼서 빨간 토스트(`variant: 'error'`, role=alert, ⚠ prefix, 6초)로 렌더. 통계바(우하단 카드 펼침 영역)는 route/savings 등 성공 상태만 표시. P2.23-fix5 status overlay 통합 후 발견된 회귀(접힘 시 에러 미노출)와 함께 한 라운드에 처리. (UX U4)
 - [x] **P2.19+P2.21** 첫-사용 힌트 5종 — share(origin+dest 동시 set) / favorite(첫 ☆ 추가) / headsUp(cone→head-up 전환) / grid(euclidean→manhattan) / speed(슬라이더 첫 열림) 5개를 `localStorage hint:<key>` 게이트로 1회씩 노출. 4초 info 토스트 (기본 1.8s vs error 6s 사이). `lib/first-use-hints.ts` 순수 함수 4개 + vitest 8개. page.tsx에 `maybeShowHint(key)` 헬퍼 + 5 트리거 wiring(useEffect 1, 핸들러 4)
 - P2.19 원안: hidden feature 발견 경로 — origin+dest 동시 set 시 공유 버튼 힌트, ☆/헤드업/격자 첫 사용 시 안내 (UX U5+U8)
@@ -116,6 +117,8 @@
 ## 🌏 Open — Phase 3: 25개 구 확장
 
 자치구별 정적 JSON + 클라이언트 point-in-polygon 판정으로 결정. spec: `docs/superpowers/specs/2026-05-05-p3-1-data-partitioning-design.md`. P3.1은 3-PR로 분할 (a foundation → b markercluster · c 인접 prefetch).
+
+- [ ] **P3.5** 자치구 전환 시 경로 상태 초기화 — 셀렉터 그리드(P3.3)에서 다른 구를 탭하면 `origin`/`destination`/`userLocation`(및 따라붙는 distance line, route, tap mode banner)을 reset. 이전 구의 출발·목적지가 새 구 경계 밖에서 stale 화살표로 남는 문제. 결정 포인트: (a) populated 탭만 reset할지 empty 탭에서도 reset할지, (b) panning 자동 진입(P3.2)도 reset 트리거에 포함할지, (c) 사용자 안내 토스트 추가 여부 (P2.25 stacking으로 이제 부담 적음)
 
 ---
 
