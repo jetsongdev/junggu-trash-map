@@ -9,6 +9,9 @@
 
 ## [Unreleased]
 
+### Fixed
+- ShareButton, FilterChips 비활성 칩, DistrictSelector 🗺 트리거 버튼이 P2.24 Liquid Glass 적용 후에도 옛 `bg-white/95 ring-neutral-300` 스타일을 유지해 floating glass 컨테이너 안에서 시각적으로 튀던 문제 해결 — 동일한 transparent + ring-white/40 톤으로 통일하고 트리거 활성 색은 5색 accent identity(85% solid)로 강화
+
 ## [0.21.0] - 2026-05-10
 
 ### Changed
