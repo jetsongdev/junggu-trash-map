@@ -2,7 +2,7 @@
 index: 50
 date: "2026-05-11"
 phase: "Refactor + Playwright e2e baseline"
-git_sha: "4ed64a8"
+git_sha: "d235d59"
 viewport:
   mobile: "390x844"
   desktop: "1920x1080"
