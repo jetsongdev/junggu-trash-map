@@ -116,7 +116,8 @@ awk '/^## \[Unreleased\]/{f=1; next} /^## \[/{f=0} f' CHANGELOG.md
 
 ```bash
 git diff --name-only main...HEAD | grep -E '^(src/(app|components)|app|public/data)' | head
-ls docs/snapshots/ | tail -3
+# NN-slug 패턴만 추출 — `^[0-9]+-`만으론 `2026-05-09`도 잡히니 1~3자리로 한정
+ls docs/snapshots/ | grep -E '^[0-9]{1,3}-' | sort -t- -k1,1n | tail -3
 ```
 
 휴리스틱:
@@ -186,6 +187,6 @@ trash-wrap-up 점검 (브랜치: feat/p3.1b-cluster, main..HEAD 4 commits)
 - **자동으로 tasks.md / CHANGELOG에 박지 말 것**: 사용자 의도 추측이 자주 어긋난다. 누락만 알리고 사용자가 한 줄 찍게 한다.
 - **build·test를 매번 풀로 돌리지 말 것**: docs-only 변경이면 두 단계 다 스킵 가능. 변경 파일 분류로 판정.
 - **`main..HEAD` 빈 출력**: 브랜치가 main과 동일 (아직 commit 없음). 점검 항목 대부분이 "변경 없음 → ✅"으로 떨어지는데, 이건 진짜 OK가 아니라 "점검할 게 없음" — 사용자에게 먼저 commit하라고 알려야 함.
-- **snapshot의 NN 카운팅**: `ls docs/snapshots/`는 영문 정렬이라 `21` 다음에 `3-`이 끼면 순서 어긋남. 패턴으로 NN만 추출 (`ls docs/snapshots/ | grep -oE '^[0-9]+' | sort -n | tail -1`).
+- **snapshot의 NN 카운팅 (자릿수 한정 필수)**: `ls docs/snapshots/`는 영문 정렬이라 `21` 다음에 `3-`이 끼면 순서 어긋남. 또 `docs/snapshots/`에는 `2026-05-09` 같은 날짜 디렉토리(I.6 a11y 등)가 NN-slug와 섞여있어서 `^[0-9]+-`만으론 부족 — `2026-`도 매치된다. NN은 1~3자리이므로 반드시 자릿수까지 한정: `ls docs/snapshots/ | grep -E '^[0-9]{1,3}-' | sort -t- -k1,1n | tail -3`. NN이 1000 넘으면 그때 확장. trash-status도 같은 함정이라 함께 점검.
 - **`trash-feature-merge-flow`와 중복 안 됨**: 이 스킬은 "점검만", 그 스킬은 "실행". 사용자가 "마무리 ㄱㄱ"라고 하면 점검 후 머지 흐름까지 가는 게 자연스럽지만, 별도 스킬 invoke 결정은 사용자에게 맡긴다.
 - **commit body 예시 인용 false positive**: subject·브랜치명만 추출 소스로 쓰고 body(%B)는 피한다. body엔 설계 설명·다른 task 인용·CHANGELOG 발췌 등이 자주 들어가 P/I 패턴이 noise로 잡힌다. subject scope(feat(P3.1b):)와 브랜치 슬러그(feat/p3.1b-...)가 의도의 1차 출처.
