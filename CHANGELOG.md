@@ -9,6 +9,8 @@
 
 ## [Unreleased]
 
+## [0.22.0] - 2026-05-10
+
 ### Changed
 - 토스트가 빠른 연속으로 발사돼도 직전 토스트를 덮지 않고 위→아래 chronological 순으로 최대 3장까지 stacking됩니다. 4장째가 들어오면 가장 오래된 것이 즉시 사라지고 새 것이 stack 하단에 등장합니다. 토스트 사이 8px 간격, position(`top`/`center`)별로 독립 stack. tap mode 배너는 별개 영역으로 그대로 동작 (P2.25).
 
@@ -310,7 +312,8 @@
 - `~/.claude/skills/snapshot/` — 글로벌 스냅샷 스킬 (프레임워크 무관, config 기반)
 - `CLAUDE.md` — 세션 진입 가이드 (작업 큐 / 시각 히스토리 / CHANGELOG 포인터)
 
-[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.21.1...HEAD
+[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.22.0...HEAD
+[0.22.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.21.1...v0.22.0
 [0.21.1]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.21.0...v0.21.1
 [0.21.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.20.0...v0.21.0
 [0.20.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.19.2...v0.20.0
