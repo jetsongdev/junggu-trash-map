@@ -9,6 +9,8 @@
 
 ## [Unreleased]
 
+## [0.21.0] - 2026-05-10
+
 ### Changed
 - HUD floating groups, 검색박스, status 카드, 토스트에 Apple Liquid Glass 톤 적용 — backdrop-blur + saturate + inset highlight로 깊이감, 활성 칩은 색 identity 유지
 
@@ -299,7 +301,8 @@
 - `~/.claude/skills/snapshot/` — 글로벌 스냅샷 스킬 (프레임워크 무관, config 기반)
 - `CLAUDE.md` — 세션 진입 가이드 (작업 큐 / 시각 히스토리 / CHANGELOG 포인터)
 
-[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.20.0...HEAD
+[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.21.0...HEAD
+[0.21.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.20.0...v0.21.0
 [0.20.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.19.2...v0.20.0
 [0.19.2]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.19.1...v0.19.2
 [0.19.1]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.19.0...v0.19.1
