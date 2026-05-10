@@ -9,6 +9,8 @@
 
 ## [Unreleased]
 
+## [0.21.1] - 2026-05-10
+
 ### Fixed
 - ShareButton, FilterChips 비활성 칩, DistrictSelector 🗺 트리거 버튼이 P2.24 Liquid Glass 적용 후에도 옛 `bg-white/95 ring-neutral-300` 스타일을 유지해 floating glass 컨테이너 안에서 시각적으로 튀던 문제 해결 — 동일한 transparent + ring-white/40 톤으로 통일하고 트리거 활성 색은 5색 accent identity(85% solid)로 강화
 
@@ -305,7 +307,8 @@
 - `~/.claude/skills/snapshot/` — 글로벌 스냅샷 스킬 (프레임워크 무관, config 기반)
 - `CLAUDE.md` — 세션 진입 가이드 (작업 큐 / 시각 히스토리 / CHANGELOG 포인터)
 
-[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.21.0...HEAD
+[Unreleased]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.21.1...HEAD
+[0.21.1]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.21.0...v0.21.1
 [0.21.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.20.0...v0.21.0
 [0.20.0]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.19.2...v0.20.0
 [0.19.2]: https://github.com/jetsongdev/junggu-trash-map/compare/v0.19.1...v0.19.2
