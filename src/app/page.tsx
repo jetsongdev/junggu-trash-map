@@ -38,6 +38,13 @@ import {
 } from '@/lib/a11y';
 import { fetchDistrict, filterByTypes } from '@/lib/data';
 import { boundsForDistrict } from '@/lib/district-grid';
+import {
+  buildDistrictBreakdown,
+  countLoadedPopulatedDistricts,
+  countPopulatedDistricts,
+  countTerminalPopulatedDistricts,
+  districtVisualStatus,
+} from '@/lib/district-progress';
 import { fetchHints, mergeHints } from '@/lib/hints';
 import {
   fetchDistrictsGeoJson,
@@ -487,26 +494,22 @@ function PageContent() {
   }, [manifest]);
 
   const populatedDistrictCount = useMemo(
-    () => (manifest ? manifest.districts.filter((d) => d.binCount > 0).length : 0),
+    () => countPopulatedDistricts(manifest),
     [manifest],
   );
 
   const loadedPopulatedCount = useMemo(() => {
-    if (!manifest) return 0;
-    return manifest.districts.filter(
-      (d) => d.binCount > 0 && activeDistricts.has(d.code),
-    ).length;
+    return countLoadedPopulatedDistricts(manifest, activeDistricts);
   }, [activeDistricts, manifest]);
 
   // Terminal = loaded OR failed. Overlay dismisses on terminal so a failed fetch
   // doesn't pin it forever.
   const terminalPopulatedCount = useMemo(() => {
-    if (!manifest) return 0;
-    return manifest.districts.filter(
-      (d) =>
-        d.binCount > 0 &&
-        (activeDistricts.has(d.code) || failedDistricts.has(d.code)),
-    ).length;
+    return countTerminalPopulatedDistricts(
+      manifest,
+      activeDistricts,
+      failedDistricts,
+    );
   }, [activeDistricts, failedDistricts, manifest]);
 
   const fullyLoaded =
@@ -675,29 +678,16 @@ function PageContent() {
     if (error) showToast(error, 6000, 'error');
   }, [error, showToast]);
 
-  type DistrictRow = {
-    code: DistrictCode;
-    name: string;
-    binCount: number;
-    loaded: boolean;
-    inFlight: boolean;
-    failed: boolean;
-  };
-
-  const districtBreakdown = useMemo<DistrictRow[]>(() => {
-    if (!manifest) return [];
-    return manifest.districts
-      .filter((d) => d.binCount > 0)
-      .map((d) => ({
-        code: d.code,
-        name: d.name,
-        binCount: d.binCount,
-        loaded: districtsCache.has(d.code),
-        inFlight: activeFetches.has(d.code),
-        failed: failedDistricts.has(d.code),
-      }))
-      .sort((a, b) => b.binCount - a.binCount);
-  }, [districtsCache, activeFetches, failedDistricts, manifest]);
+  const districtBreakdown = useMemo(
+    () =>
+      buildDistrictBreakdown(
+        manifest,
+        districtsCache,
+        activeFetches,
+        failedDistricts,
+      ),
+    [districtsCache, activeFetches, failedDistricts, manifest],
+  );
 
   const totalAvailableBins = useMemo(
     () =>
@@ -1387,13 +1377,7 @@ function PageContent() {
               </div>
               <ul className="space-y-1 text-xs">
                 {districtBreakdown.map((d) => {
-                  const status = d.loaded
-                    ? 'loaded'
-                    : d.failed
-                      ? 'failed'
-                      : d.inFlight
-                        ? 'inFlight'
-                        : 'pending';
+                  const status = districtVisualStatus(d);
                   const { icon, cls } = STATUS_VIS[status];
                   return (
                     <li
@@ -1511,13 +1495,7 @@ function PageContent() {
                 {districtBreakdown.length >= 2 && (
                   <ul className="mt-1.5 space-y-0.5 border-t border-neutral-200/70 pt-1.5 dark:border-neutral-700/70">
                     {districtBreakdown.map((d) => {
-                      const status = d.loaded
-                        ? 'loaded'
-                        : d.failed
-                          ? 'failed'
-                          : d.inFlight
-                            ? 'inFlight'
-                            : 'pending';
+                      const status = districtVisualStatus(d);
                       const { icon, cls } = STATUS_VIS[status];
                       return (
                         <li

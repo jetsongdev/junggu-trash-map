@@ -55,6 +55,7 @@
 | 47 | 2026-05-10 | 🥞🥞 토스트 stacking 한도 제거 — cap=3 → 무한 N. 5장 stacking 시각 contract (P2.25 refactor) | [47-toast-stacking-no-cap](./47-toast-stacking-no-cap/) |
 | 48 | 2026-05-10 | 🧭 P3.5+P2.26 머지 후 baseline (v0.23.0) — routing reset & GPS-anchor zoom은 인터랙션 trigger 동작이라 정적 캡처는 milestone 표식 | [48-routing-reset-baseline](./48-routing-reset-baseline/) |
 | 49 | 2026-05-10 | 🌑 BinPopup 다크 모드 가독성 — 본문 텍스트 7곳 `dark:` 변형 추가 + popup wrapper alpha 0.82 → 0.92 (P2.27) | [49-popup-dark-readability](./49-popup-dark-readability/) |
+| 50 | 2026-05-11 | 🧪 리팩터 + Playwright e2e baseline — 자치구 로드 상태 계산 순수 모듈 분리 후 모바일·데스크톱 시각 기준선 | [50-refactor-e2e-baseline](./50-refactor-e2e-baseline/) |
 
 ## 새 스냅샷 찍는 법
 

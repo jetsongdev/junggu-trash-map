@@ -3,6 +3,7 @@ import path from 'path';
 
 export default defineConfig({
   test: {
+    exclude: ['**/node_modules/**', '**/dist/**', '**/.next/**', 'e2e/**'],
     globals: true,
   },
   resolve: {
