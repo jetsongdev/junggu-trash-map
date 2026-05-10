@@ -105,6 +105,7 @@
 핵심 기능 다 들어가있고, 아래는 사용성·확장성 강화. 가벼운 → 무거운 순:
 
 - [x] **P2.25** 토스트 stacking 큐 — `lib/toast-queue.ts` 순수 모듈(`pushToast`/`markExiting`/`removeToast`, vitest 8개) + page.tsx single state → array. 위(오래된)→아래(최신) chronological, position(`top`/`center`)별 독립 stack(`flex-col gap-2`), 한도 없음. variant·duration·색·아이콘·tap mode 배너 모두 그대로.
+- [x] **P2.27** BinPopup 다크 모드 가독성 — 컴포넌트 7곳에 `dark:` 변형 추가(제목 `text-neutral-50`, hint/주소 `text-neutral-100`, 관리자 `text-neutral-300` + `border-neutral-700`, 즐겨찾기 ☆ 비활성 hover 톤 다크 분기) + `globals.css`의 `.dark .leaflet-popup-content-wrapper` background `rgba(23,23,23,0.82)` → `0.92`(tip도 동일), border alpha `0.12` → `0.14`. 라이트 모드 톤은 변경 없음. snapshot `48-popup-dark-readability/` (390×844 다크 popup-open).
 - [ ] **P2.3** 클러스터링 — `leaflet.markercluster`. 마커 100+ 시 lag 방지. **25구 확장(Phase 3) 전엔 ø**
 - [x] **P2.26** 확대/축소 시 사용자 위치 기준 — `lib/zoom-anchor.ts` `getZoomAnchor(origin, dest)` 순수 함수 + vitest 4개. 키보드 `=`/`-` + 좌하단 ➕/➖ 버튼만 anchor 적용 (휠/핀치는 Leaflet 기본 cursor anchor 유지). 우선순위: origin+dest midpoint > origin > 기본 viewport center. dest only는 무시(출발지 없이 anchor 비활성). `map.setZoomAround` 사용. spec: `docs/superpowers/specs/2026-05-10-p3-5-p2-26-bundle-design.md`.
 - [x] **P2.18** 통계바 정보 분리 — `locateError`/`error`를 우하단 카드(접힘 시 숨겨짐) 안에서 빼서 빨간 토스트(`variant: 'error'`, role=alert, ⚠ prefix, 6초)로 렌더. 통계바(우하단 카드 펼침 영역)는 route/savings 등 성공 상태만 표시. P2.23-fix5 status overlay 통합 후 발견된 회귀(접힘 시 에러 미노출)와 함께 한 라운드에 처리. (UX U4)
