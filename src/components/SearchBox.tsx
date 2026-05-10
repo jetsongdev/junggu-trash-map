@@ -166,7 +166,7 @@ export function SearchBox({ onSelect, tapMode, onDropdownChange }: Props) {
               ? '목적지 주소·랜드마크 검색'
               : '주소·랜드마크 검색'
         }
-        className={`min-h-[44px] w-full rounded-2xl border border-neutral-200 bg-white px-4 pr-12 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-500 focus:border-neutral-400 focus:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:placeholder:text-neutral-500 dark:focus:border-neutral-500 dark:focus:bg-neutral-800 ${FOCUS_VISIBLE_CLASS}`}
+        className={`glass-surface-strong min-h-[44px] w-full rounded-2xl px-4 pr-12 text-sm text-neutral-900 outline-none transition placeholder:text-neutral-500 dark:text-neutral-100 dark:placeholder:text-neutral-500 ${FOCUS_VISIBLE_CLASS}`}
         autoComplete="off"
         spellCheck={false}
       />
@@ -175,7 +175,7 @@ export function SearchBox({ onSelect, tapMode, onDropdownChange }: Props) {
       </div>
 
       {showDropdown && (
-        <div className="absolute top-full z-[1000] mt-2 w-full overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-700 dark:bg-neutral-900">
+        <div className="glass-surface-strong absolute top-full z-[1000] mt-2 w-full overflow-hidden rounded-2xl">
           {loading && (
             <div className="px-4 py-3 text-sm text-neutral-700 dark:text-neutral-300">검색 중…</div>
           )}
@@ -194,7 +194,7 @@ export function SearchBox({ onSelect, tapMode, onDropdownChange }: Props) {
                 key={result.place_id}
                 type="button"
                 onClick={() => handleSelect(result)}
-                className={`flex min-h-[44px] w-full items-start gap-3 border-t border-neutral-100 px-4 py-3 text-left text-sm text-neutral-900 first:border-t-0 hover:bg-neutral-100 dark:border-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-800 ${FOCUS_VISIBLE_CLASS}`}
+                className={`flex min-h-[44px] w-full items-start gap-3 border-t border-white/30 px-4 py-3 text-left text-sm text-neutral-900 first:border-t-0 hover:bg-white/40 dark:border-white/10 dark:text-neutral-100 dark:hover:bg-white/10 ${FOCUS_VISIBLE_CLASS}`}
               >
                 <span aria-hidden className="pt-0.5 text-neutral-500 dark:text-neutral-400">
                   📍

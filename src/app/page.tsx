@@ -976,7 +976,7 @@ function PageContent() {
   };
 
   const hudInactive =
-    'bg-white/95 text-neutral-700 ring-1 ring-neutral-300 hover:bg-white dark:bg-neutral-900/95 dark:text-neutral-200 dark:ring-neutral-700 dark:hover:bg-neutral-800';
+    'bg-transparent text-neutral-700 ring-1 ring-white/40 hover:bg-white/30 dark:text-neutral-200 dark:ring-white/15 dark:hover:bg-white/10';
   const hudChip =
     `flex h-9 items-center gap-1.5 rounded-md px-2.5 text-sm font-medium whitespace-nowrap transition ring-1 ${FOCUS_VISIBLE_CLASS}`;
   const hudIconBtn =
@@ -985,16 +985,15 @@ function PageContent() {
     `relative flex h-9 w-[74px] shrink-0 items-center justify-center gap-1 px-2 text-xs font-medium leading-none transition ${FOCUS_VISIBLE_CLASS}`;
   const routeSegmentInactive =
     'text-neutral-700 hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-neutral-800';
-  const hudFloatingGroup =
-    'rounded-md bg-white/80 ring-1 ring-neutral-300 backdrop-blur-sm dark:bg-neutral-900/80 dark:ring-neutral-700';
+  const hudFloatingGroup = 'rounded-md glass-surface';
   const hudAmberActive =
-    'bg-amber-500/15 text-amber-700 ring-1 ring-amber-500 shadow-sm dark:bg-amber-400/15 dark:text-amber-200 dark:ring-amber-400';
+    'bg-amber-500/85 text-white ring-1 ring-amber-300 shadow-sm dark:bg-amber-400/80 dark:text-neutral-950 dark:ring-amber-200';
   const hudSkyActive =
-    'bg-sky-500/15 text-sky-700 ring-1 ring-sky-500 shadow-sm dark:bg-sky-400/15 dark:text-sky-200 dark:ring-sky-400';
+    'bg-sky-500/85 text-white ring-1 ring-sky-300 shadow-sm dark:bg-sky-400/80 dark:text-neutral-950 dark:ring-sky-200';
   const hudVioletActive =
-    'bg-violet-500/15 text-violet-700 ring-1 ring-violet-500 shadow-sm dark:bg-violet-400/15 dark:text-violet-200 dark:ring-violet-400';
+    'bg-violet-500/85 text-white ring-1 ring-violet-300 shadow-sm dark:bg-violet-400/80 dark:text-neutral-950 dark:ring-violet-200';
   const hudEmeraldActive =
-    'bg-emerald-500/15 text-emerald-700 ring-1 ring-emerald-500 shadow-sm dark:bg-emerald-400/15 dark:text-emerald-200 dark:ring-emerald-400';
+    'bg-emerald-500/85 text-white ring-1 ring-emerald-300 shadow-sm dark:bg-emerald-400/80 dark:text-neutral-950 dark:ring-emerald-200';
   const shareState: AppState = {
     selected,
     tileTheme,
@@ -1006,11 +1005,11 @@ function PageContent() {
 
   return (
     <div
-      className={`flex h-dvh flex-col bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100 ${
+      className={`relative h-dvh bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100 ${
         tileTheme === 'dark' ? 'dark' : ''
       }`}
     >
-      <header className="border-b border-neutral-200 bg-neutral-50 px-4 py-3 dark:border-neutral-800 dark:bg-neutral-950">
+      <header className="glass-surface absolute inset-x-0 top-0 z-[1020] border-b border-white/30 px-4 py-3 dark:border-white/10">
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-bold tracking-tight">🗑️ 중구 휴지통 지도</h1>
           <span className="rounded bg-amber-400 px-1.5 py-0.5 text-[10px] font-bold text-neutral-900">
@@ -1028,7 +1027,7 @@ function PageContent() {
             }}
             aria-label={`테마 ${tileTheme === 'dark' ? '라이트로 전환' : '다크로 전환'}`}
             title={tileTheme === 'dark' ? '다크 테마 (탭하면 라이트)' : '라이트 테마 (탭하면 다크)'}
-            className={`ml-auto flex h-9 w-9 items-center justify-center rounded-md text-neutral-600 ring-1 ring-neutral-200 transition hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:ring-neutral-700 dark:hover:bg-neutral-800 dark:hover:text-neutral-100 ${FOCUS_VISIBLE_CLASS}`}
+            className={`ml-auto flex h-9 w-9 items-center justify-center rounded-md transition ${hudInactive} ${FOCUS_VISIBLE_CLASS}`}
           >
             {tileTheme === 'dark' ? (
               <Moon size={18} aria-hidden="true" />
@@ -1041,7 +1040,7 @@ function PageContent() {
 
       <section
         aria-label="검색 및 컨트롤"
-        className="relative z-[1000] border-b border-neutral-200 bg-neutral-100 px-4 py-3 dark:border-neutral-800 dark:bg-neutral-900"
+        className="glass-surface absolute inset-x-0 top-[60px] z-[1010] border-b border-white/30 px-4 py-3 dark:border-white/10"
       >
         <div className="mb-3 flex gap-2">
           <div className="flex-1">
@@ -1060,7 +1059,7 @@ function PageContent() {
         <div className="flex flex-wrap items-center gap-2">
           {/* 그룹 1: 위치/경로/속도 */}
           <div className="flex flex-wrap items-center gap-1.5">
-            <div className="flex overflow-hidden rounded-md bg-white/95 ring-1 ring-neutral-300 dark:bg-neutral-900/95 dark:ring-neutral-700">
+            <div className="flex overflow-hidden rounded-md glass-surface">
               <button
                 type="button"
                 onClick={onOriginTap}
@@ -1164,7 +1163,7 @@ function PageContent() {
           </div>
         </div>
         {speedSliderOpen && (
-          <div className="mt-2 flex items-center gap-3 rounded-md bg-white/95 px-3 py-2 ring-1 ring-emerald-500/40 dark:bg-neutral-900/95">
+          <div className="mt-2 flex items-center gap-3 rounded-md px-3 py-2 ring-1 ring-emerald-500/40 glass-surface">
             <Footprints size={20} aria-hidden="true" className="text-emerald-700 dark:text-emerald-300" />
             <input
               type="range"
@@ -1195,7 +1194,7 @@ function PageContent() {
         )}
       </section>
 
-      <main className="relative min-h-0 flex-1">
+      <main className="absolute inset-0">
         <MapView
           bins={visible}
           userLocation={userLocation}
@@ -1227,7 +1226,7 @@ function PageContent() {
           districtsGeo={districtsGeo}
         />
         {/* 좌상단: 거리모드 (직선/격자) 단독 */}
-        <div className={`absolute left-2 top-2 z-[1000] p-1.5 ${hudFloatingGroup}`}>
+        <div className={`absolute left-2 top-[180px] z-[1000] p-1.5 ${hudFloatingGroup}`}>
           <button
             type="button"
             onClick={() => {
@@ -1253,7 +1252,7 @@ function PageContent() {
           </button>
         </div>
         {/* 우상단: 자치구 셀렉터 + 필터 (휴지통/재활용) 세로 stack */}
-        <div className={`absolute right-2 top-2 z-[1000] flex flex-col items-end gap-1.5 p-1.5 ${hudFloatingGroup}`}>
+        <div className={`absolute right-2 top-[180px] z-[1000] flex flex-col items-end gap-1.5 p-1.5 ${hudFloatingGroup}`}>
           {manifest && (
             <DistrictSelector
               manifest={manifest}
@@ -1336,7 +1335,7 @@ function PageContent() {
             aria-live="polite"
             aria-label="자치구 데이터 로드 중"
           >
-            <div className="rounded-2xl bg-white/95 px-5 py-4 text-sm text-neutral-900 shadow-2xl ring-1 ring-neutral-200 backdrop-blur-sm min-w-[200px] dark:bg-neutral-900/85 dark:text-neutral-100 dark:ring-neutral-700">
+            <div className="glass-surface-strong rounded-2xl px-5 py-4 text-sm text-neutral-900 min-w-[200px] dark:text-neutral-100">
               <div className="mb-2 flex items-center gap-2 font-semibold">
                 <span
                   aria-hidden
@@ -1389,7 +1388,7 @@ function PageContent() {
             style={{ opacity: tapBannerShown ? 1 : 0, transition: "opacity 300ms ease-out" }}
           >
             <div
-              className={`rounded-2xl max-w-sm px-6 py-4 text-center text-sm font-semibold text-white shadow-lg ring-1 ring-white/25 backdrop-blur-xl ${
+              className={`glass-toast rounded-2xl max-w-sm px-6 py-4 text-center text-sm font-semibold text-white ring-1 ring-white/25 ${
                 displayedTapTarget === "origin"
                   ? "bg-violet-500/20"
                   : "bg-rose-500/20"
@@ -1412,10 +1411,10 @@ function PageContent() {
             <div
               className={
                 toast.variant === 'error'
-                  ? 'max-w-sm rounded-2xl bg-red-500/20 px-6 py-4 text-center text-sm font-semibold text-white shadow-lg ring-1 ring-white/25 backdrop-blur-xl'
+                  ? 'glass-toast max-w-sm rounded-2xl bg-red-500/20 px-6 py-4 text-center text-sm font-semibold text-white ring-1 ring-white/25'
                   : toast.variant === 'emphatic'
-                    ? 'max-w-sm rounded-2xl bg-emerald-500/20 px-6 py-4 text-center text-sm font-semibold text-white shadow-lg ring-1 ring-white/25 backdrop-blur-xl'
-                    : 'max-w-sm rounded-2xl bg-white/20 px-6 py-4 text-center text-sm font-medium text-neutral-900 shadow-lg ring-1 ring-white/30 backdrop-blur-xl dark:bg-neutral-900/20 dark:text-neutral-50 dark:ring-neutral-700/30'
+                    ? 'glass-toast max-w-sm rounded-2xl bg-emerald-500/20 px-6 py-4 text-center text-sm font-semibold text-white ring-1 ring-white/25'
+                    : 'glass-toast max-w-sm rounded-2xl bg-white/20 px-6 py-4 text-center text-sm font-medium text-neutral-900 ring-1 ring-white/30 dark:bg-neutral-900/20 dark:text-neutral-50 dark:ring-neutral-700/30'
               }
             >
               {toast.variant === 'error' && <span aria-hidden className="mr-1.5">⚠</span>}
@@ -1425,7 +1424,7 @@ function PageContent() {
           </div>
         )}
         {manifest && (
-          <div className="absolute bottom-7 right-2 z-[1000] flex max-w-[80%] flex-col items-stretch overflow-hidden rounded-lg bg-white/45 text-neutral-800 ring-1 ring-neutral-200 backdrop-blur-sm dark:bg-neutral-900/45 dark:text-neutral-100 dark:ring-neutral-700">
+          <div className="absolute bottom-7 right-2 z-[1000] flex max-w-[80%] flex-col items-stretch overflow-hidden rounded-lg text-neutral-800 dark:text-neutral-100 glass-surface">
             {!statusCollapsed && (
               <div className="border-b border-neutral-200/70 px-3 py-2 text-[11px] leading-relaxed dark:border-neutral-700/70">
                 <a
