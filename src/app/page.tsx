@@ -557,18 +557,7 @@ function PageContent() {
     const fadeStart = Math.max(0, durationMs - TOAST_FADE_MS);
     const timers = toastTimersRef.current;
 
-    setToasts((prev) => {
-      const result = pushToast(prev, { id, text, variant, position, durationMs });
-      for (const evictedId of result.evictedIds) {
-        const t = timers.get(evictedId);
-        if (t) {
-          window.clearTimeout(t.fade);
-          window.clearTimeout(t.unmount);
-          timers.delete(evictedId);
-        }
-      }
-      return result.next;
-    });
+    setToasts((prev) => pushToast(prev, { id, text, variant, position, durationMs }));
 
     const fade = window.setTimeout(() => {
       setToasts((prev) => markExiting(prev, id));

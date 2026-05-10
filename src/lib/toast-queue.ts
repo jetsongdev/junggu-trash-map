@@ -10,22 +10,11 @@ export interface ToastItem {
   exiting: boolean;
 }
 
-export const MAX_VISIBLE_TOASTS = 3;
-
 export function pushToast(
   list: ToastItem[],
   next: Omit<ToastItem, 'exiting'>,
-): { next: ToastItem[]; evictedIds: number[] } {
-  const item = { ...next, exiting: false };
-  if (list.length < MAX_VISIBLE_TOASTS) {
-    return { next: [...list, item], evictedIds: [] };
-  }
-
-  const evicted = list.slice(0, list.length - MAX_VISIBLE_TOASTS + 1);
-  return {
-    next: [...list.slice(evicted.length), item],
-    evictedIds: evicted.map((toast) => toast.id),
-  };
+): ToastItem[] {
+  return [...list, { ...next, exiting: false }];
 }
 
 export function markExiting(list: ToastItem[], id: number): ToastItem[] {

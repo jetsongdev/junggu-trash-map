@@ -104,7 +104,7 @@
 
 핵심 기능 다 들어가있고, 아래는 사용성·확장성 강화. 가벼운 → 무거운 순:
 
-- [x] **P2.25** 토스트 stacking 큐 — `lib/toast-queue.ts` 순수 모듈(`pushToast`/`markExiting`/`removeToast`, MAX 3, vitest 8개) + page.tsx single state → array. 위(오래된)→아래(최신) chronological, position(`top`/`center`)별 독립 stack(`flex-col gap-2`), 4번째 push 시 가장 오래된 것 evict + timer cleanup. variant·duration·색·아이콘·tap mode 배너 모두 그대로.
+- [x] **P2.25** 토스트 stacking 큐 — `lib/toast-queue.ts` 순수 모듈(`pushToast`/`markExiting`/`removeToast`, vitest 8개) + page.tsx single state → array. 위(오래된)→아래(최신) chronological, position(`top`/`center`)별 독립 stack(`flex-col gap-2`), 한도 없음. variant·duration·색·아이콘·tap mode 배너 모두 그대로.
 - [ ] **P2.3** 클러스터링 — `leaflet.markercluster`. 마커 100+ 시 lag 방지. **25구 확장(Phase 3) 전엔 ø**
 - [ ] **P2.26** 확대/축소 시 사용자 위치 기준 — 현재 Leaflet 기본 동작은 viewport center 기준 zoom. `userLocation` 있으면 GPS 점을 focal point로 zoom (`map.setView(userLocation, newZoom)` 또는 anchor 옵션). 트리거: `=`/`-` 키보드 shortcut(I.6) + 좌하단 `<ZoomControl />` 버튼. 결정 포인트: (a) GPS 점 active일 때만 적용할지 항상 viewport center 기준으로 둘지, (b) 사용자가 명시적으로 panning한 후에도 GPS 점으로 snap back 시킬지, (c) 휠/핀치 zoom도 같은 동작으로 통일할지 키보드+버튼만 적용할지
 - [x] **P2.18** 통계바 정보 분리 — `locateError`/`error`를 우하단 카드(접힘 시 숨겨짐) 안에서 빼서 빨간 토스트(`variant: 'error'`, role=alert, ⚠ prefix, 6초)로 렌더. 통계바(우하단 카드 펼침 영역)는 route/savings 등 성공 상태만 표시. P2.23-fix5 status overlay 통합 후 발견된 회귀(접힘 시 에러 미노출)와 함께 한 라운드에 처리. (UX U4)

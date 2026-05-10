@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  MAX_VISIBLE_TOASTS,
   markExiting,
   pushToast,
   removeToast,
@@ -19,7 +18,7 @@ function makeToast(id: number, exiting = false): ToastItem {
 }
 
 describe('pushToast', () => {
-  it('pushes into an empty list without evicting', () => {
+  it('pushes into an empty list', () => {
     const result = pushToast([], {
       id: 1,
       text: 'hello',
@@ -28,8 +27,8 @@ describe('pushToast', () => {
       durationMs: 1800,
     });
 
-    expect(result.next).toHaveLength(1);
-    expect(result.next[0]).toEqual({
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual({
       id: 1,
       text: 'hello',
       variant: 'info',
@@ -37,10 +36,9 @@ describe('pushToast', () => {
       durationMs: 1800,
       exiting: false,
     });
-    expect(result.evictedIds).toEqual([]);
   });
 
-  it('pushes a third toast without evicting when list length is 2', () => {
+  it('appends to the end of an existing list', () => {
     const result = pushToast([makeToast(1), makeToast(2)], {
       id: 3,
       text: 'third',
@@ -49,23 +47,24 @@ describe('pushToast', () => {
       durationMs: 4000,
     });
 
-    expect(result.next).toHaveLength(MAX_VISIBLE_TOASTS);
-    expect(result.next.map((toast) => toast.id)).toEqual([1, 2, 3]);
-    expect(result.evictedIds).toEqual([]);
+    expect(result).toHaveLength(3);
+    expect(result.map((toast) => toast.id)).toEqual([1, 2, 3]);
   });
 
-  it('evicts the oldest toast when list length is 3', () => {
-    const result = pushToast([makeToast(1), makeToast(2), makeToast(3)], {
-      id: 4,
-      text: 'fourth',
-      variant: 'error',
-      position: 'top',
-      durationMs: 6000,
-    });
+  it('stacks beyond 3 without dropping anything', () => {
+    let list: ToastItem[] = [];
+    for (let i = 1; i <= 5; i++) {
+      list = pushToast(list, {
+        id: i,
+        text: `toast ${i}`,
+        variant: 'info',
+        position: 'center',
+        durationMs: 1800,
+      });
+    }
 
-    expect(result.next).toHaveLength(MAX_VISIBLE_TOASTS);
-    expect(result.next.map((toast) => toast.id)).toEqual([2, 3, 4]);
-    expect(result.evictedIds).toEqual([1]);
+    expect(list).toHaveLength(5);
+    expect(list.map((toast) => toast.id)).toEqual([1, 2, 3, 4, 5]);
   });
 
   it('maintains chronological order', () => {
@@ -76,21 +75,21 @@ describe('pushToast', () => {
       variant: 'info',
       position: 'center',
       durationMs: 1800,
-    }).next;
+    });
     list = pushToast(list, {
       id: 2,
       text: 'second',
       variant: 'info',
       position: 'center',
       durationMs: 1800,
-    }).next;
+    });
     list = pushToast(list, {
       id: 3,
       text: 'third',
       variant: 'info',
       position: 'center',
       durationMs: 1800,
-    }).next;
+    });
 
     expect(list.map((toast) => toast.id)).toEqual([1, 2, 3]);
   });
