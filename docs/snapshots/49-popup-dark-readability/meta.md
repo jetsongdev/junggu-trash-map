@@ -1,15 +1,15 @@
 ---
-index: 48
+index: 49
 slug: popup-dark-readability
 date: 2026-05-10
 phase: P2.27
-git_sha: cdf390a (clean)
+git_sha: cdf390a (pre-merge)
 viewport: 390x844
 url: http://localhost:3010
 title: BinPopup 다크 모드 가독성 보강
 ---
 
-# 48 — BinPopup 다크 모드 가독성 보강
+# 49 — BinPopup 다크 모드 가독성 보강
 
 P2.24 Liquid Glass 적용 후 다크 모드에서 `BinPopup`의 본문 텍스트가 거의 안 보이던 회귀를 좁게 막은 라운드. 컴포넌트가 `text-neutral-900/700/500`만 들고 있어서 `dark:` 변형이 없어 검정 텍스트가 다크 popup wrapper(`rgba(23,23,23,0.82)`) + 그 뒤 다크 타일에 그대로 묻혔다. 두 곳을 동시에 손봤다 — (1) 컴포넌트 텍스트에 `dark:` 변형 추가, (2) `globals.css`의 `.dark .leaflet-popup-content-wrapper` alpha 0.82 → 0.92 로 약간 상향해 잔존하는 lab(98) 흰 텍스트의 contrast를 확실히 끌어올렸다. 라이트 모드는 손대지 않음.
 
