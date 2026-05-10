@@ -37,7 +37,7 @@ Apple iOS/iPadOS 26 Liquid Glass 시각 언어를 6개 floating UI 표면에 적
 - `dark:bg-amber-400/80 dark:text-neutral-950 dark:ring-amber-200` (dark — ring이 밝아 텍스트는 어둡게)
 - 4색 모두 동일 패턴 (sky/violet/emerald/violet)
 
-## 4 시나리오
+## 4 시나리오 (1차)
 
 | 파일 | 상태 |
 |---|---|
@@ -45,6 +45,17 @@ Apple iOS/iPadOS 26 Liquid Glass 시각 언어를 6개 floating UI 표면에 적
 | `screenshot-dark-default.png` | 다크 기본 — alpha 0.55에서 마커 식별 가능, 텍스트 가독성 OK |
 | `screenshot-light-status-open.png` | 우하단 status 카드 펼쳐 자치구 7행 + 출처 노출 |
 | `screenshot-light-search-dropdown.png` | 검색박스에 "명동" 입력 → glass-surface-strong dropdown 노출, 항목 hover OK |
+
+## 4 시나리오 (2차 — extension)
+
+P2.24 머지 직전, 사용자가 "지도 위 컴포넌트 뿐만 아니라 전체 모든 컴포넌트에 적용" 요청 → header / 헤더 테마 토글 / DistrictSelector 그리드 패널 / Leaflet popup 4 표면 추가 적용. 동일 토큰 재사용.
+
+| 파일 | 상태 |
+|---|---|
+| `screenshot-light-extended.png` | 라이트 + 헤더에 glass-surface 적용된 상태 |
+| `screenshot-dark-extended.png` | 다크 + 헤더 glass — 마커 색·가독성 OK |
+| `screenshot-light-district-grid.png` | 우상단 🗺 셀렉터 panel 열린 상태 — 5x5 grid가 glass-surface |
+| `screenshot-light-popup.png` | 마커 클릭 시 Leaflet popup wrapper에 glass-surface-strong 적용 |
 
 ## 결정 이력
 
