@@ -11,7 +11,7 @@ type Props = {
 };
 
 const INACTIVE =
-  'bg-white/70 text-neutral-700 ring-1 ring-neutral-300 hover:bg-white dark:bg-neutral-900/70 dark:text-neutral-200 dark:ring-neutral-700 dark:hover:bg-neutral-800';
+  'bg-transparent text-neutral-700 ring-1 ring-white/40 hover:bg-white/30 dark:text-neutral-200 dark:ring-white/15 dark:hover:bg-white/10';
 const CHIP =
   `flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-lg font-semibold transition ${FOCUS_VISIBLE_CLASS}`;
 

@@ -18,9 +18,9 @@ type Props = {
 const TRIGGER_BASE =
   `relative flex h-11 w-11 shrink-0 items-center justify-center rounded-md px-2 text-base font-medium transition ring-1 ${FOCUS_VISIBLE_CLASS}`;
 const TRIGGER_INACTIVE =
-  'bg-white/95 text-neutral-700 ring-neutral-300 hover:bg-white dark:bg-neutral-900/95 dark:text-neutral-200 dark:ring-neutral-700 dark:hover:bg-neutral-800';
+  'bg-transparent text-neutral-700 ring-white/40 hover:bg-white/30 dark:text-neutral-200 dark:ring-white/15 dark:hover:bg-white/10';
 const TRIGGER_ACTIVE =
-  'bg-teal-500/15 text-teal-700 ring-teal-500 shadow-sm dark:bg-teal-400/15 dark:text-teal-200 dark:ring-teal-400';
+  'bg-teal-500/85 text-white ring-teal-300 shadow-sm dark:bg-teal-400/80 dark:text-neutral-950 dark:ring-teal-200';
 const CELL_BASE =
   `flex h-11 w-11 flex-col items-center justify-center rounded-md text-[10px] font-semibold leading-none transition ring-1 ${FOCUS_VISIBLE_CLASS}`;
 const POPULATED_CELL =
